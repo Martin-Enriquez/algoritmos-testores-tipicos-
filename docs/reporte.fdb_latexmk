@@ -1,6 +1,6 @@
 # Fdb version 4
-["pdflatex"] 1792105187.52741 "/Users/martin/Documents/SEMESTRE 3/MATES DISCRETAS/PROYECTO_Testores/REPO_PROJECT/algoritmos-testores-tipicos-/algoritmos-testores-tipicos/docs/reporte.tex" "reporte.pdf" "reporte" 1792105188.40926 0
-  "/Users/martin/Documents/SEMESTRE 3/MATES DISCRETAS/PROYECTO_Testores/REPO_PROJECT/algoritmos-testores-tipicos-/algoritmos-testores-tipicos/docs/reporte.tex" 1792105187.28984 1941 388285b11689c5485877d1c1e96f184d ""
+["pdflatex"] 1792188216.81376 "/Users/martin/Documents/SEMESTRE 3/MATES DISCRETAS/PROYECTO_Testores/REPO_PROJECT/algoritmos-testores-tipicos-/algoritmos-testores-tipicos/docs/reporte.tex" "reporte.pdf" "reporte" 1792188217.72136 0
+  "/Users/martin/Documents/SEMESTRE 3/MATES DISCRETAS/PROYECTO_Testores/REPO_PROJECT/algoritmos-testores-tipicos-/algoritmos-testores-tipicos/docs/reporte.tex" 1792188216.43726 1940 17bef1e2a0981ae55e47a4a5fc4b9206 ""
   "/usr/local/texlive/2026/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/local/texlive/2026/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex7.tfm" 1246382020 1004 54797486969f23fa377b128694d548df ""
   "/usr/local/texlive/2026/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex8.tfm" 1246382020 988 bdf658c3bfc2d96d3c8b02cfc1c94c20 ""
@@ -153,9 +153,9 @@
   "/usr/local/texlive/2026/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1788045671 5573038 b99aad5e4898a9034e953632f940512b ""
   "/usr/local/texlive/2026/texmf-var/web2c/pdftex/pdflatex.fmt" 1788045586 3636771 6a7173d60112f36e3601127ccbf8d472 ""
   "/usr/local/texlive/2026/texmf.cnf" 1774209515 577 648cd9f92f9c0eac486f4c71c85cfbbe ""
-  "reporte.aux" 1792105188.34849 362 d67cc7faca54b5c0739f2affa32082b7 "pdflatex"
-  "reporte.out" 1792105188.12164 0 d41d8cd98f00b204e9800998ecf8427e "pdflatex"
-  "reporte.tex" 1792105187.28984 1941 388285b11689c5485877d1c1e96f184d ""
+  "reporte.aux" 1792188217.6643 362 d67cc7faca54b5c0739f2affa32082b7 "pdflatex"
+  "reporte.out" 1792188217.47995 0 d41d8cd98f00b204e9800998ecf8427e "pdflatex"
+  "reporte.tex" 1792188216.43726 1940 17bef1e2a0981ae55e47a4a5fc4b9206 ""
   (generated)
   "reporte.aux"
   "reporte.log"
