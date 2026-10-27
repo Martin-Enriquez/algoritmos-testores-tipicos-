@@ -66,3 +66,26 @@ vcpkg_installed/
 # test output & cache
 Testing/
 .cache/
+
+# Binarios compilados a mano
+/bin/
+/testores
+/ejecutable
+
+# LaTeX (se versionan sólo .tex y el PDF final)
+*.aux
+*.fdb_latexmk
+*.fls
+*.synctex.gz
+*.toc
+*.out
+*.lof
+*.lot
+*.bbl
+*.blg
+
+# Editores / SO
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
