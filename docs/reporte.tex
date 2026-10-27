@@ -2,7 +2,8 @@
 
 % --- PAQUETES DE IDIOMA Y FORMATO ---
 \usepackage[utf8]{inputenc}
-\usepackage[spanish, es-tabla]{babel}
+\usepackage[T1]{fontenc}
+\usepackage[spanish, es-tabla, es-nodecimaldot]{babel}
 \usepackage[margin=2.5cm]{geometry}
 \usepackage{fancyhdr}
 \setlength{\headheight}{26pt}
@@ -11,56 +12,673 @@
 \usepackage{booktabs}
 \usepackage{array}
 \usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{fancyvrb}
 \usepackage{hyperref}
 \usepackage{tikz}
 
 % --- CONFIGURACIONES DE ENCABEZADO Y PIE DE PÁGINA ---
 \pagestyle{fancy}
 \fancyhf{}
-% Encabezado
 \fancyhead[L]{\textbf{Universidad San Francisco de Quito}\\Matemáticas Discretas}
-% Pie de página
+\fancyhead[R]{Semestre 202610}
 \fancyfoot[C]{Página \thepage}
 \renewcommand{\headrulewidth}{0.4pt}
 \renewcommand{\footrulewidth}{0.4pt}
 
-% --- DATOS DEL DOCUMENTO ---
-\title{\vspace{-1cm}\Huge\textbf{Reporte del proyecto: Algoritmos para el cálculo de todos los Testores Típicos de una matriz básica}\\[0.3cm]\Large Matemáticas Discretas}
+% Evita que palabras largas en \texttt sobresalgan del margen.
+\setlength{\emergencystretch}{2em}
 
-\author{\textbf{Integrantes:} Martín Enríquez (00347250), Paula Gallardo (00343921), Eduardo Tapia (00346319)\\[0.1cm]
+\hypersetup{colorlinks=true, linkcolor=blue!50!black, urlcolor=blue!50!black, citecolor=blue!50!black}
+
+% --- ENTORNOS TEÓRICOS ---
+\theoremstyle{definition}
+\newtheorem{definicion}{Definición}
+\newtheorem{ejemplo}{Ejemplo}
+\theoremstyle{plain}
+\newtheorem{proposicion}{Proposición}
+
+% --- MACROS ---
+\newcommand{\Psis}{\Psi^{*}}
+\newcommand{\x}[1]{x_{#1}}
+\newcommand{\cj}[1]{\{#1\}}
+\newcommand{\si}{\textcolor{green!50!black}{\ensuremath{\checkmark}}}
+\newcommand{\no}{\textcolor{red!70!black}{\ensuremath{\times}}}
+
+% --- DATOS DEL DOCUMENTO ---
+\title{\vspace{-1cm}\Huge\textbf{Reporte del proyecto: Algoritmos para el cálculo de todos los Testores Típicos de una matriz básica}\\[0.3cm]\Large Matemáticas Discretas --- Semestre 202610}
+
+\author{\textbf{Integrantes:}\\
+    Martín Enríquez (00347250), Paula Gallardo (00343921),\\
+    Eduardo Tapia (00346319)\\[0.1cm]
     \textbf{Profesor:} Eduardo Alba\\
     Universidad San Francisco de Quito (USFQ)}
-\date{\today}
+\date{\textbf{Fecha de culminación:} \today}
 
 \begin{document}
-    
-    \maketitle
-    \thispagestyle{fancy}
-    
-    \hrule
-    \vspace{0.5cm}
-    
-    % ==============================================================================
-    % SECCIÓN 1
-    % ==============================================================================
-        [\textbf{Ejercicio 1:}] [Enunciado del ejercicio]
-        
-        \textbf{Solución:} 
-        
-        \vspace{0.5cm}
-        
-        [\textbf{Ejercicio 2:}] [Enunciado del ejercicio]
-        
-        \textbf{Solución:} 
-        
-        \vspace{0.5cm}
-    
-    \vspace{0.5cm}
-    \hrule
-    \vspace{0.5cm}
-    
-    % ==============================================================================
-    % SECCIÓN 2
-    % ==============================================================================
-    
+
+\maketitle
+\thispagestyle{fancy}
+
+\hrule
+\vspace{0.3cm}
+\tableofcontents
+\vspace{0.3cm}
+\hrule
+
+% ==============================================================================
+\section{Fundamentos teóricos}
+% ==============================================================================
+
+En Reconocimiento de Patrones con enfoque lógico-combinatorio, los objetos de
+estudio se describen mediante un conjunto de rasgos (características)
+$R=\{\x1,\dots,\x n\}$. Comparando, rasgo a rasgo, objetos que pertenecen a
+clases distintas se obtiene una \emph{matriz de diferencias} booleana: la
+entrada $(i,j)$ vale $1$ si el par de objetos $i$ es distinguible por el rasgo
+$\x j$ y $0$ en caso contrario~\cite{lazo2001}. Toda la teoría de este proyecto
+trabaja sobre matrices booleanas de este tipo.
+
+\begin{definicion}[Subfila y superfila]
+Sean $p=(p_1,\dots,p_n)$ y $t=(t_1,\dots,t_n)$ dos filas de una matriz booleana.
+Decimos que $p$ es \emph{subfila} de $t$ (y que $t$ es \emph{superfila} de $p$) si
+$p_j \le t_j$ para todo $j$ y $p\neq t$. Equivalentemente, el conjunto de columnas
+donde $p$ tiene unos está estrictamente contenido en el de $t$.
+\end{definicion}
+
+\begin{definicion}[Matriz básica]
+Una matriz booleana $BM$ es \emph{básica} si no tiene filas nulas, no tiene
+filas repetidas y ninguna de sus filas es superfila de otra. La \emph{matriz
+básica} de una matriz $M$ es la que se obtiene de $M$ eliminando las filas
+nulas, dejando una sola copia de cada fila repetida y eliminando todas las
+superfilas.
+\end{definicion}
+
+\begin{definicion}[Densidad]
+La densidad de una matriz booleana $M$ de $m\times n$ es la proporción de
+entradas iguales a $1$:
+\[
+  \rho(M)=\frac{\#\{(i,j): M_{ij}=1\}}{m\cdot n}.
+\]
+\end{definicion}
+
+\begin{definicion}[Testor y testor típico]
+Un subconjunto de rasgos $T\subseteq R$ es un \emph{testor} de $M$ si la
+submatriz $M|_T$ (formada por las columnas de $T$) no contiene filas nulas, es
+decir, si toda fila de $M$ tiene al menos un $1$ en alguna columna de $T$.
+$T$ es un \emph{testor típico} si es testor y ningún subconjunto propio de $T$
+es testor.
+\end{definicion}
+
+\begin{definicion}[Fila típica y conjunto compatible]
+Sea $T\subseteq R$ y $\x j\in T$. Una fila $r$ es \emph{fila típica} de $\x j$
+respecto de $T$ si $r_j=1$ y $r_k=0$ para todo $\x k\in T\setminus\{\x j\}$.
+$T$ es un \emph{conjunto compatible} de $M$ si cada rasgo de $T$ tiene al
+menos una fila típica, es decir, si $M|_T$ contiene, salvo permutación de
+filas, a la matriz identidad de orden $|T|$~\cite{yyc2014}.
+\end{definicion}
+
+\begin{proposicion}\label{prop:tipico}
+$T$ es testor típico de $M$ si y sólo si $T$ es testor y conjunto compatible de $M$.
+\end{proposicion}
+\begin{proof}
+Ser testor es una propiedad monótona: si $T$ es testor, todo superconjunto
+también lo es. Por tanto, $T$ es típico si y sólo si $T\setminus\{\x j\}$ no es
+testor para cada $\x j\in T$. Que $T\setminus\{\x j\}$ no sea testor significa
+que existe una fila $r$ que tiene sólo ceros en $T\setminus\{\x j\}$; como $T$
+sí es testor, $r_j=1$. Esa fila es precisamente una fila típica de $\x j$.
+\end{proof}
+
+\begin{proposicion}\label{prop:basica}
+Una matriz $M$ y su matriz básica $BM$ tienen exactamente los mismos testores
+típicos (siempre que $M$ no tenga filas nulas).
+\end{proposicion}
+\begin{proof}
+Si $t$ es superfila de $p$, toda $T$ que cubre a $p$ cubre a $t$; luego
+eliminar $t$ (o una copia repetida) no cambia el conjunto de testores. Como los
+testores típicos son los elementos minimales del conjunto de testores, tampoco
+cambian. Si $M$ tiene una fila nula, ningún $T$ la cubre y $M$ no tiene testores;
+por eso en la reducción se descartan las filas nulas, que no aportan
+información de diferenciación.
+\end{proof}
+
+La Proposición~\ref{prop:basica} justifica que los algoritmos trabajen
+siempre sobre la matriz básica, que es (en general) mucho más pequeña.
+
+% ==============================================================================
+\section{Metodología e implementación computacional}
+% ==============================================================================
+
+\subsection{Lenguaje, estructura y arquitectura}
+
+La implementación se realizó en C\texttt{++}17 y se compila con CMake. El código
+se organizó siguiendo una \emph{arquitectura limpia} de cuatro capas, cada una
+compilada como una librería independiente; así, el propio sistema de
+compilación impide que una capa interna dependa de una externa:
+
+\begin{center}
+\begin{tabular}{>{\bfseries}l p{11cm}}
+\toprule
+Capa & Responsabilidad \\
+\midrule
+domain & Conceptos matemáticos puros: \texttt{ColumnSet} (conjunto de columnas
+como mapa de bits), \texttt{BooleanMatrix}, reducción a matriz básica,
+definiciones de testor, fila típica y conjunto compatible, y el algoritmo
+\texttt{YycSolver}. No realiza entrada/salida. \\
+application & Casos de uso: generar matrices, buscar una matriz básica que
+cumpla restricciones, ejecutar YYC midiendo el tiempo acumulado por fila.
+Define \emph{puertos} (interfaces) para el azar, el reloj y la notificación
+de progreso. \\
+infrastructure & Implementaciones concretas de los puertos: generador
+Mersenne Twister de 64 bits con semilla, reloj monótono, lectura/escritura de
+matrices y exportación de tablas a CSV y \LaTeX. \\
+presentation & Interfaz de usuario: menú interactivo y subcomandos de línea
+de comandos. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\paragraph{Representación.} Cada fila de la matriz y cada conjunto de rasgos se
+representa con un \texttt{ColumnSet}: un arreglo fijo de ocho palabras de 64 bits
+(hasta 512 columnas). Las operaciones ``$T$ cubre a la fila $r$'' ($T\cap r\neq\emptyset$)
+y ``$T\cap r$ tiene exactamente un elemento'' se resuelven con operaciones
+\texttt{AND} y conteo de bits sobre palabras completas. Un primer diseño
+guardaba las palabras en memoria dinámica; cambiar a almacenamiento fijo redujo
+el tiempo de YYC sobre la matriz $A$ de unos $88\,\mu$s a unos $7\,\mu$s, porque el
+ciclo interno crea muchos conjuntos temporales.
+
+\paragraph{Seguridad y robustez.}
+\begin{itemize}[nosep]
+\item Toda entrada numérica se valida de forma estricta (rango y cadena completa);
+  una entrada inválida vuelve a preguntarse en lugar de dejar el flujo en error.
+\item Los archivos de matriz se validan carácter por carácter (sólo \texttt{0}, \texttt{1}
+  y separadores) y se informa la línea del error; se limita el tamaño del archivo
+  (16\,MiB) y de la matriz ($10^5$ filas, 512 columnas).
+\item YYC tiene una cota configurable sobre $|\Psis|$ (2 millones de conjuntos,
+  unos 160\,MB) para no agotar la memoria con matrices patológicas.
+\item No se sobrescribe ningún archivo existente sin autorización explícita
+  (\texttt{--forzar} o confirmación en el menú).
+\item Se compila con todas las advertencias activadas (\texttt{-Wall -Wextra
+  -Wconversion}\ldots) sin ninguna advertencia, y con protecciones del compilador
+  (\texttt{-fstack-protector-strong}, \texttt{\_FORTIFY\_SOURCE},
+  \texttt{\_GLIBCXX\_ASSERTIONS}).
+\end{itemize}
+
+\paragraph{Verificación.} El proyecto incluye 49 pruebas unitarias. La más
+importante compara el resultado de YYC con un \emph{oráculo exhaustivo}
+independiente (recorre los $2^n$ subconjuntos de columnas y aplica directamente
+la definición de testor típico) sobre 400 matrices básicas aleatorias de hasta
+12 columnas, y además comprueba que, después de cada fila, $\Psis$ coincide
+exactamente con los testores típicos de las filas procesadas.
+
+\paragraph{Reproducibilidad.} Toda generación aleatoria usa una semilla que el
+programa informa. El bit aleatorio se obtiene como $u<p$ con $u\in[0,1)$ formado
+por los 53 bits altos de \texttt{mt19937\_64}, cuya secuencia está fijada por el
+estándar de C\texttt{++}; así, la misma semilla produce la misma matriz con
+cualquier compilador. El script \texttt{scripts/generar\_resultados.sh}
+regenera todos los datos y tablas de este reporte.
+
+\subsection{Compilación y uso}
+
+\begin{Verbatim}[fontsize=\small, frame=single]
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build
+ctest --test-dir build                 # pruebas
+./build/testores                       # menú interactivo
+./build/testores ayuda                 # subcomandos disponibles
+\end{Verbatim}
+
+\paragraph{Entorno experimental.} Todos los tiempos se midieron en un equipo
+con procesador Intel Core i7-1265U, 16\,GB de RAM, Windows 11 Pro, compilador
+GCC 16.1 (MSYS2/UCRT64) con optimización \texttt{-O3} (\texttt{Release}). El
+reloj monótono de Windows tiene una resolución de 100\,ns.
+
+% ==============================================================================
+\section{Ejercicio 1: generación de matrices y matriz básica}
+% ==============================================================================
+
+\textbf{Enunciado.} Desarrollar un programa que genere matrices booleanas
+aleatorias de dimensiones dadas (al menos hasta $100\times 10$), que transforme
+cada matriz en su matriz básica y calcule la densidad de esta última.
+
+\subsection{Generación}
+El usuario indica el número de filas $m\in[1,10^5]$, de columnas
+$n\in[1,512]$, la probabilidad $p$ de que una entrada sea $1$ (por defecto
+$p=0.5$) y, opcionalmente, una semilla. Cada entrada se genera de forma
+independiente como una variable de Bernoulli de parámetro $p$.
+
+\subsection{Reducción a matriz básica}
+El procedimiento \texttt{reduceToBasic} aplica la definición en dos pasos y,
+además de la matriz básica, devuelve para cada fila original la razón por la
+que se conservó o eliminó:
+\begin{enumerate}[nosep]
+\item Recorre las filas en orden; descarta las filas nulas y las que son
+  idénticas a una fila anterior ya aceptada (se conserva la primera aparición).
+\item Entre las filas restantes, conserva exactamente las \emph{minimales}:
+  aquellas que no tienen ninguna subfila. Cada superfila eliminada se justifica
+  con una subfila suya que sí permanece en la matriz básica (existe por
+  transitividad de la relación de subfila, que es un orden parcial estricto
+  sobre filas distintas).
+\end{enumerate}
+El orden relativo de las filas que permanecen no cambia y el número de
+columnas tampoco. El costo es $O(m^2\lceil n/64\rceil)$. Finalmente la densidad
+se calcula contando los unos con conteo de bits por palabra.
+
+\subsection{Resultado para una matriz de $100\times 10$}
+Con \texttt{testores generar --filas 100 --columnas 10 --semilla 2026} se
+obtuvo una matriz aleatoria de densidad $0.51$. La reducción eliminó
+$5$ filas repetidas, $0$ nulas y $82$ superfilas, y produjo la siguiente matriz
+básica de $13\times 10$ (archivo \texttt{data/ej1\_basica\_100x10.txt}):
+\[
+BM=\left(\begin{array}{cccccccccc}
+0&0&0&0&1&1&0&0&1&0\\
+0&0&0&0&1&0&0&1&0&1\\
+1&0&1&1&0&0&0&0&1&0\\
+0&0&1&0&0&1&0&1&1&0\\
+0&0&0&0&1&0&0&0&1&1\\
+0&0&1&0&1&0&0&0&1&0\\
+0&0&0&1&1&0&0&0&0&0\\
+1&0&0&1&0&1&0&1&0&0\\
+0&1&0&0&0&0&0&0&0&0\\
+1&0&1&1&0&0&0&1&0&0\\
+1&0&1&0&1&0&0&1&0&0\\
+0&0&1&0&0&0&0&0&1&1\\
+0&0&0&0&0&0&1&0&0&0
+\end{array}\right),
+\qquad
+\rho(BM)=\frac{39}{13\cdot 10}=0.30 .
+\]
+Se observa un fenómeno general: la matriz básica tiene una densidad menor que
+la original ($0.30$ frente a $0.51$), porque la reducción elimina
+precisamente las filas con más unos (las superfilas). Las filas con un único
+$1$ (la de $\x2$ y la de $\x7$) obligan a que esos rasgos pertenezcan a todo
+testor de la matriz.
+
+% ==============================================================================
+\section{Ejercicio 2: algoritmo YYC}
+% ==============================================================================
+
+\subsection{Ejercicio 2.1: matriz básica $A$}
+
+\textbf{Enunciado.} Generar una matriz básica $A$ con al menos siete columnas
+y densidad mayor o igual a $0.4$.
+
+Como la reducción tiende a bajar la densidad, se implementó el caso de uso
+\texttt{searchBasic\allowbreak Matrix}: genera matrices aleatorias con una semilla fija hasta
+que la matriz básica cumpla las restricciones (densidad mínima, rango de filas y
+que ninguna columna quede nula). Se pidió una matriz básica de 7 columnas y
+6 filas (tamaño adecuado para la ejecución manual):
+
+\begin{Verbatim}[fontsize=\small, frame=single]
+testores buscar --columnas 7 --filas 8 --densidad-min 0.4 \
+   --min-filas-basica 6 --max-filas-basica 6 --semilla 2026 --salida data/matriz_A.txt
+\end{Verbatim}
+
+El primer intento ya cumplió las condiciones. La matriz aleatoria generada
+(izquierda) tiene densidad $31/56\approx 0.5536$; la fila $r_2$ es superfila de
+$r_5=(0,0,1,1,0,1,1)$ y $r_6$ también es superfila de $r_5$, por lo que ambas se
+eliminan. El resultado es la matriz básica $A$ (derecha):
+\[
+M=\begin{pmatrix}
+1&0&1&0&1&0&1\\
+0&0&1&1&1&1&1\\
+1&0&0&0&1&1&0\\
+1&1&0&1&0&0&0\\
+0&0&1&1&0&1&1\\
+0&1&1&1&1&1&1\\
+1&0&0&1&0&1&0\\
+1&0&0&1&0&0&1
+\end{pmatrix}
+\quad\longrightarrow\quad
+A=\begin{array}{c}
+\begin{array}{ccccccc} \x1&\x2&\x3&\x4&\x5&\x6&\x7\end{array}\\
+\begin{pmatrix}
+1&0&1&0&1&0&1\\
+1&0&0&0&1&1&0\\
+1&1&0&1&0&0&0\\
+0&0&1&1&0&1&1\\
+1&0&0&1&0&1&0\\
+1&0&0&1&0&0&1
+\end{pmatrix}
+\begin{array}{c} r_1\\ r_2\\ r_3\\ r_4\\ r_5\\ r_6\end{array}
+\end{array}
+\]
+$A$ tiene $20$ unos en $6\cdot 7=42$ entradas, luego
+$\rho(A)=20/42\approx \mathbf{0.4762}\ge 0.4$, y tiene $7$ columnas, todas con al
+menos un $1$. Se verifica que es básica: no hay filas nulas ni repetidas, y para
+cada par de filas distintas cada una tiene un $1$ donde la otra tiene $0$.
+
+\subsection{El algoritmo YYC}
+
+YYC~\cite{yyc2014} es un algoritmo \emph{incremental}: procesa las filas de la
+matriz básica una por una y mantiene el conjunto $\Psis$ de los testores
+típicos de la submatriz formada por las filas ya procesadas.
+
+\begin{enumerate}[nosep]
+\item \textbf{Inicialización.} $\Psis\leftarrow\{\{\x j\}: r_1[j]=1\}$.
+\item \textbf{Para cada fila} $r_k$, $k=2,\dots,m$: $\Psi_{aux}\leftarrow\emptyset$ y,
+  para cada $\tau\in\Psis$:
+  \begin{itemize}[nosep]
+  \item si $\tau\cap r_k\neq\emptyset$ ($\tau$ ya cubre la fila), $\tau$ pasa a
+    $\Psi_{aux}$ sin cambios;
+  \item si no, para cada rasgo $x$ con $r_k[x]=1$, si $\tau\cup\{x\}$ es un
+    conjunto compatible de las filas $r_1,\dots,r_k$, se agrega a $\Psi_{aux}$.
+  \end{itemize}
+  Al terminar, $\Psis\leftarrow\Psi_{aux}$.
+\item Al procesar la última fila, $\Psis$ es el conjunto de todos los testores
+  típicos de la matriz.
+\end{enumerate}
+
+\paragraph{Por qué funciona.} Por inducción, supongamos que $\Psis$ contiene los
+testores típicos de las filas $r_1,\dots,r_{k-1}$. Todo elemento de $\Psi_{aux}$
+cubre $r_k$ y las filas anteriores, por lo que es testor de las primeras $k$
+filas; además se exige que sea compatible, así que por la
+Proposición~\ref{prop:tipico} es típico. Recíprocamente, si $T$ es típico para
+las primeras $k$ filas, o bien ya era típico antes (y cubre $r_k$), o bien
+$T=\tau\cup\{x\}$ donde $r_k$ es la fila típica de $x$ y $\tau$ era típico para
+las filas anteriores. Por último, no se generan duplicados: si
+$\tau_1\cup\{x\}=\tau_2\cup\{y\}$ con $x\neq y$, entonces $y\in\tau_1$, pero $y\in r_k$
+y $\tau_1$ no corta a $r_k$, lo cual es una contradicción.
+
+\paragraph{Observación útil para el cálculo manual.} Al extender un $\tau$ que no
+corta a $r_k$ con un $x\in r_k$, la propia fila $r_k$ es fila típica de $x$ en
+$\tau\cup\{x\}$ (pues $r_k$ tiene ceros en todo $\tau$). Por lo tanto basta revisar
+que \emph{cada rasgo de $\tau$ conserve alguna fila típica}, es decir, que tenga una
+fila donde aparece sin $x$ ni otros rasgos de $\tau$. Agregar $x$ sólo puede
+``romper'' filas típicas de $\tau$ que tengan un $1$ en la columna $x$.
+
+\subsection{Ejercicio 2.2: ejecución manual de YYC sobre $A$}
+
+Escribimos cada fila de $A$ como el conjunto de rasgos donde tiene un $1$:
+\[
+\begin{aligned}
+r_1&=\cj{\x1,\x3,\x5,\x7}, & r_2&=\cj{\x1,\x5,\x6}, & r_3&=\cj{\x1,\x2,\x4},\\
+r_4&=\cj{\x3,\x4,\x6,\x7}, & r_5&=\cj{\x1,\x4,\x6}, & r_6&=\cj{\x1,\x4,\x7}.
+\end{aligned}
+\]
+En cada paso se recorre $\Psis$ en el orden en que fue construido. Para cada
+candidato $\tau\cup\{x\}$ se escribe la intersección de cada fila procesada con el
+candidato; una intersección con un único elemento $\cj{\x j}$ es una fila
+típica de $\x j$. El símbolo \si{} indica que el candidato es compatible y se
+agrega; \no{} indica que se descarta y se señala el rasgo que se queda sin
+fila típica.
+
+\subsubsection*{Paso 1: fila $r_1=\cj{\x1,\x3,\x5,\x7}$}
+Inicialización: cada rasgo presente en $r_1$ forma un conjunto unitario.
+\[
+\Psis=\big\{\cj{\x1},\ \cj{\x3},\ \cj{\x5},\ \cj{\x7}\big\}\qquad |\Psis|=4.
+\]
+
+\subsubsection*{Paso 2: fila $r_2=\cj{\x1,\x5,\x6}$}
+\begin{itemize}[nosep]
+\item $\tau=\cj{\x1}$: $\tau\cap r_2=\cj{\x1}\neq\emptyset$ $\Rightarrow$ se conserva.
+\item $\tau=\cj{\x3}$: no cubre $r_2$; se prueba con $x\in\cj{\x1,\x5,\x6}$:
+  \begin{itemize}[nosep]
+  \item $\cj{\x1,\x3}$: $r_1\to\cj{\x1,\x3}$, $r_2\to\cj{\x1}$. $\x3$ sólo aparece en $r_1$ junto a $\x1$: \no{} ($\x3$ sin fila típica).
+  \item $\cj{\x3,\x5}$: $r_1\to\cj{\x3,\x5}$, $r_2\to\cj{\x5}$: \no{} ($\x3$ sin fila típica).
+  \item $\cj{\x3,\x6}$: $r_1\to\cj{\x3}$, $r_2\to\cj{\x6}$: \si.
+  \end{itemize}
+\item $\tau=\cj{\x5}$: $\tau\cap r_2=\cj{\x5}$ $\Rightarrow$ se conserva.
+\item $\tau=\cj{\x7}$: no cubre $r_2$:
+  \begin{itemize}[nosep]
+  \item $\cj{\x1,\x7}$: $r_1\to\cj{\x1,\x7}$, $r_2\to\cj{\x1}$: \no{} ($\x7$ sin fila típica).
+  \item $\cj{\x5,\x7}$: $r_1\to\cj{\x5,\x7}$, $r_2\to\cj{\x5}$: \no{} ($\x7$ sin fila típica).
+  \item $\cj{\x6,\x7}$: $r_1\to\cj{\x7}$, $r_2\to\cj{\x6}$: \si.
+  \end{itemize}
+\end{itemize}
+\[
+\Psis=\big\{\cj{\x1},\ \cj{\x3,\x6},\ \cj{\x5},\ \cj{\x6,\x7}\big\}\qquad |\Psis|=4.
+\]
+
+\subsubsection*{Paso 3: fila $r_3=\cj{\x1,\x2,\x4}$}
+\begin{itemize}[nosep]
+\item $\tau=\cj{\x1}$: cubre $r_3$ $\Rightarrow$ se conserva.
+\item $\tau=\cj{\x3,\x6}$: no cubre $r_3$:
+  \begin{itemize}[nosep]
+  \item $\cj{\x1,\x3,\x6}$: $r_1\to\cj{\x1,\x3}$, $r_2\to\cj{\x1,\x6}$, $r_3\to\cj{\x1}$: \no{} ($\x3$ y $\x6$ pierden sus filas típicas $r_1$ y $r_2$, que contienen a $\x1$).
+  \item $\cj{\x2,\x3,\x6}$: $r_1\to\cj{\x3}$, $r_2\to\cj{\x6}$, $r_3\to\cj{\x2}$: \si.
+  \item $\cj{\x3,\x4,\x6}$: $r_1\to\cj{\x3}$, $r_2\to\cj{\x6}$, $r_3\to\cj{\x4}$: \si.
+  \end{itemize}
+\item $\tau=\cj{\x5}$: no cubre $r_3$:
+  \begin{itemize}[nosep]
+  \item $\cj{\x1,\x5}$: $r_1\to\cj{\x1,\x5}$, $r_2\to\cj{\x1,\x5}$, $r_3\to\cj{\x1}$: \no{} ($\x5$ sin fila típica).
+  \item $\cj{\x2,\x5}$: $r_1\to\cj{\x5}$, $r_2\to\cj{\x5}$, $r_3\to\cj{\x2}$: \si.
+  \item $\cj{\x4,\x5}$: $r_1\to\cj{\x5}$, $r_2\to\cj{\x5}$, $r_3\to\cj{\x4}$: \si.
+  \end{itemize}
+\item $\tau=\cj{\x6,\x7}$: no cubre $r_3$:
+  \begin{itemize}[nosep]
+  \item $\cj{\x1,\x6,\x7}$: $r_1\to\cj{\x1,\x7}$, $r_2\to\cj{\x1,\x6}$, $r_3\to\cj{\x1}$: \no{} ($\x6$ y $\x7$ sin fila típica).
+  \item $\cj{\x2,\x6,\x7}$: $r_1\to\cj{\x7}$, $r_2\to\cj{\x6}$, $r_3\to\cj{\x2}$: \si.
+  \item $\cj{\x4,\x6,\x7}$: $r_1\to\cj{\x7}$, $r_2\to\cj{\x6}$, $r_3\to\cj{\x4}$: \si.
+  \end{itemize}
+\end{itemize}
+\[
+\begin{aligned}
+\Psis=\big\{&\cj{\x1},\ \cj{\x2,\x3,\x6},\ \cj{\x3,\x4,\x6},\ \cj{\x2,\x5},\\
+&\cj{\x4,\x5},\ \cj{\x2,\x6,\x7},\ \cj{\x4,\x6,\x7}\big\}\qquad |\Psis|=7.
+\end{aligned}
+\]
+
+\subsubsection*{Paso 4: fila $r_4=\cj{\x3,\x4,\x6,\x7}$}
+\begin{itemize}[nosep]
+\item $\tau=\cj{\x1}$: no cubre $r_4$. Respecto de $\cj{\x1}$, las filas $r_1,r_2,r_3$ son filas típicas de $\x1$; al agregar $x$ basta que alguna de ellas no contenga a $x$:
+  \begin{itemize}[nosep]
+  \item $\cj{\x1,\x3}$: $r_2\to\cj{\x1}$, $r_4\to\cj{\x3}$: \si.
+  \item $\cj{\x1,\x4}$: $r_1\to\cj{\x1}$, $r_4\to\cj{\x4}$: \si.
+  \item $\cj{\x1,\x6}$: $r_1\to\cj{\x1}$, $r_4\to\cj{\x6}$: \si.
+  \item $\cj{\x1,\x7}$: $r_2\to\cj{\x1}$, $r_4\to\cj{\x7}$: \si.
+  \end{itemize}
+\item $\tau=\cj{\x2,\x3,\x6}$: $\tau\cap r_4=\cj{\x3,\x6}$ $\Rightarrow$ se conserva.
+\item $\tau=\cj{\x3,\x4,\x6}$: $\tau\cap r_4=\cj{\x3,\x4,\x6}$ $\Rightarrow$ se conserva.
+\item $\tau=\cj{\x2,\x5}$: no cubre $r_4$ (sus filas típicas: $r_3$ para $\x2$; $r_1,r_2$ para $\x5$):
+  \begin{itemize}[nosep]
+  \item $\cj{\x2,\x3,\x5}$: $r_2\to\cj{\x5}$, $r_3\to\cj{\x2}$, $r_4\to\cj{\x3}$: \si.
+  \item $\cj{\x2,\x4,\x5}$: $r_3\to\cj{\x2,\x4}$ y $\x2$ no aparece en otra fila: \no{} ($\x2$ sin fila típica).
+  \item $\cj{\x2,\x5,\x6}$: $r_1\to\cj{\x5}$, $r_3\to\cj{\x2}$, $r_4\to\cj{\x6}$: \si.
+  \item $\cj{\x2,\x5,\x7}$: $r_2\to\cj{\x5}$, $r_3\to\cj{\x2}$, $r_4\to\cj{\x7}$: \si.
+  \end{itemize}
+\item $\tau=\cj{\x4,\x5}$: $\tau\cap r_4=\cj{\x4}$ $\Rightarrow$ se conserva.
+\item $\tau=\cj{\x2,\x6,\x7}$: $\tau\cap r_4=\cj{\x6,\x7}$ $\Rightarrow$ se conserva.
+\item $\tau=\cj{\x4,\x6,\x7}$: $\tau\cap r_4=\cj{\x4,\x6,\x7}$ $\Rightarrow$ se conserva.
+\end{itemize}
+\[
+\begin{aligned}
+\Psis=\big\{&\cj{\x1,\x3},\ \cj{\x1,\x4},\ \cj{\x1,\x6},\ \cj{\x1,\x7},\ \cj{\x2,\x3,\x6},\ \cj{\x3,\x4,\x6},\\
+&\cj{\x2,\x3,\x5},\ \cj{\x2,\x5,\x6},\ \cj{\x2,\x5,\x7},\ \cj{\x4,\x5},\ \cj{\x2,\x6,\x7},\ \cj{\x4,\x6,\x7}\big\}\\
+&|\Psis|=12.
+\end{aligned}
+\]
+
+\subsubsection*{Paso 5: fila $r_5=\cj{\x1,\x4,\x6}$}
+Diez de los doce conjuntos cortan a $r_5$ y se conservan: los cuatro que contienen
+$\x1$, los que contienen $\x6$ ($\cj{\x2,\x3,\x6}$, $\cj{\x3,\x4,\x6}$, $\cj{\x2,\x5,\x6}$,
+$\cj{\x2,\x6,\x7}$, $\cj{\x4,\x6,\x7}$) y $\cj{\x4,\x5}$. Sólo hay que extender dos:
+\begin{itemize}[nosep]
+\item $\tau=\cj{\x2,\x3,\x5}$: la única fila donde aparece $\x2$ es $r_3=\cj{\x1,\x2,\x4}$.
+  \begin{itemize}[nosep]
+  \item $\cj{\x1,\x2,\x3,\x5}$: $r_3\to\cj{\x1,\x2}$: \no{} ($\x2$ sin fila típica).
+  \item $\cj{\x2,\x3,\x4,\x5}$: $r_3\to\cj{\x2,\x4}$: \no{} ($\x2$ sin fila típica).
+  \item $\cj{\x2,\x3,\x5,\x6}$: $r_1\to\cj{\x3,\x5}$, $r_2\to\cj{\x5,\x6}$, $r_4\to\cj{\x3,\x6}$: \no{} ($\x3$ y $\x5$ sin fila típica).
+  \end{itemize}
+\item $\tau=\cj{\x2,\x5,\x7}$:
+  \begin{itemize}[nosep]
+  \item $\cj{\x1,\x2,\x5,\x7}$ y $\cj{\x2,\x4,\x5,\x7}$: igual que antes, $r_3$ deja de ser típica de $\x2$: \no.
+  \item $\cj{\x2,\x5,\x6,\x7}$: $r_1\to\cj{\x5,\x7}$, $r_2\to\cj{\x5,\x6}$: \no{} ($\x5$ sin fila típica).
+  \end{itemize}
+\end{itemize}
+Ninguna extensión es compatible, así que $\cj{\x2,\x3,\x5}$ y $\cj{\x2,\x5,\x7}$ desaparecen:
+\[
+\begin{aligned}
+\Psis=\big\{&\cj{\x1,\x3},\ \cj{\x1,\x4},\ \cj{\x1,\x6},\ \cj{\x1,\x7},\ \cj{\x2,\x3,\x6},\\
+&\cj{\x3,\x4,\x6},\ \cj{\x2,\x5,\x6},\ \cj{\x4,\x5},\ \cj{\x2,\x6,\x7},\ \cj{\x4,\x6,\x7}\big\}\qquad |\Psis|=10.
+\end{aligned}
+\]
+
+\subsubsection*{Paso 6: fila $r_6=\cj{\x1,\x4,\x7}$}
+Cortan a $r_6$ y se conservan: $\cj{\x1,\x3}$, $\cj{\x1,\x4}$, $\cj{\x1,\x6}$,
+$\cj{\x1,\x7}$, $\cj{\x3,\x4,\x6}$, $\cj{\x4,\x5}$, $\cj{\x2,\x6,\x7}$ y $\cj{\x4,\x6,\x7}$.
+No cortan a $r_6$:
+\begin{itemize}[nosep]
+\item $\tau=\cj{\x2,\x3,\x6}$: con $x=\x1$ o $x=\x4$ la fila $r_3$ deja de ser típica de $\x2$ (\no); con $x=\x7$, $\cj{\x2,\x3,\x6,\x7}$: $r_1\to\cj{\x3,\x7}$, $r_4\to\cj{\x3,\x6,\x7}$, así que $\x3$ queda sin fila típica (\no).
+\item $\tau=\cj{\x2,\x5,\x6}$: con $x=\x1$ o $x=\x4$, $\x2$ pierde $r_3$ (\no); con $x=\x7$, $\cj{\x2,\x5,\x6,\x7}$: $r_1\to\cj{\x5,\x7}$, $r_2\to\cj{\x5,\x6}$, así que $\x5$ queda sin fila típica (\no).
+\end{itemize}
+\[
+\boxed{\begin{aligned}
+\Psis=\big\{&\cj{\x1,\x3},\ \cj{\x1,\x4},\ \cj{\x1,\x6},\ \cj{\x1,\x7},\\
+&\cj{\x4,\x5},\ \cj{\x2,\x6,\x7},\ \cj{\x3,\x4,\x6},\ \cj{\x4,\x6,\x7}\big\}
+\end{aligned}}
+\qquad |\Psis|=8.
+\]
+
+\paragraph{Comprobación.} La Tabla~\ref{tab:verif} verifica, para cada uno de los
+8 testores típicos, que es testor (ninguna fila queda con intersección vacía) y
+que cada rasgo tiene una fila típica.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{l cccccc l}
+\toprule
+$T$ & $r_1\cap T$ & $r_2\cap T$ & $r_3\cap T$ & $r_4\cap T$ & $r_5\cap T$ & $r_6\cap T$ & Filas típicas \\
+\midrule
+$\cj{\x1,\x3}$ & $\x1\x3$ & $\x1$ & $\x1$ & $\x3$ & $\x1$ & $\x1$ & $\x1{:}r_2$, $\x3{:}r_4$ \\
+$\cj{\x1,\x4}$ & $\x1$ & $\x1$ & $\x1\x4$ & $\x4$ & $\x1\x4$ & $\x1\x4$ & $\x1{:}r_1$, $\x4{:}r_4$ \\
+$\cj{\x1,\x6}$ & $\x1$ & $\x1\x6$ & $\x1$ & $\x6$ & $\x1\x6$ & $\x1$ & $\x1{:}r_1$, $\x6{:}r_4$ \\
+$\cj{\x1,\x7}$ & $\x1\x7$ & $\x1$ & $\x1$ & $\x7$ & $\x1$ & $\x1\x7$ & $\x1{:}r_2$, $\x7{:}r_4$ \\
+$\cj{\x4,\x5}$ & $\x5$ & $\x5$ & $\x4$ & $\x4$ & $\x4$ & $\x4$ & $\x4{:}r_3$, $\x5{:}r_1$ \\
+$\cj{\x2,\x6,\x7}$ & $\x7$ & $\x6$ & $\x2$ & $\x6\x7$ & $\x6$ & $\x7$ & $\x2{:}r_3$, $\x6{:}r_2$, $\x7{:}r_1$ \\
+$\cj{\x3,\x4,\x6}$ & $\x3$ & $\x6$ & $\x4$ & $\x3\x4\x6$ & $\x4\x6$ & $\x4$ & $\x3{:}r_1$, $\x4{:}r_3$, $\x6{:}r_2$ \\
+$\cj{\x4,\x6,\x7}$ & $\x7$ & $\x6$ & $\x4$ & $\x4\x6\x7$ & $\x4\x6$ & $\x4\x7$ & $\x4{:}r_3$, $\x6{:}r_2$, $\x7{:}r_1$ \\
+\bottomrule
+\end{tabular}
+\caption{Verificación de los testores típicos de $A$: todas las intersecciones son no vacías (testor) y cada rasgo tiene fila típica (compatible).}
+\label{tab:verif}
+\end{table}
+
+Observaciones de la ejecución:
+\begin{itemize}[nosep]
+\item $|\Psis|$ no es monótono: pasa por $4,4,7,12,10,8$. Las filas $r_5$ y $r_6$
+  eliminan candidatos, porque ningún conjunto que no las cubre admite una
+  extensión compatible.
+\item Las extensiones se descartan casi siempre por la misma razón: el único
+  rasgo $x$ disponible en la nueva fila aparece también en la única fila
+  típica de algún rasgo de $\tau$ (por ejemplo, $\x2$ sólo tiene a $r_3$, que
+  también contiene a $\x1$ y $\x4$).
+\item En total se evaluaron $6+9+8+6+6=35$ candidatos y $2+6+7=15$ fueron compatibles; nunca se
+  examinó un subconjunto que no fuera extensión directa de un elemento de
+  $\Psis$, mientras que una búsqueda exhaustiva examinaría $2^7-1=127$ subconjuntos.
+\end{itemize}
+
+\subsection{Ejercicio 2.3: implementación computacional de YYC}
+
+\paragraph{Diseño.} El algoritmo vive en la clase de dominio \texttt{YycSolver}, que
+expone una interfaz incremental: \texttt{processNextRow()} procesa una fila y
+\texttt{current()} devuelve $\Psis$. Esto permite que el caso de uso
+\texttt{runYyc} de la capa de aplicación:
+\begin{enumerate}[nosep]
+\item lea el reloj monótono antes y después de \texttt{processNextRow()} y sume
+  sólo ese intervalo al \textbf{tiempo acumulado};
+\item después de cada fila, y \emph{fuera} del intervalo medido, notifique a un
+  \emph{listener} con $\Psis$ y el tiempo acumulado. La presentación muestra
+  entonces los testores encontrados hasta ese momento (requisitos 1 y 2 del
+  enunciado) sin que imprimir en pantalla contamine la medición.
+\end{enumerate}
+La comprobación de compatibilidad recorre las filas $r_1,\dots,r_k$, calcula
+$r_i\cap T$ con operaciones de bits y marca los rasgos que aparecen solos;
+$T$ es compatible si todos quedan marcados. Opcionalmente, el solver registra
+una traza con cada decisión (qué $\tau$ se conservó, qué extensiones se probaron
+y qué rasgo se quedó sin fila típica); con ella se generó la
+explicación paso a paso usada para validar la sección anterior.
+
+\paragraph{Interfaz de usuario.} El programa \texttt{testores} ofrece un menú
+interactivo (generar, buscar, cargar desde archivo, ingresar a mano, ver la
+matriz básica y su densidad, ejecutar YYC normal o paso a paso, guardar y
+exportar resultados) y, para automatizar, subcomandos:
+
+\begin{Verbatim}[fontsize=\small, frame=single]
+testores yyc --entrada data/matriz_A.txt              # Psi* y tiempo tras cada fila
+testores yyc --entrada data/matriz_A.txt --traza      # explicación paso a paso
+testores yyc --entrada data/matriz_A.txt --repeticiones 10000 \
+             --csv resultados/yyc_A.csv --latex resultados/yyc_A_tabla.tex
+\end{Verbatim}
+
+Si la matriz introducida no es básica, el programa lo informa, la reduce
+(Proposición~\ref{prop:basica}) y aplica YYC a la matriz básica. Un fragmento de
+la salida (con \texttt{Psi*} en lugar del símbolo griego) es:
+
+\begin{Verbatim}[fontsize=\small, frame=single]
+Tras procesar r3 (3/6): |Psi*| = 7 | tiempo acumulado = 12.500 us
+  Psi* = {x1}, {x2, x5}, {x4, x5}, {x2, x3, x6}, {x2, x6, x7}, {x3, x4, x6}, {x4, x6, x7}
+Tras procesar r4 (4/6): |Psi*| = 12 | tiempo acumulado = 16.700 us
+  ...
+\end{Verbatim}
+
+\subsection{Ejercicio 2.4: resultados sobre la matriz $A$}
+
+Una sola ejecución de YYC sobre $A$ dura unos pocos microsegundos, una escala
+en la que el ruido del sistema operativo (interrupciones, caché fría, cambios de
+frecuencia) es comparable al propio tiempo medido; en la primera ejecución,
+por ejemplo, la fila $r_1$ tardó $5.6\,\mu$s porque la caché aún estaba fría. Por eso la
+tabla reporta, para cada fila, la \textbf{mediana} de su tiempo de procesamiento
+en $10\,000$ ejecuciones, acumulada fila a fila (lo que garantiza que la columna
+sea creciente). Los conjuntos de testores son idénticos en todas las
+ejecuciones y coinciden con la ejecución manual.
+
+\begin{table}[h]
+\centering
+\small
+\input{resultados/yyc_A_tabla.tex}
+\caption{YYC sobre la matriz $A$: testores típicos de las filas procesadas y tiempo
+de ejecución acumulado después de cada fila (mediana de 10\,000 ejecuciones).}
+\label{tab:yycA}
+\end{table}
+
+\paragraph{Interpretación.}
+\begin{itemize}[nosep]
+\item El conjunto final coincide exactamente con el obtenido a mano
+  (8 testores típicos: 5 de cardinalidad 2 y 3 de cardinalidad 3).
+\item El tiempo por fila crece con el trabajo realizado en ella. La fila $r_4$, que
+  genera 8 candidatos y deja $|\Psis|=12$, y las filas $r_5$ y $r_6$, que deben recorrer
+  $\Psis$ completo y probar 6 extensiones cada una contra 5 y 6 filas, son las
+  más costosas. La fila $r_1$ sólo crea los conjuntos unitarios.
+\item El tiempo total, del orden de $7\,\mu$s, muestra que para matrices pequeñas el
+  costo de YYC es despreciable. Su complejidad depende, sobre todo, del tamaño
+  de $\Psis$ en los pasos intermedios, que puede crecer exponencialmente con el número de
+  columnas en matrices de baja densidad; por esto la implementación incluye un
+  límite de seguridad sobre $|\Psis|$.
+\end{itemize}
+
+% ==============================================================================
+\begin{thebibliography}{9}
+% ==============================================================================
+
+\bibitem{yyc2014}
+E.~Alba-Cabrera, J.~Ibarra-Fiallo, S.~Godoy-Calderón y F.~Cervantes-Alonso.
+\newblock YYC: A fast performance incremental algorithm for finding typical testors.
+\newblock En \emph{Progress in Pattern Recognition, Image Analysis, Computer Vision,
+and Applications (CIARP 2014)}, LNCS 8827, pp.~416--423. Springer, 2014.
+
+\bibitem{alba2016}
+E.~Alba-Cabrera, S.~Godoy-Calderón y J.~Ibarra-Fiallo.
+\newblock Generating synthetic test matrices as a benchmark for the computational
+behavior of typical testor-finding algorithms.
+\newblock \emph{Pattern Recognition Letters}, 80:46--51, 2016.
+
+\bibitem{lazo2001}
+M.~Lazo-Cortés, J.~Ruiz-Shulcloper y E.~Alba-Cabrera.
+\newblock An overview of the evolution of the concept of testor.
+\newblock \emph{Pattern Recognition}, 34(4):753--762, 2001.
+
+\bibitem{mt1998}
+M.~Matsumoto y T.~Nishimura.
+\newblock Mersenne Twister: a 623-dimensionally equidistributed uniform
+pseudo-random number generator.
+\newblock \emph{ACM Transactions on Modeling and Computer Simulation}, 8(1):3--30, 1998.
+
+\bibitem{cpp17}
+ISO/IEC 14882:2017.
+\newblock \emph{Programming languages --- C\texttt{++}}. International Organization for
+Standardization, 2017.
+
+\end{thebibliography}
+
 \end{document}

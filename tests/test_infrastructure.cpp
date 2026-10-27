@@ -104,4 +104,5 @@ TEST(csv_and_latex_exports) {
     std::ostringstream tex;
     infrastructure::writeYycLatexTable(tex, result);
     CHECK(tex.str().find("$\\{x_{1},x_{3}\\}$") != std::string::npos);
+    CHECK(tex.str().find("(omitidos") != std::string::npos);
 }

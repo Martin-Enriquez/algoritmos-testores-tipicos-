@@ -45,11 +45,12 @@ std::string latexFeatureSets(const std::vector<ColumnSet>& sets) {
     if (sets.empty()) {
         return "$\\emptyset$";
     }
-    std::string out = "$";
+    // Un entorno matemático por conjunto para que LaTeX pueda cortar la línea entre ellos.
+    std::string out;
     for (std::size_t i = 0; i < sets.size(); ++i) {
-        out += (i > 0 ? ",\\ " : "") + latexFeatureSet(sets[i]);
+        out += (i > 0 ? ", " : "") + ("$" + latexFeatureSet(sets[i]) + "$");
     }
-    return out + "$";
+    return out;
 }
 
 }  // namespace
@@ -66,8 +67,8 @@ void writeYycCsv(std::ostream& output, const YycRunResult& result) {
 void writeYycLatexTable(std::ostream& output, const YycRunResult& result) {
     output << "% Generado por testores (YYC). Tiempos: mediana de " << result.repetitions
            << " ejecuciones, en microsegundos.\n";
-    output << "\\begin{tabular}{c c p{9cm} r}\n\\toprule\n";
-    output << "Fila & $|\\Psi^*|$ & Testores típicos de las filas procesadas & Tiempo acum. ($\\mu$s) \\\\\n";
+    output << "\\begin{tabular}{c c >{\\raggedright\\arraybackslash}p{9.5cm} r}\n\\toprule\n";
+    output << "Fila & $|\\Psi^*|$ & Testores típicos de las filas procesadas & T. acum. ($\\mu$s) \\\\\n";
     output << "\\midrule\n";
     for (const auto& row : result.rows) {
         output << "$r_{" << (row.rowIndex + 1) << "}$ & " << row.testorCount << " & "

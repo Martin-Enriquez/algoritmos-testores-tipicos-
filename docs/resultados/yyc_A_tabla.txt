@@ -9,32 +9,32 @@ r5 |   1  0  0  1  0  1  0
 r6 |   1  0  0  1  0  0  1
 Densidad: 0.47619
 
-Tras procesar r1 (1/6): |Ψ*| = 4 | tiempo acumulado = 5.600 µs
+Tras procesar r1 (1/6): |Ψ*| = 4 | tiempo acumulado = 9.600 µs
   Ψ* = {x1}, {x3}, {x5}, {x7}
-Tras procesar r2 (2/6): |Ψ*| = 4 | tiempo acumulado = 8.800 µs
+Tras procesar r2 (2/6): |Ψ*| = 4 | tiempo acumulado = 14.700 µs
   Ψ* = {x1}, {x5}, {x3, x6}, {x6, x7}
-Tras procesar r3 (3/6): |Ψ*| = 7 | tiempo acumulado = 12.500 µs
+Tras procesar r3 (3/6): |Ψ*| = 7 | tiempo acumulado = 19.400 µs
   Ψ* = {x1}, {x2, x5}, {x4, x5}, {x2, x3, x6}, {x2, x6, x7}, {x3, x4, x6}, {x4, x6, x7}
-Tras procesar r4 (4/6): |Ψ*| = 12 | tiempo acumulado = 16.700 µs
+Tras procesar r4 (4/6): |Ψ*| = 12 | tiempo acumulado = 24.600 µs
   Ψ* = {x1, x3}, {x1, x4}, {x1, x6}, {x1, x7}, {x4, x5}, {x2, x3, x5}, {x2, x3, x6}, {x2, x5, x6}, {x2, x5, x7}, {x2, x6, x7}, {x3, x4, x6}, {x4, x6, x7}
-Tras procesar r5 (5/6): |Ψ*| = 10 | tiempo acumulado = 19.300 µs
+Tras procesar r5 (5/6): |Ψ*| = 10 | tiempo acumulado = 28.400 µs
   Ψ* = {x1, x3}, {x1, x4}, {x1, x6}, {x1, x7}, {x4, x5}, {x2, x3, x6}, {x2, x5, x6}, {x2, x6, x7}, {x3, x4, x6}, {x4, x6, x7}
-Tras procesar r6 (6/6): |Ψ*| = 8 | tiempo acumulado = 21.700 µs
+Tras procesar r6 (6/6): |Ψ*| = 8 | tiempo acumulado = 32.800 µs
   Ψ* = {x1, x3}, {x1, x4}, {x1, x6}, {x1, x7}, {x4, x5}, {x2, x6, x7}, {x3, x4, x6}, {x4, x6, x7}
 
 Midiendo tiempos sin traza (10000 ejecución/es, se reporta la mediana)...
 
 Tabla de resultados YYC (tiempos: mediana de 10000 ejecuciones):
 Fila  |Ψ*|    T. acumulado    Testores típicos de las filas procesadas
-r1    4       0.600 µs       {x1}, {x3}, {x5}, {x7}
-r2    4       1.400 µs       {x1}, {x5}, {x3, x6}, {x6, x7}
-r3    7       2.800 µs       {x1}, {x2, x5}, {x4, x5}, {x2, x3, x6}, {x2, x6, x7}, {x3, x4, x6}, {x4, x6, x7}
-r4    12      4.400 µs       {x1, x3}, {x1, x4}, {x1, x6}, {x1, x7}, {x4, x5}, {x2, x3, x5}, {x2, x3, x6}, {x2, x5, x6}, {x2, x5, x7}, {x2, x6, x7}, {x3, x4, x6}, {x4, x6, x7}
-r5    10      5.700 µs       {x1, x3}, {x1, x4}, {x1, x6}, {x1, x7}, {x4, x5}, {x2, x3, x6}, {x2, x5, x6}, {x2, x6, x7}, {x3, x4, x6}, {x4, x6, x7}
-r6    8       7.200 µs       {x1, x3}, {x1, x4}, {x1, x6}, {x1, x7}, {x4, x5}, {x2, x6, x7}, {x3, x4, x6}, {x4, x6, x7}
+r1    4       0.500 µs       {x1}, {x3}, {x5}, {x7}
+r2    4       1.300 µs       {x1}, {x5}, {x3, x6}, {x6, x7}
+r3    7       2.600 µs       {x1}, {x2, x5}, {x4, x5}, {x2, x3, x6}, {x2, x6, x7}, {x3, x4, x6}, {x4, x6, x7}
+r4    12      4.100 µs       {x1, x3}, {x1, x4}, {x1, x6}, {x1, x7}, {x4, x5}, {x2, x3, x5}, {x2, x3, x6}, {x2, x5, x6}, {x2, x5, x7}, {x2, x6, x7}, {x3, x4, x6}, {x4, x6, x7}
+r5    10      5.400 µs       {x1, x3}, {x1, x4}, {x1, x6}, {x1, x7}, {x4, x5}, {x2, x3, x6}, {x2, x5, x6}, {x2, x6, x7}, {x3, x4, x6}, {x4, x6, x7}
+r6    8       6.900 µs       {x1, x3}, {x1, x4}, {x1, x6}, {x1, x7}, {x4, x5}, {x2, x6, x7}, {x3, x4, x6}, {x4, x6, x7}
 
 Testores típicos de la matriz (8): {x1, x3}, {x1, x4}, {x1, x6}, {x1, x7}, {x4, x5}, {x2, x6, x7}, {x3, x4, x6}, {x4, x6, x7}
-Tiempo total de ejecución: 7.200 µs
+Tiempo total de ejecución: 6.900 µs
 Tabla CSV guardada en docs/resultados/yyc_A.csv
 Tabla LaTeX guardada en docs/resultados/yyc_A_tabla.tex
 Matriz en LaTeX guardada en docs/resultados/matriz_A.tex

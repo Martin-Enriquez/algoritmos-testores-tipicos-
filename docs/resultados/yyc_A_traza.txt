@@ -12,7 +12,7 @@ Densidad: 0.47619
 
 === Paso 1: fila r1 = (1 0 1 0 1 0 1), columnas con 1: {x1, x3, x5, x7} ===
   Inicialización: Ψ* = { {xj} : r1[j] = 1 }.
-Tras procesar r1 (1/6): |Ψ*| = 4 | tiempo acumulado = 7.400 µs
+Tras procesar r1 (1/6): |Ψ*| = 4 | tiempo acumulado = 8.000 µs
   Ψ* = {x1}, {x3}, {x5}, {x7}
 
 === Paso 2: fila r2 = (1 0 0 0 1 1 0), columnas con 1: {x1, x5, x6} ===
@@ -27,7 +27,7 @@ Tras procesar r1 (1/6): |Ψ*| = 4 | tiempo acumulado = 7.400 µs
       {x1, x7} NO es compatible (x7 se queda sin fila típica) → se descarta.
       {x5, x7} NO es compatible (x7 se queda sin fila típica) → se descarta.
       {x6, x7} es compatible → se agrega.
-Tras procesar r2 (2/6): |Ψ*| = 4 | tiempo acumulado = 18.200 µs
+Tras procesar r2 (2/6): |Ψ*| = 4 | tiempo acumulado = 17.600 µs
   Ψ* = {x1}, {x5}, {x3, x6}, {x6, x7}
 
 === Paso 3: fila r3 = (1 1 0 1 0 0 0), columnas con 1: {x1, x2, x4} ===
@@ -45,7 +45,7 @@ Tras procesar r2 (2/6): |Ψ*| = 4 | tiempo acumulado = 18.200 µs
       {x1, x6, x7} NO es compatible (x6 se queda sin fila típica) → se descarta.
       {x2, x6, x7} es compatible → se agrega.
       {x4, x6, x7} es compatible → se agrega.
-Tras procesar r3 (3/6): |Ψ*| = 7 | tiempo acumulado = 28.300 µs
+Tras procesar r3 (3/6): |Ψ*| = 7 | tiempo acumulado = 52.200 µs
   Ψ* = {x1}, {x2, x5}, {x4, x5}, {x2, x3, x6}, {x2, x6, x7}, {x3, x4, x6}, {x4, x6, x7}
 
 === Paso 4: fila r4 = (0 0 1 1 0 1 1), columnas con 1: {x3, x4, x6, x7} ===
@@ -65,7 +65,7 @@ Tras procesar r3 (3/6): |Ψ*| = 7 | tiempo acumulado = 28.300 µs
   τ = {x4, x5} ya cubre r4 (τ ∩ r4 = {x4}) → se conserva.
   τ = {x2, x6, x7} ya cubre r4 (τ ∩ r4 = {x6, x7}) → se conserva.
   τ = {x4, x6, x7} ya cubre r4 (τ ∩ r4 = {x4, x6, x7}) → se conserva.
-Tras procesar r4 (4/6): |Ψ*| = 12 | tiempo acumulado = 38.600 µs
+Tras procesar r4 (4/6): |Ψ*| = 12 | tiempo acumulado = 62.500 µs
   Ψ* = {x1, x3}, {x1, x4}, {x1, x6}, {x1, x7}, {x4, x5}, {x2, x3, x5}, {x2, x3, x6}, {x2, x5, x6}, {x2, x5, x7}, {x2, x6, x7}, {x3, x4, x6}, {x4, x6, x7}
 
 === Paso 5: fila r5 = (1 0 0 1 0 1 0), columnas con 1: {x1, x4, x6} ===
@@ -88,7 +88,7 @@ Tras procesar r4 (4/6): |Ψ*| = 12 | tiempo acumulado = 38.600 µs
   τ = {x4, x5} ya cubre r5 (τ ∩ r5 = {x4}) → se conserva.
   τ = {x2, x6, x7} ya cubre r5 (τ ∩ r5 = {x6}) → se conserva.
   τ = {x4, x6, x7} ya cubre r5 (τ ∩ r5 = {x4, x6}) → se conserva.
-Tras procesar r5 (5/6): |Ψ*| = 10 | tiempo acumulado = 52.800 µs
+Tras procesar r5 (5/6): |Ψ*| = 10 | tiempo acumulado = 84.900 µs
   Ψ* = {x1, x3}, {x1, x4}, {x1, x6}, {x1, x7}, {x4, x5}, {x2, x3, x6}, {x2, x5, x6}, {x2, x6, x7}, {x3, x4, x6}, {x4, x6, x7}
 
 === Paso 6: fila r6 = (1 0 0 1 0 0 1), columnas con 1: {x1, x4, x7} ===
@@ -109,7 +109,7 @@ Tras procesar r5 (5/6): |Ψ*| = 10 | tiempo acumulado = 52.800 µs
   τ = {x4, x5} ya cubre r6 (τ ∩ r6 = {x4}) → se conserva.
   τ = {x2, x6, x7} ya cubre r6 (τ ∩ r6 = {x7}) → se conserva.
   τ = {x4, x6, x7} ya cubre r6 (τ ∩ r6 = {x4, x7}) → se conserva.
-Tras procesar r6 (6/6): |Ψ*| = 8 | tiempo acumulado = 66.800 µs
+Tras procesar r6 (6/6): |Ψ*| = 8 | tiempo acumulado = 94.000 µs
   Ψ* = {x1, x3}, {x1, x4}, {x1, x6}, {x1, x7}, {x4, x5}, {x2, x6, x7}, {x3, x4, x6}, {x4, x6, x7}
 
 (Nota: con --traza los tiempos incluyen el registro de la traza; para medir use la tabla.)
@@ -118,12 +118,12 @@ Midiendo tiempos sin traza (1 ejecución/es, se reporta la mediana)...
 
 Tabla de resultados YYC:
 Fila  |Ψ*|    T. acumulado    Testores típicos de las filas procesadas
-r1    4       2.300 µs       {x1}, {x3}, {x5}, {x7}
-r2    4       4.900 µs       {x1}, {x5}, {x3, x6}, {x6, x7}
-r3    7       9.000 µs       {x1}, {x2, x5}, {x4, x5}, {x2, x3, x6}, {x2, x6, x7}, {x3, x4, x6}, {x4, x6, x7}
-r4    12      13.000 µs      {x1, x3}, {x1, x4}, {x1, x6}, {x1, x7}, {x4, x5}, {x2, x3, x5}, {x2, x3, x6}, {x2, x5, x6}, {x2, x5, x7}, {x2, x6, x7}, {x3, x4, x6}, {x4, x6, x7}
-r5    10      26.400 µs      {x1, x3}, {x1, x4}, {x1, x6}, {x1, x7}, {x4, x5}, {x2, x3, x6}, {x2, x5, x6}, {x2, x6, x7}, {x3, x4, x6}, {x4, x6, x7}
-r6    8       29.900 µs      {x1, x3}, {x1, x4}, {x1, x6}, {x1, x7}, {x4, x5}, {x2, x6, x7}, {x3, x4, x6}, {x4, x6, x7}
+r1    4       1.400 µs       {x1}, {x3}, {x5}, {x7}
+r2    4       3.100 µs       {x1}, {x5}, {x3, x6}, {x6, x7}
+r3    7       5.500 µs       {x1}, {x2, x5}, {x4, x5}, {x2, x3, x6}, {x2, x6, x7}, {x3, x4, x6}, {x4, x6, x7}
+r4    12      8.300 µs       {x1, x3}, {x1, x4}, {x1, x6}, {x1, x7}, {x4, x5}, {x2, x3, x5}, {x2, x3, x6}, {x2, x5, x6}, {x2, x5, x7}, {x2, x6, x7}, {x3, x4, x6}, {x4, x6, x7}
+r5    10      16.900 µs      {x1, x3}, {x1, x4}, {x1, x6}, {x1, x7}, {x4, x5}, {x2, x3, x6}, {x2, x5, x6}, {x2, x6, x7}, {x3, x4, x6}, {x4, x6, x7}
+r6    8       19.300 µs      {x1, x3}, {x1, x4}, {x1, x6}, {x1, x7}, {x4, x5}, {x2, x6, x7}, {x3, x4, x6}, {x4, x6, x7}
 
 Testores típicos de la matriz (8): {x1, x3}, {x1, x4}, {x1, x6}, {x1, x7}, {x4, x5}, {x2, x6, x7}, {x3, x4, x6}, {x4, x6, x7}
-Tiempo total de ejecución: 29.900 µs
+Tiempo total de ejecución: 19.300 µs
