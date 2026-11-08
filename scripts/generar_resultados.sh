@@ -1,5 +1,5 @@
 #!/usr/bin/env sh
-# Regenera todos los datos y resultados usados en el reporte (Ejercicios 1 y 2).
+# Regenera todos los datos y resultados usados en el reporte (Ejercicios 1, 2 y 3).
 # Uso (desde la raíz del repositorio, después de compilar):  sh scripts/generar_resultados.sh
 set -eu
 
@@ -26,5 +26,13 @@ mkdir -p data "$OUT"
 "$BIN" yyc --entrada data/matriz_A.txt --repeticiones 10000 --completo \
     --csv "$OUT/yyc_A.csv" --latex "$OUT/yyc_A_tabla.tex" --latex-matriz "$OUT/matriz_A.tex" --forzar \
     > "$OUT/yyc_A_tabla.txt"
+
+# Ejercicio 3.1: traza detallada de BT sobre A (texto y tabla LaTeX).
+"$BIN" bt --entrada data/matriz_A.txt --traza --completo --latex-traza "$OUT/bt_A_traza.tex" --forzar \
+    > "$OUT/bt_A_traza.txt"
+
+# Ejercicio 3.3: testores encontrados, típicos y tiempo total (mediana de 10000 ejecuciones).
+"$BIN" bt --entrada data/matriz_A.txt --repeticiones 10000 --completo \
+    --csv "$OUT/bt_A.csv" --latex "$OUT/bt_A_resumen.tex" --forzar > "$OUT/bt_A.txt"
 
 echo "Resultados generados en $OUT/"

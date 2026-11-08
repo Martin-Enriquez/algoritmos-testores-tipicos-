@@ -9,6 +9,7 @@
 #include <sstream>
 #include <stdexcept>
 
+#include "testores/application/bt_runner.hpp"
 #include "testores/application/matrix_generation.hpp"
 #include "testores/application/yyc_runner.hpp"
 #include "testores/domain/basic_matrix.hpp"
@@ -23,6 +24,7 @@
 namespace testores::presentation {
 
 using application::BasicMatrixConstraints;
+using application::BtRunResult;
 using application::GenerationRequest;
 using application::YycRunResult;
 using domain::BooleanMatrix;
@@ -45,6 +47,7 @@ const std::map<std::string, std::set<std::string>> kAllowedOptions = {
       "--intentos", "--salida", "--forzar"}},
     {"yyc",
      {"--entrada", "--traza", "--completo", "--repeticiones", "--csv", "--latex", "--latex-matriz", "--forzar"}},
+    {"bt", {"--entrada", "--traza", "--completo", "--repeticiones", "--csv", "--latex", "--latex-traza", "--forzar"}},
     {"ayuda", {}},
     {"menu", {}},
 };
@@ -68,6 +71,11 @@ void printUsage(std::ostream& out) {
            "      tras cada fila. --traza explica cada decisión paso a paso.\n"
            "      --completo muestra todos los testores (por defecto, hasta 30 por fila).\n"
            "      --repeticiones toma la mediana de R ejecuciones para la tabla.\n\n"
+           "  bt       --entrada archivo [--traza] [--completo] [--repeticiones R]\n"
+           "           [--csv archivo] [--latex archivo] [--latex-traza archivo] [--forzar]\n"
+           "      Ejercicios 3.1-3.3: algoritmo BT; muestra los testores encontrados,\n"
+           "      cuáles son típicos y el tiempo total. --traza explica cada n-uplo α\n"
+           "      analizado y cada salto. --repeticiones reporta la mediana de R tiempos.\n\n"
            "  ayuda    Muestra este mensaje.\n\n"
            "Formato de archivo: una fila por línea con 0/1 (separadores ' ', ',', ';'\n"
            "opcionales); '#' inicia un comentario.\n";
@@ -151,13 +159,13 @@ void showGenerated(std::ostream& out, const application::GeneratedMatrices& gene
     printReduction(out, generated.original, generated.reduction);
 }
 
-// YYC trabaja sobre matrices básicas: si la entrada no lo es se reduce primero
+// YYC y BT trabajan sobre matrices básicas: si la entrada no lo es se reduce primero
 // (el conjunto de testores típicos de una matriz y de su básica coinciden).
 BooleanMatrix ensureBasic(std::ostream& out, const BooleanMatrix& matrix) {
     if (domain::isBasicMatrix(matrix)) {
         return matrix;
     }
-    out << "\nLa matriz ingresada no es básica; se reduce antes de aplicar YYC.\n";
+    out << "\nLa matriz ingresada no es básica; se reduce antes de aplicar el algoritmo.\n";
     const domain::BasicReduction reduction = domain::reduceToBasic(matrix);
     printReduction(out, matrix, reduction);
     if (reduction.basic.rows() == 0) {
@@ -185,6 +193,28 @@ YycRunResult executeYyc(std::ostream& out, const BooleanMatrix& basic, bool expl
         result = application::benchmarkYyc(basic, clock, repetitions, options);
     }
     printYycSummaryTable(out, result, shownSets);
+    return result;
+}
+
+// Mismo criterio que YYC: BT se aplica a la matriz básica.
+BtRunResult executeBt(std::ostream& out, const BooleanMatrix& basic, bool explain, std::size_t repetitions,
+                      std::size_t shownSets) {
+    infrastructure::SteadyClock clock;
+    domain::BtOptions options;
+    options.recordTrace = explain;
+
+    showMatrix(out, basic, "MATRIZ BÁSICA DE ENTRADA PARA BT");
+    out << "Densidad: " << basic.density() << '\n';
+    BtRunResult result = repetitions > 1 ? application::benchmarkBt(basic, clock, repetitions, options)
+                                         : application::runBt(basic, clock, options);
+    if (explain) {
+        printBtTrace(out, basic, result.run);
+        if (repetitions == 1) {
+            // El tiempo con traza incluye el registro de cada paso; se mide aparte sin ella.
+            result.total = application::runBt(basic, clock).total;
+        }
+    }
+    printBtSummary(out, basic, result, shownSets);
     return result;
 }
 
@@ -289,6 +319,31 @@ int commandYyc(const ParsedArguments& args, std::ostream& out) {
     return 0;
 }
 
+int commandBt(const ParsedArguments& args, std::ostream& out) {
+    const std::string input = requireOption(args, "--entrada");
+    const std::size_t repetitions = sizeOption(args, "--repeticiones", 1, 1, kMaxRepetitions);
+    const bool overwrite = args.flags.count("--forzar") > 0;
+
+    const BooleanMatrix basic = ensureBasic(out, infrastructure::loadMatrix(input));
+    const std::size_t shown = args.flags.count("--completo") > 0 ? kShowAll : kDefaultShownSets;
+    const bool explain = args.flags.count("--traza") > 0 || args.options.count("--latex-traza") > 0;
+    const BtRunResult result = executeBt(out, basic, explain, repetitions, shown);
+
+    if (const auto path = optionalOption(args, "--csv")) {
+        infrastructure::exportBtCsv(*path, result, overwrite);
+        out << "Testores encontrados (CSV) guardados en " << *path << '\n';
+    }
+    if (const auto path = optionalOption(args, "--latex")) {
+        infrastructure::exportBtSummaryLatex(*path, basic, result, overwrite);
+        out << "Resumen LaTeX guardado en " << *path << '\n';
+    }
+    if (const auto path = optionalOption(args, "--latex-traza")) {
+        infrastructure::exportBtTraceLatex(*path, basic, result.run, overwrite);
+        out << "Traza LaTeX guardada en " << *path << '\n';
+    }
+    return 0;
+}
+
 // ----------------------------------------------------------------------------
 // Menú interactivo
 // ----------------------------------------------------------------------------
@@ -299,12 +354,12 @@ public:
 
     int run() {
         out_ << "=====================================================\n"
-                "  Testores típicos: generador de matrices y YYC\n"
+                "  Testores típicos: generador de matrices, YYC y BT\n"
                 "  Matemáticas Discretas - USFQ\n"
                 "=====================================================\n";
         while (true) {
             printMenu();
-            const long long option = input_.readInteger("Opción: ", 0, 9);
+            const long long option = input_.readInteger("Opción: ", 0, 12);
             if (option == 0) {
                 out_ << "Hasta luego.\n";
                 return 0;
@@ -331,6 +386,9 @@ private:
                 " 7. Ejecutar YYC paso a paso con explicación (Ej. 2.2)\n"
                 " 8. Guardar matriz actual / su básica en archivo\n"
                 " 9. Exportar la última tabla YYC (CSV y LaTeX)\n"
+                "10. Ejecutar BT: testores, típicos y tiempo total (Ej. 3.2)\n"
+                "11. Ejecutar BT paso a paso con explicación (Ej. 3.1)\n"
+                "12. Exportar el último resultado BT (CSV y LaTeX)\n"
                 " 0. Salir\n";
         if (matrix_) {
             out_ << "Matriz actual: " << matrix_->rows() << " x " << matrix_->cols() << '\n';
@@ -348,6 +406,9 @@ private:
             case 7: yyc(true); break;
             case 8: save(); break;
             case 9: exportLast(); break;
+            case 10: bt(false); break;
+            case 11: bt(true); break;
+            case 12: exportLastBt(); break;
             default: break;
         }
     }
@@ -383,6 +444,8 @@ private:
     void setMatrix(BooleanMatrix matrix) {
         matrix_ = std::move(matrix);
         lastResult_.reset();
+        lastBt_.reset();
+        lastBtMatrix_.reset();
     }
 
     void generate() {
@@ -471,6 +534,29 @@ private:
         lastResult_ = executeYyc(out_, basic, explain, repetitions, kDefaultShownSets);
     }
 
+    void bt(bool explain) {
+        const BooleanMatrix basic = ensureBasic(out_, requireMatrix());
+        const std::size_t repetitions =
+            explain ? 1 : input_.readSize("Repeticiones para medir el tiempo (1 = una sola corrida): ", 1, kMaxRepetitions);
+        lastBt_ = executeBt(out_, basic, explain, repetitions, kDefaultShownSets);
+        lastBtMatrix_ = basic;
+    }
+
+    void exportLastBt() {
+        if (!lastBt_ || !lastBtMatrix_) {
+            throw std::logic_error("Primero ejecute BT (opción 10 u 11)");
+        }
+        const std::string base = input_.readLine("Ruta base (sin extensión), ej. resultados/bt_A: ");
+        const bool overwrite = input_.readYesNo("¿Sobrescribir si existen?", false);
+        infrastructure::exportBtCsv(base + ".csv", *lastBt_, overwrite);
+        infrastructure::exportBtSummaryLatex(base + ".tex", *lastBtMatrix_, *lastBt_, overwrite);
+        out_ << "Exportado: " << base << ".csv y " << base << ".tex\n";
+        if (!lastBt_->run.trace.empty()) {
+            infrastructure::exportBtTraceLatex(base + "_traza.tex", *lastBtMatrix_, lastBt_->run, overwrite);
+            out_ << "Exportado: " << base << "_traza.tex\n";
+        }
+    }
+
     void save() {
         const BooleanMatrix& matrix = requireMatrix();
         const bool basic = input_.readYesNo("¿Guardar la matriz básica en lugar de la actual?", false);
@@ -504,6 +590,8 @@ private:
     std::ostream& out_;
     std::optional<BooleanMatrix> matrix_;
     std::optional<YycRunResult> lastResult_;
+    std::optional<BtRunResult> lastBt_;
+    std::optional<BooleanMatrix> lastBtMatrix_;
 };
 
 }  // namespace
@@ -559,6 +647,9 @@ int runApplication(const std::vector<std::string>& args, std::istream& in, std::
         }
         if (parsed.command == "buscar") {
             return commandSearch(parsed, out);
+        }
+        if (parsed.command == "bt") {
+            return commandBt(parsed, out);
         }
         return commandYyc(parsed, out);
     } catch (const InputClosed&) {

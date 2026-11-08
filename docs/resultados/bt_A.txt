@@ -1,0 +1,49 @@
+
+--- MATRIZ BÁSICA DE ENTRADA PARA BT (6 x 7) ---
+      x1 x2 x3 x4 x5 x6 x7
+r1 |   1  0  1  0  1  0  1
+r2 |   1  0  0  0  1  1  0
+r3 |   1  1  0  1  0  0  0
+r4 |   0  0  1  1  0  1  1
+r5 |   1  0  0  1  0  1  0
+r6 |   1  0  0  1  0  0  1
+Densidad: 0.47619
+
+Resultados de BT:
+  n-uplos analizados: 51 de 127 posibles (2^7 - 1); se saltaron 76
+  Testores encontrados: 24 (típicos: 8, no típicos: 16)
+
+  #    α         ¿Típico?  Testor
+  1    0001011   sí         {x4, x6, x7}
+  2    0001100   sí         {x4, x5}
+  3    0011010   sí         {x3, x4, x6}
+  4    0011100   no         {x3, x4, x5}
+  5    0100011   sí         {x2, x6, x7}
+  6    0100111   no         {x2, x5, x6, x7}
+  7    0101011   no         {x2, x4, x6, x7}
+  8    0101100   no         {x2, x4, x5}
+  9    0110011   no         {x2, x3, x6, x7}
+  10   0110111   no         {x2, x3, x5, x6, x7}
+  11   0111010   no         {x2, x3, x4, x6}
+  12   0111100   no         {x2, x3, x4, x5}
+  13   1000001   sí         {x1, x7}
+  14   1000010   sí         {x1, x6}
+  15   1000101   no         {x1, x5, x7}
+  16   1000110   no         {x1, x5, x6}
+  17   1001000   sí         {x1, x4}
+  18   1010000   sí         {x1, x3}
+  19   1100001   no         {x1, x2, x7}
+  20   1100010   no         {x1, x2, x6}
+  21   1100101   no         {x1, x2, x5, x7}
+  22   1100110   no         {x1, x2, x5, x6}
+  23   1101000   no         {x1, x2, x4}
+  24   1110000   no         {x1, x2, x3}
+
+Testores típicos de la matriz (8): {x1, x3}, {x1, x4}, {x1, x6}, {x1, x7}, {x4, x5}, {x2, x6, x7}, {x3, x4, x6}, {x4, x6, x7}
+Identificación de la tipicidad:
+  - durante la ejecución: testor cuyos rasgos tienen todos fila típica;
+  - a posteriori: testores minimales (por inclusión) entre los encontrados.
+  Ambos procedimientos coinciden ✓
+Tiempo total de ejecución: 23.900 µs (mediana de 10000 ejecuciones)
+Testores encontrados (CSV) guardados en docs/resultados/bt_A.csv
+Resumen LaTeX guardado en docs/resultados/bt_A_resumen.tex

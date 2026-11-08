@@ -1,7 +1,9 @@
 #include "testores/presentation/console_view.hpp"
 
 #include <algorithm>
+#include <cstdint>
 #include <iomanip>
+#include <optional>
 #include <ostream>
 #include <sstream>
 
@@ -141,6 +143,127 @@ void printYycSummaryTable(std::ostream& out, const application::YycRunResult& re
     out << "\nTestores típicos de la matriz (" << result.typicalTestors.size()
         << "): " << formatFeatureSetsLimited(result.typicalTestors, limit) << '\n'
         << "Tiempo total de ejecución: " << formatDuration(result.total) << '\n';
+}
+
+namespace {
+
+std::string tuple(const ColumnSet& alpha) {
+    return domain::toBinaryString(alpha) + " = " + formatFeatureSet(alpha);
+}
+
+// Cantidad de n-uplos estrictamente entre `from` y `to` (vacío si n > 63).
+std::optional<std::uint64_t> skippedBetween(const ColumnSet& from, const ColumnSet& to) {
+    const auto a = domain::btNumber(from);
+    const auto b = domain::btNumber(to);
+    if (!a || !b || *b <= *a) {
+        return std::nullopt;
+    }
+    return *b - *a - 1;
+}
+
+std::optional<std::uint64_t> skippedUntilEnd(const ColumnSet& from) {
+    const auto a = domain::btNumber(from);
+    if (!a) {
+        return std::nullopt;
+    }
+    const std::uint64_t last = (std::uint64_t{1} << from.width()) - 1;
+    return last - *a;
+}
+
+}  // namespace
+
+void printBtTrace(std::ostream& out, const BooleanMatrix& matrix, const domain::BtResult& result) {
+    const std::size_t n = matrix.cols();
+    out << "\nRecorrido de BT: los n-uplos α = (a1 ... a" << n
+        << ") se leen como números binarios (a1 = bit más significativo)\n"
+           "y se analizan en orden creciente desde "
+        << std::string(n - 1, '0') << "1 hasta " << std::string(n, '1') << ".\n";
+    for (std::size_t s = 0; s < result.trace.size(); ++s) {
+        const domain::BtStep& step = result.trace[s];
+        out << "\nPaso " << (s + 1) << ": α = " << tuple(step.candidate) << '\n';
+        std::optional<std::uint64_t> skipped;
+        switch (step.verdict) {
+            case domain::BtVerdict::NotTestor:
+                out << "  NO es testor: " << rowLabel(step.zeroRow) << " = " << domain::toBinaryString(matrix.row(step.zeroRow))
+                    << " es la primera fila con ceros en todas las columnas de α.\n"
+                    << "  Salto S1: último 1 de " << rowLabel(step.zeroRow) << " en " << domain::featureName(step.pivot)
+                    << " → poner 1 en " << domain::featureName(step.pivot) << " y ceros a su derecha.\n";
+                break;
+            case domain::BtVerdict::TypicalTestor:
+            case domain::BtVerdict::NonTypicalTestor:
+                out << "  ES testor (toda fila tiene un 1 en alguna columna de α) y ";
+                if (step.verdict == domain::BtVerdict::TypicalTestor) {
+                    out << "es TÍPICO: cada rasgo tiene fila típica.\n";
+                } else {
+                    out << "NO es típico: " << domain::featureName(step.columnWithoutTypicalRow.value_or(0))
+                        << " no tiene fila típica (se puede quitar y sigue siendo testor).\n";
+                }
+                out << "  Salto S2: último 1 de α en " << domain::featureName(step.pivot) << " → sumar 1 en esa posición"
+                    << " (se omiten los superconjuntos de α que sólo agregan rasgos a la derecha).\n";
+                break;
+        }
+        if (step.next) {
+            skipped = skippedBetween(step.candidate, *step.next);
+            out << "  Siguiente: α' = " << tuple(*step.next);
+        } else {
+            skipped = skippedUntilEnd(step.candidate);
+            out << "  El acarreo se sale por la izquierda: FIN del recorrido";
+        }
+        if (skipped && *skipped > 0) {
+            out << (*skipped == 1 ? "  (se salta 1 n-uplo)" : "  (se saltan " + std::to_string(*skipped) + " n-uplos)");
+        }
+        out << '\n';
+    }
+    if (result.traceTruncated) {
+        out << "\n(La traza se recortó: hubo más pasos de los que se guardan.)\n";
+    }
+}
+
+void printBtSummary(std::ostream& out, const BooleanMatrix& matrix, const application::BtRunResult& result,
+                    std::size_t limit) {
+    const domain::BtResult& run = result.run;
+    out << "\nResultados de BT:\n  n-uplos analizados: " << run.stats.candidatesEvaluated;
+    if (matrix.cols() <= 63) {
+        const std::uint64_t total = (std::uint64_t{1} << matrix.cols()) - 1;
+        out << " de " << total << " posibles (2^" << matrix.cols() << " - 1); se saltaron "
+            << (total - run.stats.candidatesEvaluated);
+    }
+    out << "\n  Testores encontrados: " << run.stats.testorsFound << " (típicos: " << run.stats.typicalFound
+        << ", no típicos: " << (run.stats.testorsFound - run.stats.typicalFound) << ")\n";
+
+    if (run.testors.size() <= limit) {
+        out << "\n  #    α" << std::string(matrix.cols() > 1 ? matrix.cols() - 1 : 0, ' ')
+            << "   ¿Típico?  Testor\n";
+        for (std::size_t i = 0; i < run.testors.size(); ++i) {
+            const auto& testor = run.testors[i];
+            out << "  " << std::left << std::setw(4) << (i + 1) << ' ' << domain::toBinaryString(testor.set) << "   "
+                << (testor.typical ? "sí" : "no") << "         " << formatFeatureSet(testor.set) << std::right
+                << '\n';
+        }
+    } else {
+        out << "  (lista de testores omitida: " << run.testors.size() << " > " << limit
+            << "; use --completo para verla)\n";
+    }
+    if (run.testorsTruncated) {
+        out << "  (sólo se guardaron los primeros " << run.testors.size() << " testores)\n";
+    }
+
+    out << "\nTestores típicos de la matriz (" << run.typicalTestors.size()
+        << "): " << formatFeatureSetsLimited(run.typicalTestors, limit) << '\n';
+    out << "Identificación de la tipicidad:\n"
+           "  - durante la ejecución: testor cuyos rasgos tienen todos fila típica;\n"
+           "  - a posteriori: testores minimales (por inclusión) entre los encontrados.\n";
+    if (run.testorsTruncated) {
+        out << "  Comprobación a posteriori no disponible (lista de testores recortada).\n";
+    } else {
+        out << "  Ambos procedimientos " << (result.typicalityProceduresAgree ? "coinciden ✓" : "NO coinciden ✗")
+            << '\n';
+    }
+    out << "Tiempo total de ejecución: " << formatDuration(result.total);
+    if (result.repetitions > 1) {
+        out << " (mediana de " << result.repetitions << " ejecuciones)";
+    }
+    out << '\n';
 }
 
 void ConsoleYycListener::onRowProcessed(const application::YycRowProgress& progress) {

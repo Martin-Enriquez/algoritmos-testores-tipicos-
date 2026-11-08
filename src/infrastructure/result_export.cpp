@@ -1,5 +1,6 @@
 #include "testores/infrastructure/result_export.hpp"
 
+#include <cstdint>
 #include <iomanip>
 #include <ostream>
 #include <sstream>
@@ -76,6 +77,94 @@ void writeYycLatexTable(std::ostream& output, const YycRunResult& result) {
                << " & " << microseconds(row.cumulative) << " \\\\\n";
     }
     output << "\\bottomrule\n\\end{tabular}\n";
+}
+
+void writeBtCsv(std::ostream& output, const application::BtRunResult& result) {
+    output << "orden,alfa,testor,tipico\n";
+    for (std::size_t i = 0; i < result.run.testors.size(); ++i) {
+        const auto& testor = result.run.testors[i];
+        output << (i + 1) << ',' << domain::toBinaryString(testor.set) << ','
+               << csvField(domain::formatFeatureSet(testor.set)) << ',' << (testor.typical ? "si" : "no") << '\n';
+    }
+}
+
+void writeBtSummaryLatex(std::ostream& output, const domain::BooleanMatrix& matrix,
+                         const application::BtRunResult& result) {
+    const auto& stats = result.run.stats;
+    output << "% Generado por testores (BT). Tiempo: mediana de " << result.repetitions
+           << " ejecuciones, en microsegundos.\n";
+    output << "\\begin{tabular}{l >{\\raggedright\\arraybackslash}p{9.5cm}}\n\\toprule\n";
+    output << "n-uplos analizados & " << stats.candidatesEvaluated;
+    if (matrix.cols() <= 63) {
+        output << " de $2^{" << matrix.cols() << "}-1=" << ((std::uint64_t{1} << matrix.cols()) - 1) << "$";
+    }
+    output << " \\\\\n";
+    output << "Testores encontrados & " << stats.testorsFound << " (" << stats.typicalFound << " típicos, "
+           << (stats.testorsFound - stats.typicalFound) << " no típicos) \\\\\n";
+    output << "Testores típicos & " << latexFeatureSets(result.run.typicalTestors) << " \\\\\n";
+    output << "Tiempo total ($\\mu$s) & " << microseconds(result.total) << " \\\\\n";
+    output << "\\bottomrule\n\\end{tabular}\n";
+}
+
+void writeBtTraceLatex(std::ostream& output, const domain::BooleanMatrix& matrix, const domain::BtResult& result) {
+    output << "% Generado por testores (BT --traza). Requiere el paquete booktabs.\n";
+    output << "\\begin{tabular}{r c l l l c c}\n\\toprule\n";
+    output << "Paso & $\\alpha$ & $T_\\alpha$ & Decisión & Justificación & Salto & $\\alpha'$ \\\\\n\\midrule\n";
+    for (std::size_t s = 0; s < result.trace.size(); ++s) {
+        const domain::BtStep& step = result.trace[s];
+        output << (s + 1) << " & \\texttt{" << domain::toBinaryString(step.candidate) << "} & $"
+               << latexFeatureSet(step.candidate) << "$ & ";
+        switch (step.verdict) {
+            case domain::BtVerdict::NotTestor:
+                output << "no testor & $r_{" << (step.zeroRow + 1) << "}\\cap T_\\alpha=\\emptyset$ & S1: $x_{"
+                       << (step.pivot + 1) << "}$";
+                break;
+            case domain::BtVerdict::TypicalTestor: {
+                // Primera fila típica de cada rasgo (existe por ser típico).
+                output << "\\textbf{típico} & $";
+                bool first = true;
+                for (std::size_t col : step.candidate.indices()) {
+                    for (std::size_t i = 0; i < matrix.rows(); ++i) {
+                        const ColumnSet hit = matrix.row(i) & step.candidate;
+                        if (hit.count() == 1 && hit.test(col)) {
+                            output << (first ? "" : ",\\ ") << "x_{" << (col + 1) << "}{:}r_{" << (i + 1) << "}";
+                            first = false;
+                            break;
+                        }
+                    }
+                }
+                output << "$ & S2: $x_{" << (step.pivot + 1) << "}$";
+                break;
+            }
+            case domain::BtVerdict::NonTypicalTestor:
+                output << "no típico & $x_{" << (step.columnWithoutTypicalRow.value_or(0) + 1)
+                       << "}$ sin fila típica & S2: $x_{" << (step.pivot + 1) << "}$";
+                break;
+        }
+        output << " & " << (step.next ? "\\texttt{" + domain::toBinaryString(*step.next) + "}" : std::string("fin"))
+               << " \\\\\n";
+    }
+    output << "\\bottomrule\n\\end{tabular}\n";
+}
+
+void exportBtCsv(const std::filesystem::path& path, const application::BtRunResult& result, bool overwrite) {
+    std::ofstream file = openOutputFile(path, overwrite);
+    writeBtCsv(file, result);
+    closeOutputFile(file, path);
+}
+
+void exportBtSummaryLatex(const std::filesystem::path& path, const domain::BooleanMatrix& matrix,
+                          const application::BtRunResult& result, bool overwrite) {
+    std::ofstream file = openOutputFile(path, overwrite);
+    writeBtSummaryLatex(file, matrix, result);
+    closeOutputFile(file, path);
+}
+
+void exportBtTraceLatex(const std::filesystem::path& path, const domain::BooleanMatrix& matrix,
+                        const domain::BtResult& result, bool overwrite) {
+    std::ofstream file = openOutputFile(path, overwrite);
+    writeBtTraceLatex(file, matrix, result);
+    closeOutputFile(file, path);
 }
 
 void writeMatrixLatex(std::ostream& output, const domain::BooleanMatrix& matrix) {

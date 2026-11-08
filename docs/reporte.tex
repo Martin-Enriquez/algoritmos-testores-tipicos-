@@ -162,10 +162,11 @@ Capa & Responsabilidad \\
 \midrule
 domain & Conceptos matemáticos puros: \texttt{ColumnSet} (conjunto de columnas
 como mapa de bits), \texttt{BooleanMatrix}, reducción a matriz básica,
-definiciones de testor, fila típica y conjunto compatible, y el algoritmo
-\texttt{YycSolver}. No realiza entrada/salida. \\
+definiciones de testor, fila típica y conjunto compatible, y los algoritmos
+\texttt{YycSolver} y \texttt{BtSolver}. No realiza entrada/salida. \\
 application & Casos de uso: generar matrices, buscar una matriz básica que
-cumpla restricciones, ejecutar YYC midiendo el tiempo acumulado por fila.
+cumpla restricciones, ejecutar YYC midiendo el tiempo acumulado por fila y
+ejecutar BT midiendo su tiempo total.
 Define \emph{puertos} (interfaces) para el azar, el reloj y la notificación
 de progreso. \\
 infrastructure & Implementaciones concretas de los puertos: generador
@@ -203,12 +204,13 @@ ciclo interno crea muchos conjuntos temporales.
   \texttt{\_GLIBCXX\_ASSERTIONS}).
 \end{itemize}
 
-\paragraph{Verificación.} El proyecto incluye 49 pruebas unitarias. La más
+\paragraph{Verificación.} El proyecto incluye 63 pruebas unitarias. La más
 importante compara el resultado de YYC con un \emph{oráculo exhaustivo}
 independiente (recorre los $2^n$ subconjuntos de columnas y aplica directamente
 la definición de testor típico) sobre 400 matrices básicas aleatorias de hasta
 12 columnas, y además comprueba que, después de cada fila, $\Psis$ coincide
-exactamente con los testores típicos de las filas procesadas.
+exactamente con los testores típicos de las filas procesadas. Las pruebas de
+BT se describen en la Sección~\ref{sec:bt-impl}.
 
 \paragraph{Reproducibilidad.} Toda generación aleatoria usa una semilla que el
 programa informa. El bit aleatorio se obtiene como $u<p$ con $u\in[0,1)$ formado
@@ -386,7 +388,7 @@ que \emph{cada rasgo de $\tau$ conserve alguna fila típica}, es decir, que teng
 fila donde aparece sin $x$ ni otros rasgos de $\tau$. Agregar $x$ sólo puede
 ``romper'' filas típicas de $\tau$ que tengan un $1$ en la columna $x$.
 
-\subsection{Ejercicio 2.2: ejecución manual de YYC sobre $A$}
+\subsection{Ejercicio 2.2: ejecución manual de YYC sobre $A$}\label{sec:yyc-manual}
 
 Escribimos cada fila de $A$ como el conjunto de rasgos donde tiene un $1$:
 \[
@@ -612,7 +614,7 @@ Tras procesar r4 (4/6): |Psi*| = 12 | tiempo acumulado = 16.700 us
   ...
 \end{Verbatim}
 
-\subsection{Ejercicio 2.4: resultados sobre la matriz $A$}
+\subsection{Ejercicio 2.4: resultados sobre la matriz $A$}\label{sec:yyc-res}
 
 Una sola ejecución de YYC sobre $A$ dura unos pocos microsegundos, una escala
 en la que el ruido del sistema operativo (interrupciones, caché fría, cambios de
@@ -648,6 +650,290 @@ de ejecución acumulado después de cada fila (mediana de 10\,000 ejecuciones).}
 \end{itemize}
 
 % ==============================================================================
+\section{Ejercicio 3: algoritmo BT}
+% ==============================================================================
+
+\subsection{El algoritmo BT}\label{sec:bt}
+
+BT fue propuesto por Ruiz-Shulcloper, Bravo y Águila~\cite{shul82}. A diferencia
+de YYC, que construye los testores típicos a partir de la estructura interna de
+la matriz, BT es un algoritmo de \emph{escala exterior}: recorre los
+subconjuntos de rasgos en un orden total fijo y, según el resultado de analizar
+cada uno, \emph{salta} bloques completos de subconjuntos que no pueden ser
+testores típicos~\cite{pons2004}.
+
+\paragraph{Codificación y orden.} Cada subconjunto $T\subseteq R$ se representa
+por su $n$-uplo característico $\alpha=(a_1,\dots,a_n)\in\{0,1\}^n$, con $a_j=1$ si
+y sólo si $\x j\in T$; escribimos $T_\alpha$ para el conjunto asociado a $\alpha$.
+El $n$-uplo se lee como un número natural en binario, con $a_1$ como dígito más
+significativo:
+\[
+\nu(\alpha)=\sum_{j=1}^{n} a_j\,2^{\,n-j}.
+\]
+BT analiza los $n$-uplos en orden creciente de $\nu$, desde $(0,\dots,0,1)=\cj{\x n}$
+hasta $(1,\dots,1)=R$. Para $n=3$ el orden es
+$001=\cj{\x3}$, $010=\cj{\x2}$, $011=\cj{\x2,\x3}$, $100=\cj{\x1}$, $101$, $110$, $111$
+(es el mismo que presenta~\cite[Tabla 4.1]{pons2004}).
+
+Usaremos repetidamente el siguiente hecho elemental: si dos números $\alpha<\alpha'$
+coinciden en sus primeros $k-1$ dígitos, todo $\beta$ con $\alpha<\beta<\alpha'$ también
+coincide con ellos en esos dígitos (los números con un prefijo fijo forman un
+intervalo).
+
+\begin{proposicion}[Salto S1: $\alpha$ no es testor]\label{prop:s1}
+Sea $\alpha$ tal que $T_\alpha$ no es testor, sea $r_i$ una fila con
+$r_i\cap T_\alpha=\emptyset$ y sea $k=\max\{j: r_i[j]=1\}$ la posición del
+\emph{último} $1$ de $r_i$. Sea
+$\alpha'=(a_1,\dots,a_{k-1},1,0,\dots,0)$. Entonces $\alpha<\alpha'$ y ningún
+$\beta$ con $\alpha<\beta<\alpha'$ es testor.
+\end{proposicion}
+\begin{proof}
+Como $r_i[k]=1$ y $r_i$ no corta a $T_\alpha$, se tiene $a_k=0$; luego $\alpha$ y
+$\alpha'$ coinciden en las posiciones $1,\dots,k-1$ y en la posición $k$ valen $0$
+y $1$, así que $\alpha<\alpha'$. Sea $\alpha<\beta<\alpha'$. Por el hecho anterior,
+$b_j=a_j$ para $j<k$, y como $\beta<\alpha'$ con el mismo prefijo, $b_k=0=a_k$. Las
+posiciones $j>k$ no importan porque allí $r_i[j]=0$. Entonces
+$r_i\cap T_\beta=r_i\cap T_\alpha=\emptyset$: la fila $r_i$ sigue sin cubrirse y
+$T_\beta$ no es testor.
+\end{proof}
+
+\begin{proposicion}[Salto S2: $\alpha$ es testor]\label{prop:s2}
+Sea $\alpha$ tal que $T_\alpha$ es testor y sea $k=\max\{j: a_j=1\}$ la posición del
+último $1$ de $\alpha$. Todo $\beta$ con $\nu(\alpha)<\nu(\beta)<\nu(\alpha)+2^{\,n-k}$
+cumple $T_\beta\supset T_\alpha$ (inclusión propia); en particular, $T_\beta$ es testor pero
+\emph{no} es típico.
+\end{proposicion}
+\begin{proof}
+Como $a_j=0$ para $j>k$, $\nu(\alpha)$ es múltiplo de $2^{\,n-k}$ y el intervalo
+$[\nu(\alpha),\nu(\alpha)+2^{\,n-k})$ está formado exactamente por los $n$-uplos que
+coinciden con $\alpha$ en las posiciones $1,\dots,k$, con cualquier valor en las
+posiciones $k+1,\dots,n$. Si $\beta\neq\alpha$ está en ese intervalo, tiene algún
+$b_j=1$ con $j>k$, luego $T_\beta\supset T_\alpha$ y $T_\beta\neq T_\alpha$. Todo superconjunto de un testor
+es testor, y no es típico porque contiene propiamente al testor $T_\alpha$.
+\end{proof}
+
+El siguiente candidato tras S2 es $\nu(\alpha)+2^{\,n-k}$: se ``suma 1 en la
+posición del último 1'' con acarreo hacia la izquierda. Si el acarreo se sale por
+la posición $1$ ($\nu(\alpha)+2^{\,n-k}\ge 2^n$), todos los $n$-uplos restantes son
+superconjuntos de $T_\alpha$ y el algoritmo termina. El algoritmo completo es:
+
+\begin{enumerate}[nosep]
+\item $\alpha\leftarrow(0,\dots,0,1)$.
+\item Buscar la primera fila $r_i$ (en el orden de la matriz) con $r_i\cap T_\alpha=\emptyset$.
+\item \textbf{Si existe}, $T_\alpha$ no es testor: $k\leftarrow$ último $1$ de $r_i$;
+  $\alpha\leftarrow(a_1,\dots,a_{k-1},1,0,\dots,0)$ y volver a 2.
+\item \textbf{Si no existe}, $T_\alpha$ es testor: registrarlo y decidir si es típico;
+  $k\leftarrow$ último $1$ de $\alpha$; $\alpha\leftarrow\alpha+2^{\,n-k}$. Si hubo
+  desbordamiento, terminar; si no, volver a 2.
+\end{enumerate}
+
+\begin{proposicion}[Corrección de BT]\label{prop:btcorrecto}
+BT termina y analiza todos los testores típicos de la matriz.
+\end{proposicion}
+\begin{proof}
+En cada paso $\nu(\alpha)$ crece estrictamente y está acotado por $2^n-1$, así que
+BT termina tras a lo sumo $2^n-1$ pasos. Los únicos $n$-uplos que no se analizan son
+los que se saltan en S1 (no son testores, Proposición~\ref{prop:s1}), los que se
+saltan en S2 y los que quedan tras el desbordamiento final (superconjuntos propios
+de un testor, Proposición~\ref{prop:s2}). Ninguno de ellos es testor típico.
+\end{proof}
+
+\paragraph{Identificación de los testores típicos.} BT, por sí solo, encuentra
+testores, y entre ellos hay testores no típicos (los superconjuntos de un testor
+que no son ``consecutivos'' a él en el orden). El enunciado pide un procedimiento
+para identificar los típicos; implementamos dos, que se comprueban entre sí:
+\begin{enumerate}[nosep]
+\item \textbf{Durante la ejecución.} Cuando $T_\alpha$ resulta testor, se comprueba
+  si cada rasgo de $T_\alpha$ tiene una fila típica; por la
+  Proposición~\ref{prop:tipico}, esto equivale a que $T_\alpha$ sea típico.
+\item \textbf{A posteriori.} Al terminar, se toman los elementos minimales (respecto
+  de $\subseteq$) de la familia $\mathcal F$ de testores encontrados.
+\end{enumerate}
+
+\begin{proposicion}\label{prop:minimales}
+Los testores típicos de la matriz son exactamente los elementos minimales de $\mathcal F$.
+\end{proposicion}
+\begin{proof}
+Si $T$ es típico, $T\in\mathcal F$ (Proposición~\ref{prop:btcorrecto}) y ningún
+subconjunto propio $T'\subset T$ es testor, así que $T$ es minimal en $\mathcal F$. Recíprocamente, sea
+$T$ minimal en $\mathcal F$. Quitando rasgos a $T$ mientras siga siendo testor se llega
+a un testor típico $T_0\subseteq T$, que también está en $\mathcal F$; por minimalidad,
+$T_0=T$.
+\end{proof}
+
+\paragraph{Orden de las filas.} BT usa la \emph{primera} fila de ceros, de modo que
+el orden de las filas no cambia el resultado pero sí el tamaño de los saltos S1.
+\cite{pons2004} menciona una variante que reordena previamente la matriz básica
+para provocar saltos mayores. Nuestra implementación \emph{no} reordena nada,
+porque el Ejercicio~5 pide justamente medir el efecto de ordenar las filas.
+
+\subsection{Ejercicio 3.1: ejecución manual de BT sobre $A$}
+
+En la notación de $n$-uplos, las filas de $A$ y la posición de su último $1$ son
+\[
+\begin{array}{c c c c c c c}
+ & r_1 & r_2 & r_3 & r_4 & r_5 & r_6\\
+\text{fila} & 1010101 & 1000110 & 1101000 & 0011011 & 1001010 & 1001001\\
+\text{último 1} & \x7 & \x6 & \x4 & \x7 & \x6 & \x7
+\end{array}
+\]
+Para cada candidato $\alpha$ se recorren las filas $r_1,\dots,r_6$ buscando la
+primera con ceros en todas las columnas de $T_\alpha$. Detallamos los primeros
+pasos y los más ilustrativos; la Tabla~\ref{tab:bttraza} contiene el recorrido
+completo, con la justificación de cada decisión.
+
+\begin{description}[nosep, leftmargin=1.2em]
+\item[Paso 1.] $\alpha=0000001$, $T_\alpha=\cj{\x7}$. $r_1$ contiene a $\x7$, pero
+  $r_2=\cj{\x1,\x5,\x6}$ no: no es testor. El último $1$ de $r_2$ está en $\x6$
+  (S1): $\alpha'=0000010$.
+\item[Paso 2.] $\cj{\x6}$: $r_1$ no contiene a $\x6$. Último $1$ de $r_1$: $\x7$,
+  $\alpha'=0000011$.
+\item[Paso 3.] $\cj{\x6,\x7}$ cubre $r_1$ y $r_2$, pero no $r_3=\cj{\x1,\x2,\x4}$. Último
+  $1$ de $r_3$: $\x4$, así que $\alpha'=0001000$. Se saltan los 4 $n$-uplos
+  $0000100,\dots,0000111$: todos tienen ceros en $\x1,\x2,\x4$ y no cubren $r_3$.
+\item[Pasos 4--6.] $\cj{\x4}$ no cubre $r_1$ (salto a $0001001$); $\cj{\x4,\x7}$ no
+  cubre $r_2$ (salto a $0001010$); $\cj{\x4,\x6}$ no cubre $r_1$ (salto a $0001011$).
+\item[Paso 7.] $\cj{\x4,\x6,\x7}$: $r_1\to\x7$, $r_2\to\x6$, $r_3\to\x4$,
+  $r_4\to\cj{\x4,\x6,\x7}$, $r_5\to\cj{\x4,\x6}$, $r_6\to\cj{\x4,\x7}$. Ninguna
+  intersección es vacía: \textbf{es testor}. Además $r_3$, $r_2$ y $r_1$ son filas
+  típicas de $\x4$, $\x6$ y $\x7$: \textbf{es típico}. El último $1$ está en $\x7$
+  (S2): $\alpha'=0001011+1=0001100$.
+\item[Paso 8.] $\cj{\x4,\x5}$: $r_1,r_2\to\x5$ y $r_3,\dots,r_6\to\x4$; es testor
+  y típico ($\x4{:}r_3$, $\x5{:}r_1$). El último $1$ está en $\x5$:
+  $\alpha'=0001100+0000100=0010000$. Se saltan $0001101$, $0001110$ y $0001111$,
+  que son $\cj{\x4,\x5}$ más $\x6$ y/o $\x7$.
+\item[Paso 13.] $\cj{\x3,\x4,\x5}$ es testor pero \textbf{no típico}: $\x3$ sólo aparece
+  en $r_1$ (junto a $\x5$) y en $r_4$ (junto a $\x4$), así que no tiene fila típica.
+  En efecto, contiene al testor $\cj{\x4,\x5}$ encontrado en el paso 8, pero no es
+  consecutivo a él en el orden y por eso S2 no lo evitó.
+\item[Pasos 42--43.] $\cj{\x1,\x4}$ y $\cj{\x1,\x3}$ son típicos y producen los
+  saltos más grandes: $1001000+0001000=1010000$ (7 superconjuntos omitidos) y
+  $1010000+0010000=1100000$ (15 omitidos).
+\item[Paso 51.] $\cj{\x1,\x2,\x3}$ es testor no típico ($\x2$ sólo aparece en $r_3$,
+  que también contiene a $\x1$). Al sumar $1$ en la posición de $\x3$ el acarreo se
+  sale por la izquierda ($1110000+0010000=10000000$): los 15 $n$-uplos restantes
+  son superconjuntos de $\cj{\x1,\x2,\x3}$ y \textbf{el algoritmo termina}.
+\end{description}
+
+\begin{table}[p]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{0.9}
+\input{resultados/bt_A_traza.tex}
+\caption{Recorrido completo de BT sobre $A$. ``S1: $x_k$'' indica el
+salto por fila de ceros (1 en $x_k$ y ceros a su derecha); ``S2: $x_k$'', el salto
+por testor (sumar 1 en la posición $x_k$). En los testores típicos se indica una
+fila típica de cada rasgo.}\label{tab:bttraza}
+\end{table}
+
+\paragraph{Resumen de la ejecución.}
+\begin{itemize}[nosep]
+\item BT analizó \textbf{51} de los $2^7-1=127$ subconjuntos no vacíos y saltó los
+  otros 76: 27 candidatos no fueron testores (salto S1) y 24 sí lo fueron (salto S2).
+\item De los 24 testores, \textbf{8 son típicos}:
+  $\cj{\x4,\x6,\x7}$, $\cj{\x4,\x5}$, $\cj{\x3,\x4,\x6}$, $\cj{\x2,\x6,\x7}$,
+  $\cj{\x1,\x7}$, $\cj{\x1,\x6}$, $\cj{\x1,\x4}$, $\cj{\x1,\x3}$ (en el orden en que
+  BT los encuentra). Es exactamente el conjunto obtenido con YYC en la
+  Sección~\ref{sec:yyc-manual}. Los 16 testores restantes no son típicos, y los elementos
+  minimales de la familia de 24 testores son, de nuevo, esos 8
+  (Proposición~\ref{prop:minimales}).
+\item La debilidad de BT señalada en~\cite{pons2004} se ve claramente: dos tercios
+  de los testores analizados son superconjuntos de testores típicos
+  (por ejemplo $\cj{\x2,\x4,\x5}\supset\cj{\x4,\x5}$) que el salto S2 no puede
+  evitar, porque no son consecutivos al testor en el orden binario. Como comparación,
+  YYC probó 35 extensiones y nunca generó un testor no típico.
+\end{itemize}
+
+\subsection{Ejercicio 3.2: implementación computacional de BT}\label{sec:bt-impl}
+
+\paragraph{Diseño.} BT vive en la capa de dominio (\texttt{domain/bt.hpp}). Los
+saltos son dos funciones puras: \texttt{btJumpNotTestor} (S1: poner $1$ en la
+posición $k$ y ceros a su derecha) y \texttt{btJumpTestor} (S2: sumar $1$ en la
+posición del último $1$ con acarreo; devuelve ``vacío'' si hay desbordamiento).
+\texttt{BtSolver::solve} repite: buscar la primera fila de ceros con operaciones
+\texttt{AND} sobre palabras de 64 bits; si no hay, registrar el testor, decidir
+su tipicidad (procedimiento 1) y aplicar S2; si la hay, aplicar S1. El resultado
+contiene la lista de testores encontrados (en el orden de BT y marcados como
+típicos o no), los testores típicos y, opcionalmente, la traza de cada paso. El
+caso de uso \texttt{runBt} lee el reloj monótono antes y después de
+\texttt{solve}, de modo que el \textbf{tiempo total} medido no incluye la
+impresión; fuera de la medición aplica el procedimiento 2 (minimales) y
+comprueba que coincide con el 1. Como con YYC, \texttt{benchmarkBt} repite la
+ejecución y reporta la mediana. Hay cotas de seguridad sobre la cantidad de
+testores y de pasos de traza guardados.
+
+\paragraph{Interfaz de usuario.} En el menú interactivo se añadieron las opciones
+10 (ejecutar BT), 11 (BT paso a paso con explicación) y 12 (exportar el último
+resultado), que trabajan sobre la matriz actual (generada con el Ejercicio~1,
+cargada de archivo o ingresada a mano). Si la matriz no es básica, se reduce
+primero. También hay un subcomando:
+\begin{Verbatim}[fontsize=\small, frame=single]
+testores bt --entrada data/matriz_A.txt                    # testores, típicos y tiempo
+testores bt --entrada data/matriz_A.txt --traza            # cada alfa y cada salto
+testores bt --entrada data/matriz_A.txt --repeticiones 10000 \
+            --csv resultados/bt_A.csv --latex resultados/bt_A_resumen.tex
+\end{Verbatim}
+Un fragmento de la salida:
+\begin{Verbatim}[fontsize=\small, frame=single]
+Paso 13: alfa = 0011100 = {x3, x4, x5}
+  ES testor (toda fila tiene un 1 en alguna columna de alfa) y NO es tipico:
+  x3 no tiene fila tipica (se puede quitar y sigue siendo testor).
+  Salto S2: ultimo 1 de alfa en x5 -> sumar 1 en esa posicion
+  Siguiente: alfa' = 0100000 = {x2}  (se saltan 3 n-uplos)
+...
+Resultados de BT:
+  n-uplos analizados: 51 de 127 posibles (2^7 - 1); se saltaron 76
+  Testores encontrados: 24 (tipicos: 8, no tipicos: 16)
+  Ambos procedimientos coinciden
+\end{Verbatim}
+
+\paragraph{Verificación de BT.} Se añadieron 14 pruebas. Las principales:
+\begin{itemize}[nosep]
+\item la traza exacta (n-uplos visitados, filas de ceros y saltos) sobre una
+  matriz de $3\times3$ calculada a mano;
+\item BT coincide con el oráculo exhaustivo y con YYC en 500 matrices básicas
+  aleatorias de 1 a 12 columnas;
+\item en 150 matrices aleatorias se recorren \emph{todos} los $n$-uplos que BT no
+  analizó y se comprueba que ninguno es testor típico, que el orden de visita es
+  estrictamente creciente y que cada testor se clasificó correctamente; es una
+  comprobación empírica de las Proposiciones~\ref{prop:s1} y~\ref{prop:s2};
+\item los minimales de los testores encontrados coinciden con los típicos
+  (Proposición~\ref{prop:minimales}).
+\end{itemize}
+Además, la traza de la Tabla~\ref{tab:bttraza} se reprodujo con una
+implementación independiente de BT escrita en Python a partir de las
+Proposiciones~\ref{prop:s1} y~\ref{prop:s2}: los 51 pasos coinciden.
+
+\subsection{Ejercicio 3.3: resultados sobre la matriz $A$}
+
+\begin{table}[h]
+\centering
+\small
+\input{resultados/bt_A_resumen.tex}
+\caption{BT sobre la matriz $A$: testores típicos obtenidos y tiempo total de
+ejecución (mediana de 10\,000 ejecuciones). La lista completa de los 24 testores
+encontrados está en \texttt{docs/resultados/bt\_A.csv}.}
+\label{tab:btA}
+\end{table}
+
+\paragraph{Interpretación.}
+\begin{itemize}[nosep]
+\item Los testores típicos coinciden exactamente con los de la ejecución manual
+  y con los de YYC (Tabla~\ref{tab:yycA}).
+\item El tiempo total es de unas pocas decenas de microsegundos. Con mediciones
+  hechas una tras otra en las mismas condiciones, BT tardó entre 24 y
+  32\,$\mu$s y YYC unos 17\,$\mu$s. (Los valores absolutos cambian con el estado del
+  equipo, por ejemplo con el modo de energía; por eso la tabla de YYC de la
+  Sección~\ref{sec:yyc-res}, medida en otra sesión, muestra unos 7\,$\mu$s. Sólo tiene sentido
+  comparar tiempos medidos en la misma sesión.)
+\item El costo por candidato de ambos algoritmos es parecido. BT es más lento en $A$
+  porque analiza más candidatos (51 frente a 35) y 16 de ellos son testores no
+  típicos que YYC nunca genera. La comparación sistemática, incluido el efecto del
+  orden de las filas sobre los saltos de BT, corresponde al Ejercicio~5.
+\end{itemize}
+
+% ==============================================================================
 \begin{thebibliography}{9}
 % ==============================================================================
 
@@ -667,6 +953,17 @@ behavior of typical testor-finding algorithms.
 M.~Lazo-Cortés, J.~Ruiz-Shulcloper y E.~Alba-Cabrera.
 \newblock An overview of the evolution of the concept of testor.
 \newblock \emph{Pattern Recognition}, 34(4):753--762, 2001.
+
+\bibitem{shul82}
+J.~Ruiz-Shulcloper, M.~A.~Bravo y F.~L.~Águila.
+\newblock Algoritmos BT y TB para el cálculo de todos los tests típicos.
+\newblock \emph{Revista Ciencias Matemáticas}, 6(2), 1982.
+
+\bibitem{pons2004}
+A.~Pons-Porrata.
+\newblock \emph{Desarrollo de algoritmos para la estructuración dinámica de
+información y su aplicación a la detección de sucesos}.
+\newblock Tesis doctoral, Universitat Jaume I, Castellón, 2004. Sección 4.2.2.
 
 \bibitem{mt1998}
 M.~Matsumoto y T.~Nishimura.

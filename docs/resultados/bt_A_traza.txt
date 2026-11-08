@@ -1,0 +1,306 @@
+
+--- MATRIZ BÁSICA DE ENTRADA PARA BT (6 x 7) ---
+      x1 x2 x3 x4 x5 x6 x7
+r1 |   1  0  1  0  1  0  1
+r2 |   1  0  0  0  1  1  0
+r3 |   1  1  0  1  0  0  0
+r4 |   0  0  1  1  0  1  1
+r5 |   1  0  0  1  0  1  0
+r6 |   1  0  0  1  0  0  1
+Densidad: 0.47619
+
+Recorrido de BT: los n-uplos α = (a1 ... a7) se leen como números binarios (a1 = bit más significativo)
+y se analizan en orden creciente desde 0000001 hasta 1111111.
+
+Paso 1: α = 0000001 = {x7}
+  NO es testor: r2 = 1000110 es la primera fila con ceros en todas las columnas de α.
+  Salto S1: último 1 de r2 en x6 → poner 1 en x6 y ceros a su derecha.
+  Siguiente: α' = 0000010 = {x6}
+
+Paso 2: α = 0000010 = {x6}
+  NO es testor: r1 = 1010101 es la primera fila con ceros en todas las columnas de α.
+  Salto S1: último 1 de r1 en x7 → poner 1 en x7 y ceros a su derecha.
+  Siguiente: α' = 0000011 = {x6, x7}
+
+Paso 3: α = 0000011 = {x6, x7}
+  NO es testor: r3 = 1101000 es la primera fila con ceros en todas las columnas de α.
+  Salto S1: último 1 de r3 en x4 → poner 1 en x4 y ceros a su derecha.
+  Siguiente: α' = 0001000 = {x4}  (se saltan 4 n-uplos)
+
+Paso 4: α = 0001000 = {x4}
+  NO es testor: r1 = 1010101 es la primera fila con ceros en todas las columnas de α.
+  Salto S1: último 1 de r1 en x7 → poner 1 en x7 y ceros a su derecha.
+  Siguiente: α' = 0001001 = {x4, x7}
+
+Paso 5: α = 0001001 = {x4, x7}
+  NO es testor: r2 = 1000110 es la primera fila con ceros en todas las columnas de α.
+  Salto S1: último 1 de r2 en x6 → poner 1 en x6 y ceros a su derecha.
+  Siguiente: α' = 0001010 = {x4, x6}
+
+Paso 6: α = 0001010 = {x4, x6}
+  NO es testor: r1 = 1010101 es la primera fila con ceros en todas las columnas de α.
+  Salto S1: último 1 de r1 en x7 → poner 1 en x7 y ceros a su derecha.
+  Siguiente: α' = 0001011 = {x4, x6, x7}
+
+Paso 7: α = 0001011 = {x4, x6, x7}
+  ES testor (toda fila tiene un 1 en alguna columna de α) y es TÍPICO: cada rasgo tiene fila típica.
+  Salto S2: último 1 de α en x7 → sumar 1 en esa posición (se omiten los superconjuntos de α que sólo agregan rasgos a la derecha).
+  Siguiente: α' = 0001100 = {x4, x5}
+
+Paso 8: α = 0001100 = {x4, x5}
+  ES testor (toda fila tiene un 1 en alguna columna de α) y es TÍPICO: cada rasgo tiene fila típica.
+  Salto S2: último 1 de α en x5 → sumar 1 en esa posición (se omiten los superconjuntos de α que sólo agregan rasgos a la derecha).
+  Siguiente: α' = 0010000 = {x3}  (se saltan 3 n-uplos)
+
+Paso 9: α = 0010000 = {x3}
+  NO es testor: r2 = 1000110 es la primera fila con ceros en todas las columnas de α.
+  Salto S1: último 1 de r2 en x6 → poner 1 en x6 y ceros a su derecha.
+  Siguiente: α' = 0010010 = {x3, x6}  (se salta 1 n-uplo)
+
+Paso 10: α = 0010010 = {x3, x6}
+  NO es testor: r3 = 1101000 es la primera fila con ceros en todas las columnas de α.
+  Salto S1: último 1 de r3 en x4 → poner 1 en x4 y ceros a su derecha.
+  Siguiente: α' = 0011000 = {x3, x4}  (se saltan 5 n-uplos)
+
+Paso 11: α = 0011000 = {x3, x4}
+  NO es testor: r2 = 1000110 es la primera fila con ceros en todas las columnas de α.
+  Salto S1: último 1 de r2 en x6 → poner 1 en x6 y ceros a su derecha.
+  Siguiente: α' = 0011010 = {x3, x4, x6}  (se salta 1 n-uplo)
+
+Paso 12: α = 0011010 = {x3, x4, x6}
+  ES testor (toda fila tiene un 1 en alguna columna de α) y es TÍPICO: cada rasgo tiene fila típica.
+  Salto S2: último 1 de α en x6 → sumar 1 en esa posición (se omiten los superconjuntos de α que sólo agregan rasgos a la derecha).
+  Siguiente: α' = 0011100 = {x3, x4, x5}  (se salta 1 n-uplo)
+
+Paso 13: α = 0011100 = {x3, x4, x5}
+  ES testor (toda fila tiene un 1 en alguna columna de α) y NO es típico: x3 no tiene fila típica (se puede quitar y sigue siendo testor).
+  Salto S2: último 1 de α en x5 → sumar 1 en esa posición (se omiten los superconjuntos de α que sólo agregan rasgos a la derecha).
+  Siguiente: α' = 0100000 = {x2}  (se saltan 3 n-uplos)
+
+Paso 14: α = 0100000 = {x2}
+  NO es testor: r1 = 1010101 es la primera fila con ceros en todas las columnas de α.
+  Salto S1: último 1 de r1 en x7 → poner 1 en x7 y ceros a su derecha.
+  Siguiente: α' = 0100001 = {x2, x7}
+
+Paso 15: α = 0100001 = {x2, x7}
+  NO es testor: r2 = 1000110 es la primera fila con ceros en todas las columnas de α.
+  Salto S1: último 1 de r2 en x6 → poner 1 en x6 y ceros a su derecha.
+  Siguiente: α' = 0100010 = {x2, x6}
+
+Paso 16: α = 0100010 = {x2, x6}
+  NO es testor: r1 = 1010101 es la primera fila con ceros en todas las columnas de α.
+  Salto S1: último 1 de r1 en x7 → poner 1 en x7 y ceros a su derecha.
+  Siguiente: α' = 0100011 = {x2, x6, x7}
+
+Paso 17: α = 0100011 = {x2, x6, x7}
+  ES testor (toda fila tiene un 1 en alguna columna de α) y es TÍPICO: cada rasgo tiene fila típica.
+  Salto S2: último 1 de α en x7 → sumar 1 en esa posición (se omiten los superconjuntos de α que sólo agregan rasgos a la derecha).
+  Siguiente: α' = 0100100 = {x2, x5}
+
+Paso 18: α = 0100100 = {x2, x5}
+  NO es testor: r4 = 0011011 es la primera fila con ceros en todas las columnas de α.
+  Salto S1: último 1 de r4 en x7 → poner 1 en x7 y ceros a su derecha.
+  Siguiente: α' = 0100101 = {x2, x5, x7}
+
+Paso 19: α = 0100101 = {x2, x5, x7}
+  NO es testor: r5 = 1001010 es la primera fila con ceros en todas las columnas de α.
+  Salto S1: último 1 de r5 en x6 → poner 1 en x6 y ceros a su derecha.
+  Siguiente: α' = 0100110 = {x2, x5, x6}
+
+Paso 20: α = 0100110 = {x2, x5, x6}
+  NO es testor: r6 = 1001001 es la primera fila con ceros en todas las columnas de α.
+  Salto S1: último 1 de r6 en x7 → poner 1 en x7 y ceros a su derecha.
+  Siguiente: α' = 0100111 = {x2, x5, x6, x7}
+
+Paso 21: α = 0100111 = {x2, x5, x6, x7}
+  ES testor (toda fila tiene un 1 en alguna columna de α) y NO es típico: x5 no tiene fila típica (se puede quitar y sigue siendo testor).
+  Salto S2: último 1 de α en x7 → sumar 1 en esa posición (se omiten los superconjuntos de α que sólo agregan rasgos a la derecha).
+  Siguiente: α' = 0101000 = {x2, x4}
+
+Paso 22: α = 0101000 = {x2, x4}
+  NO es testor: r1 = 1010101 es la primera fila con ceros en todas las columnas de α.
+  Salto S1: último 1 de r1 en x7 → poner 1 en x7 y ceros a su derecha.
+  Siguiente: α' = 0101001 = {x2, x4, x7}
+
+Paso 23: α = 0101001 = {x2, x4, x7}
+  NO es testor: r2 = 1000110 es la primera fila con ceros en todas las columnas de α.
+  Salto S1: último 1 de r2 en x6 → poner 1 en x6 y ceros a su derecha.
+  Siguiente: α' = 0101010 = {x2, x4, x6}
+
+Paso 24: α = 0101010 = {x2, x4, x6}
+  NO es testor: r1 = 1010101 es la primera fila con ceros en todas las columnas de α.
+  Salto S1: último 1 de r1 en x7 → poner 1 en x7 y ceros a su derecha.
+  Siguiente: α' = 0101011 = {x2, x4, x6, x7}
+
+Paso 25: α = 0101011 = {x2, x4, x6, x7}
+  ES testor (toda fila tiene un 1 en alguna columna de α) y NO es típico: x2 no tiene fila típica (se puede quitar y sigue siendo testor).
+  Salto S2: último 1 de α en x7 → sumar 1 en esa posición (se omiten los superconjuntos de α que sólo agregan rasgos a la derecha).
+  Siguiente: α' = 0101100 = {x2, x4, x5}
+
+Paso 26: α = 0101100 = {x2, x4, x5}
+  ES testor (toda fila tiene un 1 en alguna columna de α) y NO es típico: x2 no tiene fila típica (se puede quitar y sigue siendo testor).
+  Salto S2: último 1 de α en x5 → sumar 1 en esa posición (se omiten los superconjuntos de α que sólo agregan rasgos a la derecha).
+  Siguiente: α' = 0110000 = {x2, x3}  (se saltan 3 n-uplos)
+
+Paso 27: α = 0110000 = {x2, x3}
+  NO es testor: r2 = 1000110 es la primera fila con ceros en todas las columnas de α.
+  Salto S1: último 1 de r2 en x6 → poner 1 en x6 y ceros a su derecha.
+  Siguiente: α' = 0110010 = {x2, x3, x6}  (se salta 1 n-uplo)
+
+Paso 28: α = 0110010 = {x2, x3, x6}
+  NO es testor: r6 = 1001001 es la primera fila con ceros en todas las columnas de α.
+  Salto S1: último 1 de r6 en x7 → poner 1 en x7 y ceros a su derecha.
+  Siguiente: α' = 0110011 = {x2, x3, x6, x7}
+
+Paso 29: α = 0110011 = {x2, x3, x6, x7}
+  ES testor (toda fila tiene un 1 en alguna columna de α) y NO es típico: x3 no tiene fila típica (se puede quitar y sigue siendo testor).
+  Salto S2: último 1 de α en x7 → sumar 1 en esa posición (se omiten los superconjuntos de α que sólo agregan rasgos a la derecha).
+  Siguiente: α' = 0110100 = {x2, x3, x5}
+
+Paso 30: α = 0110100 = {x2, x3, x5}
+  NO es testor: r5 = 1001010 es la primera fila con ceros en todas las columnas de α.
+  Salto S1: último 1 de r5 en x6 → poner 1 en x6 y ceros a su derecha.
+  Siguiente: α' = 0110110 = {x2, x3, x5, x6}  (se salta 1 n-uplo)
+
+Paso 31: α = 0110110 = {x2, x3, x5, x6}
+  NO es testor: r6 = 1001001 es la primera fila con ceros en todas las columnas de α.
+  Salto S1: último 1 de r6 en x7 → poner 1 en x7 y ceros a su derecha.
+  Siguiente: α' = 0110111 = {x2, x3, x5, x6, x7}
+
+Paso 32: α = 0110111 = {x2, x3, x5, x6, x7}
+  ES testor (toda fila tiene un 1 en alguna columna de α) y NO es típico: x3 no tiene fila típica (se puede quitar y sigue siendo testor).
+  Salto S2: último 1 de α en x7 → sumar 1 en esa posición (se omiten los superconjuntos de α que sólo agregan rasgos a la derecha).
+  Siguiente: α' = 0111000 = {x2, x3, x4}
+
+Paso 33: α = 0111000 = {x2, x3, x4}
+  NO es testor: r2 = 1000110 es la primera fila con ceros en todas las columnas de α.
+  Salto S1: último 1 de r2 en x6 → poner 1 en x6 y ceros a su derecha.
+  Siguiente: α' = 0111010 = {x2, x3, x4, x6}  (se salta 1 n-uplo)
+
+Paso 34: α = 0111010 = {x2, x3, x4, x6}
+  ES testor (toda fila tiene un 1 en alguna columna de α) y NO es típico: x2 no tiene fila típica (se puede quitar y sigue siendo testor).
+  Salto S2: último 1 de α en x6 → sumar 1 en esa posición (se omiten los superconjuntos de α que sólo agregan rasgos a la derecha).
+  Siguiente: α' = 0111100 = {x2, x3, x4, x5}  (se salta 1 n-uplo)
+
+Paso 35: α = 0111100 = {x2, x3, x4, x5}
+  ES testor (toda fila tiene un 1 en alguna columna de α) y NO es típico: x2 no tiene fila típica (se puede quitar y sigue siendo testor).
+  Salto S2: último 1 de α en x5 → sumar 1 en esa posición (se omiten los superconjuntos de α que sólo agregan rasgos a la derecha).
+  Siguiente: α' = 1000000 = {x1}  (se saltan 3 n-uplos)
+
+Paso 36: α = 1000000 = {x1}
+  NO es testor: r4 = 0011011 es la primera fila con ceros en todas las columnas de α.
+  Salto S1: último 1 de r4 en x7 → poner 1 en x7 y ceros a su derecha.
+  Siguiente: α' = 1000001 = {x1, x7}
+
+Paso 37: α = 1000001 = {x1, x7}
+  ES testor (toda fila tiene un 1 en alguna columna de α) y es TÍPICO: cada rasgo tiene fila típica.
+  Salto S2: último 1 de α en x7 → sumar 1 en esa posición (se omiten los superconjuntos de α que sólo agregan rasgos a la derecha).
+  Siguiente: α' = 1000010 = {x1, x6}
+
+Paso 38: α = 1000010 = {x1, x6}
+  ES testor (toda fila tiene un 1 en alguna columna de α) y es TÍPICO: cada rasgo tiene fila típica.
+  Salto S2: último 1 de α en x6 → sumar 1 en esa posición (se omiten los superconjuntos de α que sólo agregan rasgos a la derecha).
+  Siguiente: α' = 1000100 = {x1, x5}  (se salta 1 n-uplo)
+
+Paso 39: α = 1000100 = {x1, x5}
+  NO es testor: r4 = 0011011 es la primera fila con ceros en todas las columnas de α.
+  Salto S1: último 1 de r4 en x7 → poner 1 en x7 y ceros a su derecha.
+  Siguiente: α' = 1000101 = {x1, x5, x7}
+
+Paso 40: α = 1000101 = {x1, x5, x7}
+  ES testor (toda fila tiene un 1 en alguna columna de α) y NO es típico: x5 no tiene fila típica (se puede quitar y sigue siendo testor).
+  Salto S2: último 1 de α en x7 → sumar 1 en esa posición (se omiten los superconjuntos de α que sólo agregan rasgos a la derecha).
+  Siguiente: α' = 1000110 = {x1, x5, x6}
+
+Paso 41: α = 1000110 = {x1, x5, x6}
+  ES testor (toda fila tiene un 1 en alguna columna de α) y NO es típico: x5 no tiene fila típica (se puede quitar y sigue siendo testor).
+  Salto S2: último 1 de α en x6 → sumar 1 en esa posición (se omiten los superconjuntos de α que sólo agregan rasgos a la derecha).
+  Siguiente: α' = 1001000 = {x1, x4}  (se salta 1 n-uplo)
+
+Paso 42: α = 1001000 = {x1, x4}
+  ES testor (toda fila tiene un 1 en alguna columna de α) y es TÍPICO: cada rasgo tiene fila típica.
+  Salto S2: último 1 de α en x4 → sumar 1 en esa posición (se omiten los superconjuntos de α que sólo agregan rasgos a la derecha).
+  Siguiente: α' = 1010000 = {x1, x3}  (se saltan 7 n-uplos)
+
+Paso 43: α = 1010000 = {x1, x3}
+  ES testor (toda fila tiene un 1 en alguna columna de α) y es TÍPICO: cada rasgo tiene fila típica.
+  Salto S2: último 1 de α en x3 → sumar 1 en esa posición (se omiten los superconjuntos de α que sólo agregan rasgos a la derecha).
+  Siguiente: α' = 1100000 = {x1, x2}  (se saltan 15 n-uplos)
+
+Paso 44: α = 1100000 = {x1, x2}
+  NO es testor: r4 = 0011011 es la primera fila con ceros en todas las columnas de α.
+  Salto S1: último 1 de r4 en x7 → poner 1 en x7 y ceros a su derecha.
+  Siguiente: α' = 1100001 = {x1, x2, x7}
+
+Paso 45: α = 1100001 = {x1, x2, x7}
+  ES testor (toda fila tiene un 1 en alguna columna de α) y NO es típico: x2 no tiene fila típica (se puede quitar y sigue siendo testor).
+  Salto S2: último 1 de α en x7 → sumar 1 en esa posición (se omiten los superconjuntos de α que sólo agregan rasgos a la derecha).
+  Siguiente: α' = 1100010 = {x1, x2, x6}
+
+Paso 46: α = 1100010 = {x1, x2, x6}
+  ES testor (toda fila tiene un 1 en alguna columna de α) y NO es típico: x2 no tiene fila típica (se puede quitar y sigue siendo testor).
+  Salto S2: último 1 de α en x6 → sumar 1 en esa posición (se omiten los superconjuntos de α que sólo agregan rasgos a la derecha).
+  Siguiente: α' = 1100100 = {x1, x2, x5}  (se salta 1 n-uplo)
+
+Paso 47: α = 1100100 = {x1, x2, x5}
+  NO es testor: r4 = 0011011 es la primera fila con ceros en todas las columnas de α.
+  Salto S1: último 1 de r4 en x7 → poner 1 en x7 y ceros a su derecha.
+  Siguiente: α' = 1100101 = {x1, x2, x5, x7}
+
+Paso 48: α = 1100101 = {x1, x2, x5, x7}
+  ES testor (toda fila tiene un 1 en alguna columna de α) y NO es típico: x2 no tiene fila típica (se puede quitar y sigue siendo testor).
+  Salto S2: último 1 de α en x7 → sumar 1 en esa posición (se omiten los superconjuntos de α que sólo agregan rasgos a la derecha).
+  Siguiente: α' = 1100110 = {x1, x2, x5, x6}
+
+Paso 49: α = 1100110 = {x1, x2, x5, x6}
+  ES testor (toda fila tiene un 1 en alguna columna de α) y NO es típico: x2 no tiene fila típica (se puede quitar y sigue siendo testor).
+  Salto S2: último 1 de α en x6 → sumar 1 en esa posición (se omiten los superconjuntos de α que sólo agregan rasgos a la derecha).
+  Siguiente: α' = 1101000 = {x1, x2, x4}  (se salta 1 n-uplo)
+
+Paso 50: α = 1101000 = {x1, x2, x4}
+  ES testor (toda fila tiene un 1 en alguna columna de α) y NO es típico: x2 no tiene fila típica (se puede quitar y sigue siendo testor).
+  Salto S2: último 1 de α en x4 → sumar 1 en esa posición (se omiten los superconjuntos de α que sólo agregan rasgos a la derecha).
+  Siguiente: α' = 1110000 = {x1, x2, x3}  (se saltan 7 n-uplos)
+
+Paso 51: α = 1110000 = {x1, x2, x3}
+  ES testor (toda fila tiene un 1 en alguna columna de α) y NO es típico: x2 no tiene fila típica (se puede quitar y sigue siendo testor).
+  Salto S2: último 1 de α en x3 → sumar 1 en esa posición (se omiten los superconjuntos de α que sólo agregan rasgos a la derecha).
+  El acarreo se sale por la izquierda: FIN del recorrido  (se saltan 15 n-uplos)
+
+Resultados de BT:
+  n-uplos analizados: 51 de 127 posibles (2^7 - 1); se saltaron 76
+  Testores encontrados: 24 (típicos: 8, no típicos: 16)
+
+  #    α         ¿Típico?  Testor
+  1    0001011   sí         {x4, x6, x7}
+  2    0001100   sí         {x4, x5}
+  3    0011010   sí         {x3, x4, x6}
+  4    0011100   no         {x3, x4, x5}
+  5    0100011   sí         {x2, x6, x7}
+  6    0100111   no         {x2, x5, x6, x7}
+  7    0101011   no         {x2, x4, x6, x7}
+  8    0101100   no         {x2, x4, x5}
+  9    0110011   no         {x2, x3, x6, x7}
+  10   0110111   no         {x2, x3, x5, x6, x7}
+  11   0111010   no         {x2, x3, x4, x6}
+  12   0111100   no         {x2, x3, x4, x5}
+  13   1000001   sí         {x1, x7}
+  14   1000010   sí         {x1, x6}
+  15   1000101   no         {x1, x5, x7}
+  16   1000110   no         {x1, x5, x6}
+  17   1001000   sí         {x1, x4}
+  18   1010000   sí         {x1, x3}
+  19   1100001   no         {x1, x2, x7}
+  20   1100010   no         {x1, x2, x6}
+  21   1100101   no         {x1, x2, x5, x7}
+  22   1100110   no         {x1, x2, x5, x6}
+  23   1101000   no         {x1, x2, x4}
+  24   1110000   no         {x1, x2, x3}
+
+Testores típicos de la matriz (8): {x1, x3}, {x1, x4}, {x1, x6}, {x1, x7}, {x4, x5}, {x2, x6, x7}, {x3, x4, x6}, {x4, x6, x7}
+Identificación de la tipicidad:
+  - durante la ejecución: testor cuyos rasgos tienen todos fila típica;
+  - a posteriori: testores minimales (por inclusión) entre los encontrados.
+  Ambos procedimientos coinciden ✓
+Tiempo total de ejecución: 29.100 µs
+Traza LaTeX guardada en docs/resultados/bt_A_traza.tex

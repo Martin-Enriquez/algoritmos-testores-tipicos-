@@ -44,13 +44,15 @@ add_library(testores_domain STATIC
     src/domain/basic_matrix.cpp
     src/domain/testor.cpp
     src/domain/yyc.cpp
+    src/domain/bt.cpp
     src/domain/notation.cpp)
 target_include_directories(testores_domain PUBLIC include)
 target_link_libraries(testores_domain PRIVATE testores_options)
 
 add_library(testores_application STATIC
     src/application/matrix_generation.cpp
-    src/application/yyc_runner.cpp)
+    src/application/yyc_runner.cpp
+    src/application/bt_runner.cpp)
 target_link_libraries(testores_application PUBLIC testores_domain PRIVATE testores_options)
 
 add_library(testores_infrastructure STATIC
@@ -82,6 +84,7 @@ if(TESTORES_BUILD_TESTS)
         tests/test_main.cpp
         tests/test_domain.cpp
         tests/test_yyc.cpp
+        tests/test_bt.cpp
         tests/test_application.cpp
         tests/test_infrastructure.cpp
         tests/test_presentation.cpp)

@@ -4,6 +4,7 @@
 #include <iosfwd>
 #include <string>
 
+#include "testores/application/bt_runner.hpp"
 #include "testores/application/ports.hpp"
 #include "testores/application/yyc_runner.hpp"
 #include "testores/domain/basic_matrix.hpp"
@@ -27,6 +28,14 @@ constexpr std::size_t kShowAll = static_cast<std::size_t>(-1);
 std::string formatFeatureSetsLimited(const std::vector<domain::ColumnSet>& sets, std::size_t limit);
 
 void printYycSummaryTable(std::ostream& out, const application::YycRunResult& result, std::size_t limit);
+
+// Ejercicio 3.1: cada n-uplo α analizado por BT, la decisión y el salto.
+void printBtTrace(std::ostream& out, const domain::BooleanMatrix& matrix, const domain::BtResult& result);
+
+// Ejercicio 3.2: testores encontrados, testores típicos, verificación de la
+// tipicidad y tiempo total.
+void printBtSummary(std::ostream& out, const domain::BooleanMatrix& matrix, const application::BtRunResult& result,
+                    std::size_t limit);
 
 // Muestra en vivo, después de cada fila, Ψ* y el tiempo acumulado (Ej. 2.3).
 // Con `explain` = true también narra cada decisión del algoritmo (Ej. 2.2).

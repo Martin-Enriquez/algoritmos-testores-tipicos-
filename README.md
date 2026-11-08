@@ -9,7 +9,9 @@ Proyecto de **Matemáticas Discretas (USFQ, 202610)**: implementación, evaluaci
 | 2.2 Ejecución manual de YYC | ✅ | `docs/reporte.tex` §4.3 y `docs/resultados/yyc_A_traza.txt` |
 | 2.3 Implementación de YYC (Ψ* y tiempo acumulado por fila) | ✅ | `testores yyc`, menú 6–7 |
 | 2.4 Tabla de resultados sobre A | ✅ | `docs/resultados/yyc_A_tabla.tex`, `yyc_A.csv` |
-| 3. BT | ⏳ | — |
+| 3.1 Ejecución manual de BT sobre A | ✅ | `docs/reporte.tex` §5.2 y `docs/resultados/bt_A_traza.txt` |
+| 3.2 Implementación de BT (testores, típicos y tiempo total) | ✅ | `testores bt`, menú 10–12 |
+| 3.3 Resultados de BT sobre A | ✅ | `docs/resultados/bt_A_resumen.tex`, `bt_A.csv` |
 | 4. Matriz B | ⏳ | — |
 | 5. Operadores φ, θ, γ y experimentos | ⏳ | — |
 
@@ -20,7 +22,7 @@ Requisitos: compilador C++17 (GCC ≥ 9, Clang ≥ 10 o MSVC 2019+) y CMake ≥ 
 ```bash
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build
-ctest --test-dir build --output-on-failure    # 49 pruebas
+ctest --test-dir build --output-on-failure    # 63 pruebas
 ```
 
 En Windows con MSYS2 (UCRT64) agregue `C:\msys64\ucrt64\bin` al `PATH` y use `-G Ninja`.
@@ -41,6 +43,11 @@ En Windows con MSYS2 (UCRT64) agregue `C:\msys64\ucrt64\bin` al `PATH` y use `-G
 ./build/testores yyc --entrada data/matriz_A.txt --traza            # paso a paso explicado
 ./build/testores yyc --entrada data/matriz_A.txt --repeticiones 10000 \
     --csv out.csv --latex out.tex                                   # tabla con mediana de tiempos
+
+# Ejercicios 3.1-3.3: BT sobre A
+./build/testores bt --entrada data/matriz_A.txt --traza             # cada n-uplo α y cada salto
+./build/testores bt --entrada data/matriz_A.txt --repeticiones 10000 \
+    --csv bt.csv --latex bt.tex                                     # testores típicos y tiempo total
 ```
 
 Todos los resultados del reporte se regeneran con `sh scripts/generar_resultados.sh`.
@@ -54,7 +61,7 @@ Arquitectura limpia en cuatro capas; cada una es una librería CMake y sólo pue
 ```
 presentation  ──►  infrastructure  ──►  application  ──►  domain
 (CLI, menú)        (archivos, azar,      (casos de uso,     (matrices, matriz básica,
-                    reloj, CSV/LaTeX)     puertos)           testores, YYC)
+                    reloj, CSV/LaTeX)     puertos)           testores, YYC, BT)
 ```
 
 ```
@@ -72,7 +79,7 @@ Decisiones principales:
 - `domain::YycSolver` es **incremental** (`processNextRow()`), así la capa de aplicación mide sólo el tiempo del algoritmo y la impresión de Ψ* queda fuera de la medición.
 - `ColumnSet` es un bitset de tamaño fijo (≤ 512 columnas) sin memoria dinámica: YYC sobre A pasó de ~88 µs a ~7 µs.
 - La generación usa `mt19937_64` con una conversión portable a Bernoulli: la misma semilla produce la misma matriz con cualquier compilador.
-- Para añadir BT (Ejercicio 3) basta con un nuevo `domain/bt.hpp` y su caso de uso, reutilizando `BooleanMatrix`, `ColumnSet` y `domain/testor.hpp`.
+- BT (`domain/bt.hpp`) recorre los n-uplos α como números binarios (x1 = bit más significativo) con los saltos S1 (α no es testor: 1 en el último 1 de la primera fila de ceros y ceros a su derecha) y S2 (α es testor: sumar 1 en la posición de su último 1). La tipicidad se decide durante la ejecución (fila típica de cada rasgo) y se verifica a posteriori (testores minimales entre los encontrados). BT **no** reordena filas: el orden de las filas cambia los saltos, que es lo que estudia el Ejercicio 5.
 
 ## Seguridad
 

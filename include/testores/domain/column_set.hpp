@@ -43,6 +43,9 @@ public:
     // Índices (base 0) de las columnas presentes, en orden ascendente.
     std::vector<std::size_t> indices() const;
 
+    // Mayor índice presente (el "último 1"); width() si el conjunto es vacío.
+    std::size_t lastIndex() const noexcept;
+
     friend bool operator==(const ColumnSet& a, const ColumnSet& b) noexcept;
     friend bool operator!=(const ColumnSet& a, const ColumnSet& b) noexcept { return !(a == b); }
 

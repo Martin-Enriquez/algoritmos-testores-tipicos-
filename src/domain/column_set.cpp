@@ -107,6 +107,20 @@ std::vector<std::size_t> ColumnSet::indices() const {
     return result;
 }
 
+std::size_t ColumnSet::lastIndex() const noexcept {
+    for (std::size_t w = wordCount_; w-- > 0;) {
+        std::uint64_t word = words_[w];
+        if (word != 0) {
+            std::size_t bit = 0;
+            while ((word >>= 1U) != 0) {
+                ++bit;
+            }
+            return w * kWordBits + bit;
+        }
+    }
+    return width_;
+}
+
 bool operator==(const ColumnSet& a, const ColumnSet& b) noexcept {
     // Las palabras no usadas siempre valen 0, así que comparar el arreglo completo es correcto.
     return a.width_ == b.width_ && a.words_ == b.words_;
