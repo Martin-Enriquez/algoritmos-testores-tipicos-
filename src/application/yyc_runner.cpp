@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <stdexcept>
 
+#include "median_duration.hpp"
+
 namespace testores::application {
 
 using domain::ColumnSet;
@@ -57,18 +59,25 @@ YycRunResult benchmarkYyc(const domain::BooleanMatrix& matrix, Clock& clock, std
     if (repetitions == 0) {
         throw std::invalid_argument("El número de repeticiones debe ser al menos 1");
     }
+    // Cada fila guarda una muestra por repetición: limitar sólo R no impide
+    // que una matriz alta reserve varios gigabytes para los tiempos.
+    constexpr std::size_t maxTimingSamples = 10000000;
+    if (matrix.rows() > 0 && repetitions > maxTimingSamples / matrix.rows()) {
+        throw std::invalid_argument("La medición de YYC supera 10 000 000 muestras; reduzca las repeticiones");
+    }
     YycRunOptions quiet = options;
     quiet.solver.recordTrace = false;
 
-    // samples[i] = duraciones de la fila i (no acumuladas) en cada repetición.
+    // samples[i] = tiempo acumulado tras la fila i en cada repetición.
     YycRunResult reference = runYyc(matrix, clock, nullptr, quiet);
     quiet.maxSnapshotSets = 0;  // las repeticiones sólo aportan tiempos
     std::vector<std::vector<std::chrono::nanoseconds>> samples(reference.rows.size());
+    for (auto& row : samples) {
+        row.reserve(repetitions);
+    }
     auto collect = [&samples](const YycRunResult& run) {
-        std::chrono::nanoseconds previous{0};
         for (std::size_t i = 0; i < run.rows.size(); ++i) {
-            samples[i].push_back(run.rows[i].cumulative - previous);
-            previous = run.rows[i].cumulative;
+            samples[i].push_back(run.rows[i].cumulative);
         }
     };
     collect(reference);
@@ -76,15 +85,14 @@ YycRunResult benchmarkYyc(const domain::BooleanMatrix& matrix, Clock& clock, std
         collect(runYyc(matrix, clock, nullptr, quiet));
     }
 
-    // Se acumulan las medianas por fila para que la columna acumulada sea monótona.
-    std::chrono::nanoseconds cumulative{0};
+    // Mediana del tiempo acumulado de cada fila (no la suma de medianas por
+    // fila: la mediana no es aditiva). La columna sigue siendo creciente: en
+    // cada repetición el acumulado de la fila i+1 es >= al de la fila i, y un
+    // mismo estadístico de orden conserva esa desigualdad.
     for (std::size_t i = 0; i < samples.size(); ++i) {
-        auto middle = samples[i].begin() + static_cast<std::ptrdiff_t>(samples[i].size() / 2);
-        std::nth_element(samples[i].begin(), middle, samples[i].end());
-        cumulative += *middle;
-        reference.rows[i].cumulative = cumulative;
+        reference.rows[i].cumulative = detail::medianDuration(samples[i]);
     }
-    reference.total = cumulative;
+    reference.total = reference.rows.empty() ? std::chrono::nanoseconds{0} : reference.rows.back().cumulative;
     reference.repetitions = repetitions;
     return reference;
 }

@@ -1,0 +1,48 @@
+﻿
+--- MATRIZ BÁSICA DE ENTRADA PARA BT (8 x 7) ---
+      x1 x2 x3 x4 x5 x6 x7
+r1 |   1  0  1  0  0  0  0
+r2 |   1  0  0  1  0  0  0
+r3 |   1  0  0  0  0  1  0
+r4 |   1  0  0  0  0  0  1
+r5 |   0  0  0  1  1  0  0
+r6 |   0  1  0  0  0  1  1
+r7 |   0  0  1  1  0  1  0
+r8 |   0  0  0  1  0  1  1
+Densidad: 0.339286
+
+Resultados de BT:
+  n-uplos analizados: 44 de 127 posibles (2^7 - 1); se saltaron 83
+  Testores encontrados en los candidatos visitados: 20 (típicos: 6, no típicos: 14)
+  Los saltos omiten otros testores no típicos; este conteo no es el total de testores de la matriz.
+
+  #    α         ¿Típico?  Testor
+  1    0011011   sí         {x3, x4, x6, x7}
+  2    0011111   no         {x3, x4, x5, x6, x7}
+  3    0111011   no         {x2, x3, x4, x6, x7}
+  4    0111111   no         {x2, x3, x4, x5, x6, x7}
+  5    1000110   sí         {x1, x5, x6}
+  6    1001001   sí         {x1, x4, x7}
+  7    1001010   sí         {x1, x4, x6}
+  8    1001101   no         {x1, x4, x5, x7}
+  9    1001110   no         {x1, x4, x5, x6}
+  10   1010101   sí         {x1, x3, x5, x7}
+  11   1010110   no         {x1, x3, x5, x6}
+  12   1011001   no         {x1, x3, x4, x7}
+  13   1011010   no         {x1, x3, x4, x6}
+  14   1011101   no         {x1, x3, x4, x5, x7}
+  15   1011110   no         {x1, x3, x4, x5, x6}
+  16   1100110   no         {x1, x2, x5, x6}
+  17   1101000   sí         {x1, x2, x4}
+  18   1110101   no         {x1, x2, x3, x5, x7}
+  19   1110110   no         {x1, x2, x3, x5, x6}
+  20   1111000   no         {x1, x2, x3, x4}
+
+Testores típicos de la matriz (6): {x1, x2, x4}, {x1, x4, x6}, {x1, x4, x7}, {x1, x5, x6}, {x1, x3, x5, x7}, {x3, x4, x6, x7}
+Identificación de la tipicidad:
+  - durante la ejecución: testor cuyos rasgos tienen todos fila típica;
+  - a posteriori: testores minimales (por inclusión) entre los encontrados.
+  Ambos procedimientos coinciden ✓
+Tiempo total de ejecución: 9.000 µs (mediana de 10000 ejecuciones)
+Testores encontrados (CSV) guardados en docs/resultados/bt_B.csv
+Resumen LaTeX guardado en docs/resultados/bt_B_resumen.tex

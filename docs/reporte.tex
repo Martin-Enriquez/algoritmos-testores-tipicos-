@@ -3,6 +3,7 @@
 % --- PAQUETES DE IDIOMA Y FORMATO ---
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
+\usepackage{lmodern}
 \usepackage[spanish, es-tabla, es-nodecimaldot]{babel}
 \usepackage[margin=2.5cm]{geometry}
 \usepackage{fancyhdr}
@@ -15,7 +16,7 @@
 \usepackage{xcolor}
 \usepackage{fancyvrb}
 \usepackage{hyperref}
-\usepackage{tikz}
+\usepackage{graphicx}
 
 % --- CONFIGURACIONES DE ENCABEZADO Y PIE DE PÁGINA ---
 \pagestyle{fancy}
@@ -49,11 +50,13 @@
 \title{\vspace{-1cm}\Huge\textbf{Reporte del proyecto: Algoritmos para el cálculo de todos los Testores Típicos de una matriz básica}\\[0.3cm]\Large Matemáticas Discretas --- Semestre 202610}
 
 \author{\textbf{Integrantes:}\\
-    Martín Enríquez (00347250), Paula Gallardo (00343921),\\
-    Eduardo Tapia (00346319)\\[0.1cm]
+    Martín Enríquez, Paula Gallardo,\\
+    Eduardo Tapia\\[0.1cm]
     \textbf{Profesor:} Eduardo Alba\\
     Universidad San Francisco de Quito (USFQ)}
-\date{\textbf{Fecha de culminación:} \today}
+\date{\textbf{Fecha de culminación:} 9 de noviembre de 2026}
+
+\input{resultados/resultados_resumen.tex}
 
 \begin{document}
 
@@ -85,13 +88,20 @@ $p_j \le t_j$ para todo $j$ y $p\neq t$. Equivalentemente, el conjunto de column
 donde $p$ tiene unos está estrictamente contenido en el de $t$.
 \end{definicion}
 
-\begin{definicion}[Matriz básica]
-Una matriz booleana $BM$ es \emph{básica} si no tiene filas nulas, no tiene
-filas repetidas y ninguna de sus filas es superfila de otra. La \emph{matriz
-básica} de una matriz $M$ es la que se obtiene de $M$ eliminando las filas
-nulas, dejando una sola copia de cada fila repetida y eliminando todas las
-superfilas.
+\begin{definicion}[Fila básica y matriz básica]
+Una fila de $M$ es \emph{básica} si ninguna otra fila de $M$ es subfila
+suya. La \emph{matriz básica} de $M$ es la matriz formada exclusivamente por las
+filas básicas de $M$, sin repetición~\cite{algobt,yyc2014}; se obtiene dejando
+una sola copia de cada fila repetida y eliminando todas las superfilas. Una
+matriz es \emph{básica} si coincide con su matriz básica, es decir, si no tiene
+filas repetidas y ninguna de sus filas es subfila de otra.
 \end{definicion}
+
+\paragraph{Filas nulas.} Una fila nula $p=(0,\dots,0)$ cumple trivialmente
+$p_j\le t_j$ para todo $j$, así que es subfila de \emph{toda} fila no nula.
+Por lo tanto, si $M$ tiene una fila nula, su matriz básica es esa única fila
+nula. Esto es coherente con lo que sigue: ningún conjunto de rasgos cubre una
+fila nula, de modo que ni $M$ ni su matriz básica tienen testores.
 
 \begin{definicion}[Densidad]
 La densidad de una matriz booleana $M$ de $m\times n$ es la proporción de
@@ -130,16 +140,21 @@ sí es testor, $r_j=1$. Esa fila es precisamente una fila típica de $\x j$.
 
 \begin{proposicion}\label{prop:basica}
 Una matriz $M$ y su matriz básica $BM$ tienen exactamente los mismos testores
-típicos (siempre que $M$ no tenga filas nulas).
+y, por lo tanto, los mismos testores típicos.
 \end{proposicion}
 \begin{proof}
-Si $t$ es superfila de $p$, toda $T$ que cubre a $p$ cubre a $t$; luego
+Si $t$ es superfila de $p$, todo $T$ que cubre a $p$ cubre a $t$; luego
 eliminar $t$ (o una copia repetida) no cambia el conjunto de testores. Como los
 testores típicos son los elementos minimales del conjunto de testores, tampoco
-cambian. Si $M$ tiene una fila nula, ningún $T$ la cubre y $M$ no tiene testores;
-por eso en la reducción se descartan las filas nulas, que no aportan
-información de diferenciación.
+cambian. El argumento vale también cuando $p$ es una fila nula: ningún $T$ la
+cubre, así que ni $M$ ni $BM$ tienen testores.
 \end{proof}
+
+Por eso la fila nula \emph{no} debe descartarse. Si se eliminara, el resultado
+dejaría de ser equivalente a $M$: con
+$M=\left(\begin{smallmatrix}1&1&0\\0&0&0\\0&1&1\end{smallmatrix}\right)$, que no
+tiene testores, quitar la fila nula deja una matriz cuyos testores típicos son
+$\cj{\x2}$ y $\cj{\x1,\x3}$.
 
 La Proposición~\ref{prop:basica} justifica que los algoritmos trabajen
 siempre sobre la matriz básica, que es (en general) mucho más pequeña.
@@ -152,8 +167,9 @@ siempre sobre la matriz básica, que es (en general) mucho más pequeña.
 
 La implementación se realizó en C\texttt{++}17 y se compila con CMake. El código
 se organizó siguiendo una \emph{arquitectura limpia} de cuatro capas, cada una
-compilada como una librería independiente; así, el propio sistema de
-compilación impide que una capa interna dependa de una externa:
+compilada como una librería independiente. El dominio y los casos de uso no
+conocen los detalles de archivos o de consola; la composición de dependencias
+concretas se realiza en el punto de entrada:
 
 \begin{center}
 \begin{tabular}{>{\bfseries}l p{11cm}}
@@ -182,10 +198,9 @@ de comandos. \\
 representa con un \texttt{ColumnSet}: un arreglo fijo de ocho palabras de 64 bits
 (hasta 512 columnas). Las operaciones ``$T$ cubre a la fila $r$'' ($T\cap r\neq\emptyset$)
 y ``$T\cap r$ tiene exactamente un elemento'' se resuelven con operaciones
-\texttt{AND} y conteo de bits sobre palabras completas. Un primer diseño
-guardaba las palabras en memoria dinámica; cambiar a almacenamiento fijo redujo
-el tiempo de YYC sobre la matriz $A$ de unos $88\,\mu$s a unos $7\,\mu$s, porque el
-ciclo interno crea muchos conjuntos temporales.
+\texttt{AND} y conteo de bits sobre palabras completas. El almacenamiento fijo
+permite crear los conjuntos temporales del ciclo interno sin reservar memoria
+dinámica para cada conjunto; las listas de conjuntos sí usan memoria dinámica.
 
 \paragraph{Seguridad y robustez.}
 \begin{itemize}[nosep]
@@ -194,8 +209,10 @@ ciclo interno crea muchos conjuntos temporales.
 \item Los archivos de matriz se validan carácter por carácter (sólo \texttt{0}, \texttt{1}
   y separadores) y se informa la línea del error; se limita el tamaño del archivo
   (16\,MiB) y de la matriz ($10^5$ filas, 512 columnas).
-\item YYC tiene una cota configurable sobre $|\Psis|$ (2 millones de conjuntos,
-  unos 160\,MB) para no agotar la memoria con matrices patológicas.
+\item YYC tiene una cota configurable sobre $|\Psis|$ (2 millones de conjuntos
+  por defecto). El consumo real también incluye las familias intermedias, sus
+  capacidades reservadas y las estructuras auxiliares; la cota no equivale a un
+  límite estricto de memoria en bytes.
 \item No se sobrescribe ningún archivo existente sin autorización explícita
   (\texttt{--forzar} o confirmación en el menú).
 \item Se compila con todas las advertencias activadas (\texttt{-Wall -Wextra
@@ -204,7 +221,7 @@ ciclo interno crea muchos conjuntos temporales.
   \texttt{\_GLIBCXX\_ASSERTIONS}).
 \end{itemize}
 
-\paragraph{Verificación.} El proyecto incluye 63 pruebas unitarias. La más
+\paragraph{Verificación.} El proyecto incluye \NumeroPruebas{} pruebas automatizadas. La más
 importante compara el resultado de YYC con un \emph{oráculo exhaustivo}
 independiente (recorre los $2^n$ subconjuntos de columnas y aplica directamente
 la definición de testor típico) sobre 400 matrices básicas aleatorias de hasta
@@ -229,10 +246,7 @@ ctest --test-dir build                 # pruebas
 ./build/testores ayuda                 # subcomandos disponibles
 \end{Verbatim}
 
-\paragraph{Entorno experimental.} Todos los tiempos se midieron en un equipo
-con procesador Intel Core i7-1265U, 16\,GB de RAM, Windows 11 Pro, compilador
-GCC 16.1 (MSYS2/UCRT64) con optimización \texttt{-O3} (\texttt{Release}). El
-reloj monótono de Windows tiene una resolución de 100\,ns.
+\input{resultados/entorno_experimental.tex}
 
 % ==============================================================================
 \section{Ejercicio 1: generación de matrices y matriz básica}
@@ -253,22 +267,27 @@ El procedimiento \texttt{reduceToBasic} aplica la definición en dos pasos y,
 además de la matriz básica, devuelve para cada fila original la razón por la
 que se conservó o eliminó:
 \begin{enumerate}[nosep]
-\item Recorre las filas en orden; descarta las filas nulas y las que son
-  idénticas a una fila anterior ya aceptada (se conserva la primera aparición).
+\item Recorre las filas en orden y descarta las que son idénticas a una fila
+  anterior ya aceptada (se conserva la primera aparición).
 \item Entre las filas restantes, conserva exactamente las \emph{minimales}:
   aquellas que no tienen ninguna subfila. Cada superfila eliminada se justifica
   con una subfila suya que sí permanece en la matriz básica (existe por
   transitividad de la relación de subfila, que es un orden parcial estricto
   sobre filas distintas).
 \end{enumerate}
+Las filas nulas no necesitan un tratamiento especial: como una fila nula es
+subfila de toda fila no nula, el paso~2 elimina todas las demás y la matriz
+básica queda formada por una sola fila nula (de densidad $0$), tal como exige la
+definición. En ese caso el programa avisa que la matriz no tiene testores, y
+YYC y BT devuelven el conjunto vacío.
 El orden relativo de las filas que permanecen no cambia y el número de
 columnas tampoco. El costo es $O(m^2\lceil n/64\rceil)$. Finalmente la densidad
 se calcula contando los unos con conteo de bits por palabra.
 
 \subsection{Resultado para una matriz de $100\times 10$}
 Con \texttt{testores generar --filas 100 --columnas 10 --semilla 2026} se
-obtuvo una matriz aleatoria de densidad $0.51$. La reducción eliminó
-$5$ filas repetidas, $0$ nulas y $82$ superfilas, y produjo la siguiente matriz
+obtuvo una matriz aleatoria de densidad $0.51$, sin filas nulas. La reducción
+eliminó $5$ filas repetidas y $82$ superfilas, y produjo la siguiente matriz
 básica de $13\times 10$ (archivo \texttt{data/ej1\_basica\_100x10.txt}):
 \[
 BM=\left(\begin{array}{cccccccccc}
@@ -289,11 +308,13 @@ BM=\left(\begin{array}{cccccccccc}
 \qquad
 \rho(BM)=\frac{39}{13\cdot 10}=0.30 .
 \]
-Se observa un fenómeno general: la matriz básica tiene una densidad menor que
-la original ($0.30$ frente a $0.51$), porque la reducción elimina
-precisamente las filas con más unos (las superfilas). Las filas con un único
-$1$ (la de $\x2$ y la de $\x7$) obligan a que esos rasgos pertenezcan a todo
-testor de la matriz.
+En este ejemplo la densidad disminuye ($0.30$ frente a $0.51$). No es una
+propiedad general: una superfila tiene más unos que la subfila que justifica
+su eliminación, pero puede tener menos unos que el promedio de las otras filas
+incomparables. Por ejemplo, las filas $10000$, $11000$ y $01111$ tienen densidad
+$7/15$; eliminar $11000$ deja una básica de densidad $5/10$, que es mayor.
+Las filas con un único $1$ (la de $\x2$ y la de $\x7$) obligan a que esos rasgos
+pertenezcan a todo testor de la matriz.
 
 % ==============================================================================
 \section{Ejercicio 2: algoritmo YYC}
@@ -304,7 +325,8 @@ testor de la matriz.
 \textbf{Enunciado.} Generar una matriz básica $A$ con al menos siete columnas
 y densidad mayor o igual a $0.4$.
 
-Como la reducción tiende a bajar la densidad, se implementó el caso de uso
+Para obtener una básica que cumpla simultáneamente las restricciones,
+se implementó el caso de uso
 \texttt{searchBasic\allowbreak Matrix}: genera matrices aleatorias con una semilla fija hasta
 que la matriz básica cumpla las restricciones (densidad mínima, rango de filas y
 que ninguna columna quede nula). Se pidió una matriz básica de 7 columnas y
@@ -312,7 +334,8 @@ que ninguna columna quede nula). Se pidió una matriz básica de 7 columnas y
 
 \begin{Verbatim}[fontsize=\small, frame=single]
 testores buscar --columnas 7 --filas 8 --densidad-min 0.4 \
-   --min-filas-basica 6 --max-filas-basica 6 --semilla 2026 --salida data/matriz_A.txt
+   --min-filas-basica 6 --max-filas-basica 6 \
+   --semilla 2026 --salida data/matriz_A.txt
 \end{Verbatim}
 
 El primer intento ya cumplió las condiciones. La matriz aleatoria generada
@@ -605,12 +628,14 @@ testores yyc --entrada data/matriz_A.txt --repeticiones 10000 \
 
 Si la matriz introducida no es básica, el programa lo informa, la reduce
 (Proposición~\ref{prop:basica}) y aplica YYC a la matriz básica. Un fragmento de
-la salida (con \texttt{Psi*} en lugar del símbolo griego) es:
+la salida (con \texttt{Psi*} en lugar del símbolo griego y omitiendo aquí los
+tiempos, que se presentan en la Tabla~\ref{tab:yycA}) es:
 
 \begin{Verbatim}[fontsize=\small, frame=single]
-Tras procesar r3 (3/6): |Psi*| = 7 | tiempo acumulado = 12.500 us
-  Psi* = {x1}, {x2, x5}, {x4, x5}, {x2, x3, x6}, {x2, x6, x7}, {x3, x4, x6}, {x4, x6, x7}
-Tras procesar r4 (4/6): |Psi*| = 12 | tiempo acumulado = 16.700 us
+Tras procesar r3 (3/6): |Psi*| = 7
+  Psi* = {x1}, {x2, x5}, {x4, x5}, {x2, x3, x6}, {x2, x6, x7},
+         {x3, x4, x6}, {x4, x6, x7}
+Tras procesar r4 (4/6): |Psi*| = 12
   ...
 \end{Verbatim}
 
@@ -618,12 +643,17 @@ Tras procesar r4 (4/6): |Psi*| = 12 | tiempo acumulado = 16.700 us
 
 Una sola ejecución de YYC sobre $A$ dura unos pocos microsegundos, una escala
 en la que el ruido del sistema operativo (interrupciones, caché fría, cambios de
-frecuencia) es comparable al propio tiempo medido; en la primera ejecución,
-por ejemplo, la fila $r_1$ tardó $5.6\,\mu$s porque la caché aún estaba fría. Por eso la
-tabla reporta, para cada fila, la \textbf{mediana} de su tiempo de procesamiento
-en $10\,000$ ejecuciones, acumulada fila a fila (lo que garantiza que la columna
-sea creciente). Los conjuntos de testores son idénticos en todas las
-ejecuciones y coinciden con la ejecución manual.
+frecuencia) es comparable al propio tiempo medido. Por eso se ejecuta YYC $10\,000$ veces, se registra en cada ejecución
+el tiempo acumulado $C_k$ tras cada fila $r_k$, y la tabla reporta, para cada
+fila, la \textbf{mediana de $C_k$}. El último valor es, entonces, la mediana del
+tiempo total, el mismo estadístico que se usa para BT.
+
+No se suman las medianas de los tiempos de cada fila: la mediana no es aditiva,
+y esa suma no garantiza representar el tiempo acumulado de una ejecución. La columna sigue
+siendo creciente: en cada ejecución $C_k\le C_{k+1}$, y la mediana (como
+cualquier estadístico de orden) conserva esa desigualdad. Los conjuntos de
+testores son idénticos en todas las ejecuciones y coinciden con la ejecución
+manual.
 
 \begin{table}[h]
 \centering
@@ -638,15 +668,15 @@ de ejecución acumulado después de cada fila (mediana de 10\,000 ejecuciones).}
 \begin{itemize}[nosep]
 \item El conjunto final coincide exactamente con el obtenido a mano
   (8 testores típicos: 5 de cardinalidad 2 y 3 de cardinalidad 3).
-\item El tiempo por fila crece con el trabajo realizado en ella. La fila $r_4$, que
-  genera 8 candidatos y deja $|\Psis|=12$, y las filas $r_5$ y $r_6$, que deben recorrer
-  $\Psis$ completo y probar 6 extensiones cada una contra 5 y 6 filas, son las
-  más costosas. La fila $r_1$ sólo crea los conjuntos unitarios.
-\item El tiempo total, del orden de $7\,\mu$s, muestra que para matrices pequeñas el
-  costo de YYC es despreciable. Su complejidad depende, sobre todo, del tamaño
-  de $\Psis$ en los pasos intermedios, que puede crecer exponencialmente con el número de
-  columnas en matrices de baja densidad; por esto la implementación incluye un
-  límite de seguridad sobre $|\Psis|$.
+\item El trabajo por fila depende del número de extensiones y del costo de
+  comprobar su compatibilidad con las filas procesadas. Por ejemplo, $r_3$
+  prueba 9 extensiones y $r_4$ prueba 8, pero la segunda comprueba una fila
+  adicional. La diferencia entre dos medianas acumuladas no debe interpretarse
+  como la mediana del costo individual de esa fila.
+\item El tiempo sobre $A$ es pequeño, pero esto no implica una cota polinómica.
+  El tamaño de $\Psis$ en los pasos intermedios puede crecer exponencialmente
+  con el número de columnas; por eso existe un límite de seguridad sobre
+  $|\Psis|$. La densidad por sí sola no determina ese crecimiento.
 \end{itemize}
 
 % ==============================================================================
@@ -655,7 +685,8 @@ de ejecución acumulado después de cada fila (mediana de 10\,000 ejecuciones).}
 
 \subsection{El algoritmo BT}\label{sec:bt}
 
-BT fue propuesto por Ruiz-Shulcloper, Bravo y Águila~\cite{shul82}. A diferencia
+BT fue propuesto por Ruiz-Shulcloper, Bravo y Águila~\cite{shul82}; seguimos la
+descripción del documento del curso~\cite{algobt}. A diferencia
 de YYC, que construye los testores típicos a partir de la estructura interna de
 la matriz, BT es un algoritmo de \emph{escala exterior}: recorre los
 subconjuntos de rasgos en un orden total fijo y, según el resultado de analizar
@@ -697,6 +728,16 @@ $r_i\cap T_\beta=r_i\cap T_\alpha=\emptyset$: la fila $r_i$ sigue sin cubrirse y
 $T_\beta$ no es testor.
 \end{proof}
 
+\paragraph{Qué fila usar en S1.} La Proposición~\ref{prop:s1} vale para
+\emph{cualquier} fila sin cubrir, pero el salto depende de la fila elegida. Si
+$r_i$ y $r_{i'}$ no están cubiertas y sus últimos unos están en $k<k'$, los
+destinos $\alpha'_k$ y $\alpha'_{k'}$ coinciden en las posiciones $1,\dots,k-1$ y
+en la posición $k$ valen $1$ y $a_k=0$, respectivamente; luego
+$\alpha'_k>\alpha'_{k'}$. Por eso el Paso~3 de~\cite{algobt} indica que, si hay
+varias filas responsables, \emph{se toma la que tenga el último 1 más a la
+izquierda}: es la que produce el salto más grande. Si hay empate en esa
+posición, el salto es el mismo; tomamos la de menor índice.
+
 \begin{proposicion}[Salto S2: $\alpha$ es testor]\label{prop:s2}
 Sea $\alpha$ tal que $T_\alpha$ es testor y sea $k=\max\{j: a_j=1\}$ la posición del
 último $1$ de $\alpha$. Todo $\beta$ con $\nu(\alpha)<\nu(\beta)<\nu(\alpha)+2^{\,n-k}$
@@ -719,13 +760,18 @@ superconjuntos de $T_\alpha$ y el algoritmo termina. El algoritmo completo es:
 
 \begin{enumerate}[nosep]
 \item $\alpha\leftarrow(0,\dots,0,1)$.
-\item Buscar la primera fila $r_i$ (en el orden de la matriz) con $r_i\cap T_\alpha=\emptyset$.
-\item \textbf{Si existe}, $T_\alpha$ no es testor: $k\leftarrow$ último $1$ de $r_i$;
+\item Buscar todas las filas $r_i$ con $r_i\cap T_\alpha=\emptyset$.
+\item \textbf{Si existen}, $T_\alpha$ no es testor: elegir entre ellas la fila $r_i$
+  cuyo último $1$ está más a la izquierda; $k\leftarrow$ último $1$ de $r_i$;
   $\alpha\leftarrow(a_1,\dots,a_{k-1},1,0,\dots,0)$ y volver a 2.
-\item \textbf{Si no existe}, $T_\alpha$ es testor: registrarlo y decidir si es típico;
+\item \textbf{Si no existen}, $T_\alpha$ es testor: registrarlo y decidir si es típico;
   $k\leftarrow$ último $1$ de $\alpha$; $\alpha\leftarrow\alpha+2^{\,n-k}$. Si hubo
   desbordamiento, terminar; si no, volver a 2.
 \end{enumerate}
+Si la matriz tiene una fila nula, esa fila no está cubierta por ningún $\alpha$ y
+no tiene último $1$: ningún $n$-uplo es testor, así que BT termina en el primer
+paso sin testores (la implementación la trata como la fila ``más a la
+izquierda'' posible).
 
 \begin{proposicion}[Corrección de BT]\label{prop:btcorrecto}
 BT termina y analiza todos los testores típicos de la matriz.
@@ -761,11 +807,17 @@ a un testor típico $T_0\subseteq T$, que también está en $\mathcal F$; por mi
 $T_0=T$.
 \end{proof}
 
-\paragraph{Orden de las filas.} BT usa la \emph{primera} fila de ceros, de modo que
-el orden de las filas no cambia el resultado pero sí el tamaño de los saltos S1.
-\cite{pons2004} menciona una variante que reordena previamente la matriz básica
-para provocar saltos mayores. Nuestra implementación \emph{no} reordena nada,
-porque el Ejercicio~5 pide justamente medir el efecto de ordenar las filas.
+\paragraph{Orden de las filas.} Como la fila del salto S1 se elige por la
+posición de su último $1$ y no por su posición en la matriz, la secuencia de
+$n$-uplos que analiza BT \emph{no depende del orden de las filas}: reordenarlas
+sólo puede cambiar cuál de dos filas empatadas se cita, pero no el salto. El
+precio es que, para elegir la fila, hay que revisar todas las filas sin
+cubrir y no sólo la primera. Una implementación que tomara siempre la primera
+fila sin cubrir sí dependería del orden de las filas y daría saltos más cortos
+(en la matriz $A$, 51 $n$-uplos analizados en lugar de 44; ver la
+Sección~\ref{sec:bt-resumen}). Nuestra implementación no reordena filas ni
+columnas; el efecto del orden de las filas sobre los tiempos se estudia en el
+Ejercicio~5.
 
 \subsection{Ejercicio 3.1: ejecución manual de BT sobre $A$}
 
@@ -777,39 +829,44 @@ En la notación de $n$-uplos, las filas de $A$ y la posición de su último $1$ 
 \text{último 1} & \x7 & \x6 & \x4 & \x7 & \x6 & \x7
 \end{array}
 \]
-Para cada candidato $\alpha$ se recorren las filas $r_1,\dots,r_6$ buscando la
-primera con ceros en todas las columnas de $T_\alpha$. Detallamos los primeros
-pasos y los más ilustrativos; la Tabla~\ref{tab:bttraza} contiene el recorrido
-completo, con la justificación de cada decisión.
+Para cada candidato $\alpha$ se buscan todas las filas con ceros en todas las
+columnas de $T_\alpha$; si hay varias, la tabla anterior indica cuál tiene el
+último $1$ más a la izquierda. Detallamos los primeros pasos y los más
+ilustrativos; la Tabla~\ref{tab:bttraza} contiene el recorrido completo, con
+la justificación de cada decisión.
 
 \begin{description}[nosep, leftmargin=1.2em]
-\item[Paso 1.] $\alpha=0000001$, $T_\alpha=\cj{\x7}$. $r_1$ contiene a $\x7$, pero
-  $r_2=\cj{\x1,\x5,\x6}$ no: no es testor. El último $1$ de $r_2$ está en $\x6$
-  (S1): $\alpha'=0000010$.
-\item[Paso 2.] $\cj{\x6}$: $r_1$ no contiene a $\x6$. Último $1$ de $r_1$: $\x7$,
-  $\alpha'=0000011$.
-\item[Paso 3.] $\cj{\x6,\x7}$ cubre $r_1$ y $r_2$, pero no $r_3=\cj{\x1,\x2,\x4}$. Último
-  $1$ de $r_3$: $\x4$, así que $\alpha'=0001000$. Se saltan los 4 $n$-uplos
-  $0000100,\dots,0000111$: todos tienen ceros en $\x1,\x2,\x4$ y no cubren $r_3$.
-\item[Pasos 4--6.] $\cj{\x4}$ no cubre $r_1$ (salto a $0001001$); $\cj{\x4,\x7}$ no
-  cubre $r_2$ (salto a $0001010$); $\cj{\x4,\x6}$ no cubre $r_1$ (salto a $0001011$).
-\item[Paso 7.] $\cj{\x4,\x6,\x7}$: $r_1\to\x7$, $r_2\to\x6$, $r_3\to\x4$,
+\item[Paso 1.] $\alpha=0000001$, $T_\alpha=\cj{\x7}$. No contienen a $\x7$ las filas
+  $r_2=\cj{\x1,\x5,\x6}$ (último $1$ en $\x6$), $r_3=\cj{\x1,\x2,\x4}$ (en $\x4$) y
+  $r_5=\cj{\x1,\x4,\x6}$ (en $\x6$): no es testor. La de último $1$ más a la
+  izquierda es $r_3$, así que (S1) $\alpha'=0001000$. Se saltan los 6 $n$-uplos
+  $0000010,\dots,0000111$: todos tienen ceros en $\x1,\x2,\x4$ y no cubren $r_3$.
+  (Con la primera fila sin cubrir, $r_2$, el salto habría llegado sólo a $0000010$.)
+\item[Paso 2.] $\cj{\x4}$: quedan sin cubrir $r_1$ (último $1$ en $\x7$) y $r_2$ (en
+  $\x6$); se elige $r_2$ y $\alpha'=0001010$. Se salta $0001001=\cj{\x4,\x7}$, que
+  tampoco cubre $r_2$.
+\item[Paso 3.] $\cj{\x4,\x6}$: sólo $r_1$ queda sin cubrir; su último $1$ está en
+  $\x7$, así que $\alpha'=0001011$.
+\item[Paso 4.] $\cj{\x4,\x6,\x7}$: $r_1\to\x7$, $r_2\to\x6$, $r_3\to\x4$,
   $r_4\to\cj{\x4,\x6,\x7}$, $r_5\to\cj{\x4,\x6}$, $r_6\to\cj{\x4,\x7}$. Ninguna
   intersección es vacía: \textbf{es testor}. Además $r_3$, $r_2$ y $r_1$ son filas
   típicas de $\x4$, $\x6$ y $\x7$: \textbf{es típico}. El último $1$ está en $\x7$
   (S2): $\alpha'=0001011+1=0001100$.
-\item[Paso 8.] $\cj{\x4,\x5}$: $r_1,r_2\to\x5$ y $r_3,\dots,r_6\to\x4$; es testor
+\item[Paso 5.] $\cj{\x4,\x5}$: $r_1,r_2\to\x5$ y $r_3,\dots,r_6\to\x4$; es testor
   y típico ($\x4{:}r_3$, $\x5{:}r_1$). El último $1$ está en $\x5$:
   $\alpha'=0001100+0000100=0010000$. Se saltan $0001101$, $0001110$ y $0001111$,
   que son $\cj{\x4,\x5}$ más $\x6$ y/o $\x7$.
-\item[Paso 13.] $\cj{\x3,\x4,\x5}$ es testor pero \textbf{no típico}: $\x3$ sólo aparece
+\item[Paso 6.] $\cj{\x3}$: quedan sin cubrir $r_2$, $r_3$, $r_5$ y $r_6$; otra vez
+  $r_3$ tiene el último $1$ más a la izquierda ($\x4$) y $\alpha'=0011000$: se saltan
+  7 $n$-uplos.
+\item[Paso 9.] $\cj{\x3,\x4,\x5}$ es testor pero \textbf{no típico}: $\x3$ sólo aparece
   en $r_1$ (junto a $\x5$) y en $r_4$ (junto a $\x4$), así que no tiene fila típica.
-  En efecto, contiene al testor $\cj{\x4,\x5}$ encontrado en el paso 8, pero no es
+  En efecto, contiene al testor $\cj{\x4,\x5}$ encontrado en el paso 5, pero no es
   consecutivo a él en el orden y por eso S2 no lo evitó.
-\item[Pasos 42--43.] $\cj{\x1,\x4}$ y $\cj{\x1,\x3}$ son típicos y producen los
+\item[Pasos 35--36.] $\cj{\x1,\x4}$ y $\cj{\x1,\x3}$ son típicos y producen los
   saltos más grandes: $1001000+0001000=1010000$ (7 superconjuntos omitidos) y
   $1010000+0010000=1100000$ (15 omitidos).
-\item[Paso 51.] $\cj{\x1,\x2,\x3}$ es testor no típico ($\x2$ sólo aparece en $r_3$,
+\item[Paso 44.] $\cj{\x1,\x2,\x3}$ es testor no típico ($\x2$ sólo aparece en $r_3$,
   que también contiene a $\x1$). Al sumar $1$ en la posición de $\x3$ el acarreo se
   sale por la izquierda ($1110000+0010000=10000000$): los 15 $n$-uplos restantes
   son superconjuntos de $\cj{\x1,\x2,\x3}$ y \textbf{el algoritmo termina}.
@@ -821,28 +878,37 @@ completo, con la justificación de cada decisión.
 \setlength{\tabcolsep}{4pt}
 \renewcommand{\arraystretch}{0.9}
 \input{resultados/bt_A_traza.tex}
-\caption{Recorrido completo de BT sobre $A$. ``S1: $x_k$'' indica el
-salto por fila de ceros (1 en $x_k$ y ceros a su derecha); ``S2: $x_k$'', el salto
-por testor (sumar 1 en la posición $x_k$). En los testores típicos se indica una
-fila típica de cada rasgo.}\label{tab:bttraza}
+\caption{Recorrido completo de BT sobre $A$. En los no testores se listan las
+filas sin cubrir y en negrita la elegida (la de último 1 más a la izquierda).
+``S1: $x_k$'' indica el salto por fila de ceros (1 en $x_k$ y ceros a su
+derecha); ``S2: $x_k$'', el salto por testor (sumar 1 en la posición $x_k$). En
+los testores típicos se indica una fila típica de cada rasgo.}\label{tab:bttraza}
 \end{table}
 
-\paragraph{Resumen de la ejecución.}
+\paragraph{Resumen de la ejecución.}\label{sec:bt-resumen}
 \begin{itemize}[nosep]
-\item BT analizó \textbf{51} de los $2^7-1=127$ subconjuntos no vacíos y saltó los
-  otros 76: 27 candidatos no fueron testores (salto S1) y 24 sí lo fueron (salto S2).
-\item De los 24 testores, \textbf{8 son típicos}:
+\item BT analizó \textbf{44} de los $2^7-1=127$ subconjuntos no vacíos y saltó los
+  otros 83: 20 candidatos no fueron testores (salto S1) y 24 sí lo fueron (salto S2).
+\item La elección de la fila en S1 importa: si se tomara siempre la primera fila
+  sin cubrir, BT analizaría 51 $n$-uplos (los mismos 24 testores y 27 no testores).
+  La regla del último $1$ más a la izquierda ahorra 7 análisis, todos de
+  subconjuntos que no son testores. Los testores analizados son los mismos con
+  cualquier regla, porque S1 sólo salta subconjuntos que no son testores y S2 no
+  depende de las filas.
+\item De los 24 testores visitados, \textbf{8 son típicos}:
   $\cj{\x4,\x6,\x7}$, $\cj{\x4,\x5}$, $\cj{\x3,\x4,\x6}$, $\cj{\x2,\x6,\x7}$,
   $\cj{\x1,\x7}$, $\cj{\x1,\x6}$, $\cj{\x1,\x4}$, $\cj{\x1,\x3}$ (en el orden en que
   BT los encuentra). Es exactamente el conjunto obtenido con YYC en la
   Sección~\ref{sec:yyc-manual}. Los 16 testores restantes no son típicos, y los elementos
   minimales de la familia de 24 testores son, de nuevo, esos 8
-  (Proposición~\ref{prop:minimales}).
+  (Proposición~\ref{prop:minimales}). En total $A$ tiene \textbf{86 testores},
+  según la enumeración exhaustiva de los 127 subconjuntos no vacíos: BT no
+  pretende visitarlos todos, porque S2 omite superconjuntos no típicos.
 \item La debilidad de BT señalada en~\cite{pons2004} se ve claramente: dos tercios
   de los testores analizados son superconjuntos de testores típicos
   (por ejemplo $\cj{\x2,\x4,\x5}\supset\cj{\x4,\x5}$) que el salto S2 no puede
   evitar, porque no son consecutivos al testor en el orden binario. Como comparación,
-  YYC probó 35 extensiones y nunca generó un testor no típico.
+  YYC probó 35 extensiones y sólo conservó los conjuntos compatibles con las filas procesadas.
 \end{itemize}
 
 \subsection{Ejercicio 3.2: implementación computacional de BT}\label{sec:bt-impl}
@@ -851,9 +917,11 @@ fila típica de cada rasgo.}\label{tab:bttraza}
 saltos son dos funciones puras: \texttt{btJumpNotTestor} (S1: poner $1$ en la
 posición $k$ y ceros a su derecha) y \texttt{btJumpTestor} (S2: sumar $1$ en la
 posición del último $1$ con acarreo; devuelve ``vacío'' si hay desbordamiento).
-\texttt{BtSolver::solve} repite: buscar la primera fila de ceros con operaciones
-\texttt{AND} sobre palabras de 64 bits; si no hay, registrar el testor, decidir
-su tipicidad (procedimiento 1) y aplicar S2; si la hay, aplicar S1. El resultado
+\texttt{BtSolver::solve} repite: recorrer las filas con operaciones \texttt{AND}
+sobre palabras de 64 bits y quedarse con la fila sin cubrir cuyo último $1$
+está más a la izquierda (función \texttt{btZeroRow}); si no hay ninguna,
+registrar el testor, decidir su tipicidad (procedimiento 1) y aplicar S2; si
+la hay, aplicar S1 (o terminar sin testores si esa fila es nula). El resultado
 contiene la lista de testores encontrados (en el orden de BT y marcados como
 típicos o no), los testores típicos y, opcionalmente, la traza de cada paso. El
 caso de uso \texttt{runBt} lee el reloj monótono antes y después de
@@ -876,22 +944,35 @@ testores bt --entrada data/matriz_A.txt --repeticiones 10000 \
 \end{Verbatim}
 Un fragmento de la salida:
 \begin{Verbatim}[fontsize=\small, frame=single]
-Paso 13: alfa = 0011100 = {x3, x4, x5}
+Paso 1: alfa = 0000001 = {x7}
+  NO es testor: filas con ceros en todas las columnas de alfa:
+  r2 (ultimo 1 en x6), r3 (ultimo 1 en x4), r5 (ultimo 1 en x6).
+  Se elige r3 = 1101000, la de ultimo 1 mas a la izquierda (salto mas grande).
+  Salto S1: ultimo 1 de r3 en x4 -> poner 1 en x4 y ceros a su derecha.
+  Siguiente: alfa' = 0001000 = {x4}  (se saltan 6 n-uplos)
+...
+Paso 9: alfa = 0011100 = {x3, x4, x5}
   ES testor (toda fila tiene un 1 en alguna columna de alfa) y NO es tipico:
   x3 no tiene fila tipica (se puede quitar y sigue siendo testor).
   Salto S2: ultimo 1 de alfa en x5 -> sumar 1 en esa posicion
   Siguiente: alfa' = 0100000 = {x2}  (se saltan 3 n-uplos)
 ...
 Resultados de BT:
-  n-uplos analizados: 51 de 127 posibles (2^7 - 1); se saltaron 76
+  n-uplos analizados: 44 de 127 posibles (2^7 - 1); se saltaron 83
   Testores encontrados: 24 (tipicos: 8, no tipicos: 16)
   Ambos procedimientos coinciden
 \end{Verbatim}
 
-\paragraph{Verificación de BT.} Se añadieron 14 pruebas. Las principales:
+\paragraph{Verificación de BT.} Las pruebas específicas de BT incluyen los siguientes casos:
 \begin{itemize}[nosep]
 \item la traza exacta (n-uplos visitados, filas de ceros y saltos) sobre una
-  matriz de $3\times3$ calculada a mano;
+  matriz de $3\times3$ calculada a mano, y los 44 pasos sobre $A$ (en el
+  primero se elige $r_3$, no $r_2$);
+\item en cada paso no testor de 150 matrices aleatorias, la fila elegida no está
+  cubierta y tiene el último $1$ más a la izquierda entre las no cubiertas;
+\item reordenar las filas (en $A$ y en 100 matrices aleatorias) no cambia la
+  secuencia de $n$-uplos analizados;
+\item con una fila nula, BT, YYC y la matriz básica dan cero testores;
 \item BT coincide con el oráculo exhaustivo y con YYC en 500 matrices básicas
   aleatorias de 1 a 12 columnas;
 \item en 150 matrices aleatorias se recorren \emph{todos} los $n$-uplos que BT no
@@ -903,7 +984,8 @@ Resultados de BT:
 \end{itemize}
 Además, la traza de la Tabla~\ref{tab:bttraza} se reprodujo con una
 implementación independiente de BT escrita en Python a partir de las
-Proposiciones~\ref{prop:s1} y~\ref{prop:s2}: los 51 pasos coinciden.
+Proposiciones~1.3--1.5 y el Paso~3 de~\cite{algobt}: los 44 pasos coinciden
+(n-uplos, filas elegidas y saltos).
 
 \subsection{Ejercicio 3.3: resultados sobre la matriz $A$}
 
@@ -921,17 +1003,333 @@ encontrados está en \texttt{docs/resultados/bt\_A.csv}.}
 \begin{itemize}[nosep]
 \item Los testores típicos coinciden exactamente con los de la ejecución manual
   y con los de YYC (Tabla~\ref{tab:yycA}).
-\item El tiempo total es de unas pocas decenas de microsegundos. Con mediciones
-  hechas una tras otra en las mismas condiciones, BT tardó entre 24 y
-  32\,$\mu$s y YYC unos 17\,$\mu$s. (Los valores absolutos cambian con el estado del
-  equipo, por ejemplo con el modo de energía; por eso la tabla de YYC de la
-  Sección~\ref{sec:yyc-res}, medida en otra sesión, muestra unos 7\,$\mu$s. Sólo tiene sentido
-  comparar tiempos medidos en la misma sesión.)
-\item El costo por candidato de ambos algoritmos es parecido. BT es más lento en $A$
-  porque analiza más candidatos (51 frente a 35) y 16 de ellos son testores no
-  típicos que YYC nunca genera. La comparación sistemática, incluido el efecto del
-  orden de las filas sobre los saltos de BT, corresponde al Ejercicio~5.
+\item Para $A$, la mediana acumulada final de YYC es
+  $\TiempoYycA\,\mu$s y la mediana total de BT es $\TiempoBtA\,\mu$s,
+  según los CSV regenerados. Esas cifras describen sus respectivos intervalos
+  de medición, que se detallan a continuación.
+\item Las tablas de los Ejercicios 2 y 3 muestran el tiempo acumulado por
+  fila de YYC y el tiempo total de BT, respectivamente. No se atribuye una
+  diferencia de tiempos solamente a los conteos 35 y 44: una extensión de YYC
+  y un candidato de BT realizan operaciones distintas.
+\item La medición por fila de YYC excluye la construcción del solver; la de BT
+  engloba su resolución completa. La comparación con el mismo alcance de
+  medición, para ambos órdenes de filas, se presenta en el Ejercicio~5.
 \end{itemize}
+
+
+% ==============================================================================
+\section{Ejercicio 4: matriz de testores típicos y dualidad}
+% ==============================================================================
+
+\subsection{Ejercicio 4.1: construcción de la matriz $B$}
+
+Cada uno de los ocho testores típicos de $A$ se convierte en una fila de siete
+bits: el bit $j$ vale $1$ si $\x j$ pertenece al testor. Se conserva el mismo
+orden de columnas $\x1,\ldots,\x7$; el orden elegido para las filas es el orden
+binario creciente usado por BT:
+\[
+B=\begin{pmatrix}
+0&0&0&1&0&1&1\\
+0&0&0&1&1&0&0\\
+0&0&1&1&0&1&0\\
+0&1&0&0&0&1&1\\
+1&0&0&0&0&0&1\\
+1&0&0&0&0&1&0\\
+1&0&0&1&0&0&0\\
+1&0&1&0&0&0&0
+\end{pmatrix},\qquad
+\rho(B)=\frac{19}{8\cdot7}=\frac{19}{56}\approx0.339286.
+\]
+El archivo reproducible es \texttt{data/matriz\_B.txt}.
+
+\begin{proposicion}
+La matriz $B$ es básica.
+\end{proposicion}
+\begin{proof}
+Sus filas son distintas porque proceden de un conjunto de testores típicos.
+Si una fila fuera subfila de otra, sus soportes serían testores $T\subsetneq T'$.
+Entonces $T'$ tendría un subconjunto propio testor y no sería típico, una
+contradicción. Por tanto no hay repeticiones ni filas comparables.
+\end{proof}
+
+\subsection{Ejercicio 4.2: ejecución de BT sobre $B$}
+
+Se ejecuta el mismo programa, sin cambiar el algoritmo ni las columnas:
+\begin{Verbatim}[fontsize=\small, frame=single]
+testores bt --entrada data/matriz_B.txt --traza
+testores bt --entrada data/matriz_B.txt --repeticiones 10000 \
+            --csv resultados/bt_B.csv --latex resultados/bt_B_resumen.tex
+\end{Verbatim}
+BT obtiene los siguientes seis testores típicos:
+\[
+\Psis(B)=\bigl\{
+\cj{\x3,\x4,\x6,\x7},\ \cj{\x1,\x5,\x6},\
+\cj{\x1,\x4,\x7},\ \cj{\x1,\x4,\x6},\
+\cj{\x1,\x3,\x5,\x7},\ \cj{\x1,\x2,\x4}
+\bigr\}.
+\]
+La tabla siguiente informa el tiempo medido y la salida del programa; la traza
+completa se conserva en \texttt{docs/resultados/bt\_B\_traza.txt}.
+La enumeración directa de los 127 subconjuntos no vacíos confirma que $B$
+tiene 42 testores en total y exactamente esos seis típicos. Por tanto, el
+conjunto de testores visitados por BT no debe confundirse con la familia de
+todos los testores de $B$.
+
+\begin{table}[htbp]
+\centering
+\small
+\input{resultados/bt_B_resumen.tex}
+\caption{BT sobre $B$: resultado computacional y mediana de 10\,000 ejecuciones.}
+\label{tab:btB}
+\end{table}
+
+
+\subsection{Ejercicio 4.3: relación entre $A$ y $B$}
+
+Los seis vectores anteriores son exactamente las seis filas de $A$, salvo su
+orden. La relación no es accidental: formar la matriz de testores típicos y
+volver a hacerlo recupera cualquier matriz básica sin filas nulas, salvo
+permutaciones de filas. Se puede demostrar sin suponer el resultado de BT.
+
+\begin{proposicion}[Dualidad de los transversales minimales]
+Sea $\mathcal H$ la familia de soportes de las filas de una matriz básica $A$
+sin filas nulas, y sea $B$ la matriz cuyas filas son $\Psis(A)$. Entonces
+$\Psis(B)=\mathcal H$.
+\end{proposicion}
+\begin{proof}
+Un testor es un transversal: corta a cada conjunto de $\mathcal H$. Cada
+$h\in\mathcal H$ corta a todos los testores típicos de $A$, por definición;
+luego $h$ es un testor de $B$.
+
+Recíprocamente, supongamos que $S$ es un testor de $B$ y que no contiene ningún
+$h\in\mathcal H$. Entonces, para cada $h$, existe un elemento de $h$ fuera de
+$S$: el complemento $R\setminus S$ es un testor de $A$. Por finitud contiene un
+testor típico $T$ de $A$. Pero $T\subseteq R\setminus S$ implica
+$T\cap S=\emptyset$, contradiciendo que $S$ corta a todas las filas de $B$.
+Así, los testores de $B$ son exactamente los conjuntos que contienen alguna
+fila de $A$. Como las filas de una matriz básica son incomparables, sus
+elementos minimales son precisamente $\mathcal H$.
+\end{proof}
+
+En este caso $A$ tiene 6 filas y 8 testores típicos; $B$ tiene 8 filas y 6
+testores típicos. Ambas conservan las mismas 7 columnas. Las densidades no se
+intercambian ni se conservan: $\rho(A)=20/42\approx0.476190$ y
+$\rho(B)=19/56\approx0.339286$. La dualidad se refiere a familias de conjuntos
+minimales, no a igualdad de matrices, de densidades o de tiempos de ejecución.
+La comparación de conjuntos se realiza sin depender del orden en que los
+algoritmos imprimen sus elementos.
+
+% ==============================================================================
+\section{Ejercicio 5: operadores y experimentación controlada}
+% ==============================================================================
+
+\subsection{Ejercicio 5.1: definición e implementación de los operadores}
+
+Se siguen las definiciones, proposiciones y Tablas 5 y 6 de
+Alba-Cabrera et al.~\cite{alba2016}. Sean $U$ de $m\times n$ y $V$ de
+$p\times q$, con columnas en bloques disjuntos después de concatenarlas:
+\begin{description}[style=nextline]
+\item[$\varphi(U,V)$: concatenación horizontal por filas.]
+Requiere $m=p$. Su fila $i$ es $[u_i\ v_i]$ y tiene dimensión
+$m\times(n+q)$. En $\varphi^N(U)=[U\ U\ \cdots\ U]$ se repiten $N$ bloques
+idénticos de columnas.
+\item[$\theta(U,V)$: producto de filas.]
+Incluye una fila $[u_i\ v_j]$ para cada par $(i,j)$, conservando $i$ como índice
+externo y $j$ como índice interno. Tiene dimensión $mp\times(n+q)$.
+\item[$\gamma(U,V)$: suma en bloques diagonales.]
+Se define por
+\[
+\gamma(U,V)=\begin{pmatrix}U&0_{m\times q}\\0_{p\times n}&V\end{pmatrix}
+\]
+y tiene dimensión $(m+p)\times(n+q)$. En $\gamma^N(U)$ hay $N$ copias de $U$
+sobre la diagonal.
+\end{description}
+Las potencias significan aplicar el operador a $N$ copias; la potencia 1 es
+la propia matriz. No representan potencias numéricas de una matriz.
+
+Para las matrices básicas sin filas nulas utilizadas aquí, los tres
+operadores preservan que las filas sean distintas e incomparables. En
+$\theta$, una inclusión entre filas concatenadas implicaría inclusiones en
+ambos bloques; la basicidad obliga a que ambos pares sean iguales. En
+$\gamma$, las filas de bloques distintos tienen soportes disjuntos no vacíos,
+y dentro de cada bloque se conserva la incomparabilidad. En $\varphi^N$, ya
+el primer bloque impide que dos filas distintas sean comparables.
+La condición de filas no nulas es relevante para la afirmación sobre
+$\gamma$: un bloque con una fila nula produciría una fila nula global y
+las demás filas serían superfilas suyas.
+
+Los tamaños y los números de testores típicos se conocen antes de ejecutar
+los algoritmos:
+\begin{align*}
+|\Psis(\varphi^N(U))|&=\sum_{T\in\Psis(U)}N^{|T|},\\
+|\Psis(\theta(U,V))|&=|\Psis(U)|+|\Psis(V)|,\\
+|\Psis(\gamma(U,V))|&=|\Psis(U)|\,|\Psis(V)|.
+\end{align*}
+En la primera igualdad cada rasgo de $T$ se reemplaza por exactamente una de
+sus $N$ copias. Elegir dos copias del mismo rasgo haría redundante una de
+ellas. En $\theta$, un testor típico debe proceder completamente de un bloque:
+si ninguna parte cubriera su matriz original, existiría un par de filas sin
+cubrir que generaría una fila de $\theta$ sin cubrir. En $\gamma$, por el
+contrario, es necesario cubrir ambos bloques y elegir un testor típico en cada
+uno; sus uniones son distintas porque las columnas son disjuntas.
+
+\subsection{Matrices de los experimentos}
+
+Primero se construye $C=\theta(A,B)$, de $48\times14$, con 14 testores típicos
+y densidad $274/672=137/336\approx0.407738$.
+Las primeras cinco columnas de las tablas son el índice $N$, la matriz, el
+número de filas, el número de columnas y el número esperado de testores
+típicos, como en el artículo. Los tiempos se expresan en milisegundos.
+
+La Tabla 5 del artículo se reproduce mediante $\varphi^N(C)$, para
+$N=1,\ldots,5$. Sus 48 filas permanecen fijas y sus columnas crecen como $14N$.
+Como $A$ tiene cinco típicos de tamaño 2 y tres de tamaño 3, y $B$ tiene cuatro
+de tamaño 3 y dos de tamaño 4,
+\[
+|\Psis(\varphi^N(C))|=5N^2+7N^3+2N^4.
+\]
+Los valores esperados son 14, 108, 396, 1040 y 2250. La densidad se mantiene
+igual a la de $C$, porque se repiten horizontalmente las mismas columnas.
+
+La Tabla 6 se reproduce mediante $\gamma^N(C)$, para $N=1,\ldots,4$.
+Las dimensiones son $48N\times14N$ y el número esperado de típicos es $14^N$:
+14, 196, 2744 y 38416. La densidad es $\rho(C)/N$, debido a los bloques de
+ceros fuera de la diagonal. Aquí crecen linealmente las dimensiones pero
+exponencialmente la cantidad de soluciones; por eso es una familia diferente
+a la anterior y no se pueden explicar sus tiempos solamente con la dimensión.
+
+\subsection{Ejercicio 5.2: protocolo y tablas de tiempos}
+
+Cada matriz generada se utiliza con su orden original y con las filas
+ordenadas de forma estable por su número de unos, en sentido ascendente.
+No se reordenan las columnas. Ambos algoritmos reciben exactamente las mismas
+filas y columnas; ordenar no modifica los testores típicos.
+
+Para que la comparación tenga el mismo alcance se mide la resolución completa
+del solver, incluyendo su inicialización y la ordenación de su salida,
+con traza desactivada. La construcción de la matriz, su ordenación por filas,
+la exportación y la impresión quedan fuera del intervalo medido. Las consultas
+periódicas de cancelación sí pertenecen a la ejecución medida; su costo forma
+parte de esta implementación. Se realiza
+una ejecución de calentamiento antes de las repeticiones medidas y se usa la
+mediana de \RepeticionesExperimento{} ejecuciones completas. Los tiempos por
+fila de la Sección~\ref{sec:yyc-res} tienen un objetivo distinto y no se mezclan
+con estas mediciones.
+
+Se establece un límite de \LimiteExperimento{} segundos por ejecución para que
+un experimento pueda reproducirse sin esperar indefinidamente. Un límite
+alcanzado se identifica expresamente en la tabla: no es un tiempo de
+terminación ni una mediana, y no demuestra un error del algoritmo. Se
+conservan los parámetros, el estado de cada intento y los resultados
+obtenidos; los casos que terminan se contrastan con los valores esperados
+anteriores. Las cifras teóricas de las cinco primeras columnas siguen siendo
+exactas aunque una ejecución no termine dentro del límite.
+
+\begin{table}[htbp]
+\centering
+\small
+\resizebox{\textwidth}{!}{\input{resultados/experimentos_phi.tex}}
+\caption{Familia de la Tabla 5 del artículo: $\varphi^N(\theta(A,B))$.
+Tiempos de YYC y BT en orden original y ascendente.}
+\label{tab:experimento-phi}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\small
+\resizebox{\textwidth}{!}{\input{resultados/experimentos_gamma.tex}}
+\caption{Familia de la Tabla 6 del artículo: $\gamma^N(\theta(A,B))$.
+Las cinco primeras columnas se conocen analíticamente.}
+\label{tab:experimento-gamma}
+\end{table}
+
+
+Se completaron \textbf{21 de las 36 combinaciones} de matriz, algoritmo y orden,
+y \textbf{15 alcanzaron el límite de 10 segundos}. Cada celda completa es la
+mediana de nueve ejecuciones medidas; las celdas con $\ge10000$ indican una
+ejecución interrumpida, sin resultado completo dentro del presupuesto, y no
+una mediana. En particular, no se afirma haber terminado los nueve casos con
+ambos algoritmos en ambos órdenes. Los estados y los conteos se conservan en
+\texttt{docs/resultados/experimentos.csv}; los intentos interrumpidos no se
+utilizan como si fueran resultados completos.
+
+\subsection{Ejercicio 5.3: análisis del efecto del orden de las filas}
+
+Para YYC, permutar las filas puede cambiar los conjuntos intermedios
+$\Psis_k$, su tamaño máximo, las extensiones evaluadas y las comprobaciones de
+compatibilidad. Por ello puede cambiar el trabajo real aunque el resultado
+final sea idéntico. Ordenar primero las filas con menos unos restringe antes
+las elecciones posibles; es una heurística razonable, pero no garantiza
+mejorar todas las matrices ni todas las implementaciones.
+
+
+En esta ejecución ordenar ascendentemente favoreció a YYC en todas las parejas
+que terminaron con ambos órdenes. En $\varphi^3(C)$ pasó de
+$2269.560$ a $181.681$\,ms, una reducción de aproximadamente $12.5$ veces;
+en $\varphi^4(C)$ pasó de $5524.166$ a $915.090$\,ms, aproximadamente
+$6.0$ veces. En $\varphi^5(C)$ el orden original alcanzó el límite, mientras
+el ascendente terminó con mediana $4635.513$\,ms. Este último par no permite
+calcular una razón exacta entre medianas, porque falta la mediana completa
+del orden original. En la familia $\gamma$ la mejora fue más moderada:
+$24.863$ frente a $20.359$\,ms para $N=2$, y $710.857$ frente a
+$648.492$\,ms para $N=3$; ambos órdenes alcanzaron el límite para $N=4$.
+
+En BT se aplica la regla exacta del apunte: elegir, entre las filas sin
+cubrir, la de último $1$ más a la izquierda. La posición elegida depende del
+conjunto de filas y del candidato, no del orden de las filas. Inductivamente,
+el candidato inicial es el mismo y cada salto siguiente también: el
+recorrido binario completo es invariante bajo permutaciones de filas.
+Eso no implica igualdad exacta de tiempos. La búsqueda de filas típicas
+puede detenerse en lugares diferentes, y la disposición en memoria, la caché,
+las predicciones de saltos del procesador y el ruido del sistema operativo
+influyen. Una diferencia pequeña en microsegundos no prueba por sí sola una
+mejora general; un cambio grande debe examinarse con los contadores y las
+repeticiones registradas.
+
+
+Los resultados muestran por qué no se puede inferir que ordenar las filas
+``casi no cambia el tiempo de BT''. En $\varphi^2(C)$ BT analizó exactamente
+\textbf{2\,661\,092 candidatos en ambos órdenes}, pero la mediana pasó de
+$3838.097$ a $7198.112$\,ms: el orden ascendente fue aproximadamente
+$1.88$ veces más lento. La igualdad del recorrido, que es una propiedad
+matemática, no implica igualdad del costo por candidato ni del tiempo medido.
+Estos datos no aíslan cuánto corresponde a cada comprobación interna o al
+estado del equipo; sí descartan atribuir toda la diferencia a una cantidad
+distinta de candidatos. Para $N\ge3$ de la familia $\varphi$ y $N\ge2$ de
+$\gamma$, BT alcanzó el límite con ambos órdenes y no se dispone de medianas
+completas para compararlos.
+
+Las familias permiten separar dos fenómenos: en $\varphi^N(C)$ el número de
+filas es constante y las soluciones crecen polinómicamente; en
+$\gamma^N(C)$ crecen tanto las dimensiones como una salida exponencial.
+Ningún algoritmo que enumere todas las soluciones puede evitar al menos el
+costo de escribirlas. Además, BT puede visitar muchos testores no típicos y
+YYC puede mantener familias intermedias mayores que su salida final. Por
+ello no se concluye que un algoritmo sea universalmente superior, ni que
+más densidad equivalga necesariamente a menos tiempo. Las conclusiones
+cuantitativas quedan limitadas a los casos que efectivamente terminaron,
+al equipo indicado y al protocolo descrito.
+
+\section{Conclusiones y preparación de la demostración}
+
+La reducción a matriz básica conserva los testores, incluyendo correctamente
+el caso sin soluciones causado por una fila nula. En $A$, YYC y BT coinciden
+en ocho típicos; los conjuntos intermedios de YYC y los 44 candidatos de BT se
+explican a partir de sus respectivas reglas, y el oráculo exhaustivo verifica
+el resultado sin utilizar ninguno de los dos algoritmos.
+La matriz $B$ es básica y sus seis típicos recuperan las filas de $A$, como
+predice la dualidad de transversales minimales. Los operadores permiten
+generar experimentos con cantidad conocida de soluciones y distinguir los
+efectos de la dimensión, del crecimiento de la salida y del orden de las filas.
+
+Para demostrar el proyecto se puede generar una matriz de $100\times10$,
+calcular su básica y densidad, cargar $A$, ejecutar YYC y BT con traza,
+cargar $B$ y verificar la dualidad, y reproducir varios casos de las dos
+familias experimentales. Cada integrante debe poder explicar tanto la
+cobertura de filas como la minimalidad, justificar los saltos de BT y leer
+los estados intermedios de YYC. El código, los datos y los comandos de
+regeneración acompañan al informe.
+
 
 % ==============================================================================
 \begin{thebibliography}{9}
@@ -953,6 +1351,11 @@ behavior of typical testor-finding algorithms.
 M.~Lazo-Cortés, J.~Ruiz-Shulcloper y E.~Alba-Cabrera.
 \newblock An overview of the evolution of the concept of testor.
 \newblock \emph{Pattern Recognition}, 34(4):753--762, 2001.
+
+\bibitem{algobt}
+\emph{Algoritmo BT para el cálculo de todos los testores típicos}.
+\newblock Documento ``Algo BT'', material del curso Matemáticas Discretas
+(sección Teoría de Testores, D2L), Universidad San Francisco de Quito, 202610.
 
 \bibitem{shul82}
 J.~Ruiz-Shulcloper, M.~A.~Bravo y F.~L.~Águila.

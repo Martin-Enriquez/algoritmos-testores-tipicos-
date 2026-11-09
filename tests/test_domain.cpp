@@ -72,26 +72,54 @@ TEST(subrow_relation) {
     CHECK(!isSubrow(t, t));  // una fila no es subfila de sí misma
 }
 
-TEST(basic_reduction_removes_zero_duplicate_and_superrows) {
+TEST(basic_reduction_removes_duplicate_and_superrows) {
     const auto m = BooleanMatrix::fromGrid({
-        {1, 1, 0, 0},  // r1: superfila de r3
-        {0, 0, 0, 0},  // r2: nula
-        {1, 0, 0, 0},  // r3
-        {0, 1, 1, 0},  // r4
-        {1, 0, 0, 0},  // r5: repetida de r3
-        {0, 1, 1, 1},  // r6: superfila de r4
-        {0, 0, 1, 1},  // r7
+        {1, 1, 0, 0},  // r1: superfila de r2
+        {1, 0, 0, 0},  // r2
+        {0, 1, 1, 0},  // r3
+        {1, 0, 0, 0},  // r4: repetida de r2
+        {0, 1, 1, 1},  // r5: superfila de r3
+        {0, 0, 1, 1},  // r6
     });
     const BasicReduction red = reduceToBasic(m);
     CHECK(red.basic == BooleanMatrix::fromGrid({{1, 0, 0, 0}, {0, 1, 1, 0}, {0, 0, 1, 1}}));
-    CHECK(red.decisions[0].fate == RowFate::Superrow && red.decisions[0].witness == 2);
-    CHECK(red.decisions[1].fate == RowFate::ZeroRow);
-    CHECK(red.decisions[4].fate == RowFate::Duplicate && red.decisions[4].witness == 2);
-    CHECK(red.decisions[5].fate == RowFate::Superrow && red.decisions[5].witness == 3);
-    CHECK(red.decisions[6].fate == RowFate::Kept);
+    CHECK(red.decisions[0].fate == RowFate::Superrow && red.decisions[0].witness == 1);
+    CHECK(red.decisions[1].fate == RowFate::Kept);
+    CHECK(red.decisions[3].fate == RowFate::Duplicate && red.decisions[3].witness == 1);
+    CHECK(red.decisions[4].fate == RowFate::Superrow && red.decisions[4].witness == 2);
+    CHECK(red.decisions[5].fate == RowFate::Kept);
     CHECK(isBasicMatrix(red.basic));
     CHECK(!isBasicMatrix(m));
+    CHECK(!firstNullRow(m).has_value());
     CHECK_EQ(red.basic.cols(), 4u);
+}
+
+TEST(basic_matrix_of_a_matrix_with_a_null_row_is_that_null_row) {
+    // Una fila nula es subfila de toda fila no nula ("Algo BT" y artículo de YYC),
+    // así que es la única fila básica. Si se descartara, la matriz reducida
+    // tendría testores ({x2} y {x1, x3}) que la original no tiene.
+    const auto m = BooleanMatrix::fromGrid({
+        {1, 1, 0},  // r1: superfila de r2
+        {0, 0, 0},  // r2: nula
+        {0, 1, 1},  // r3: superfila de r2
+        {0, 0, 0},  // r4: repetida de r2
+        {1, 0, 1},  // r5: superfila de r2
+    });
+    CHECK(isSubrow(m.row(1), m.row(0)));
+    const BasicReduction red = reduceToBasic(m);
+    CHECK(red.basic == BooleanMatrix::fromGrid({{0, 0, 0}}));
+    CHECK(red.decisions[0].fate == RowFate::Superrow && red.decisions[0].witness == 1);
+    CHECK(red.decisions[1].fate == RowFate::Kept);
+    CHECK(red.decisions[2].fate == RowFate::Superrow && red.decisions[2].witness == 1);
+    CHECK(red.decisions[3].fate == RowFate::Duplicate && red.decisions[3].witness == 1);
+    CHECK(red.decisions[4].fate == RowFate::Superrow && red.decisions[4].witness == 1);
+    CHECK(isBasicMatrix(red.basic));
+    CHECK(!isBasicMatrix(m));
+    CHECK(firstNullRow(m) == std::optional<std::size_t>(1));
+    CHECK_EQ(red.basic.density(), 0.0);
+    // Ningún conjunto de rasgos es testor, ni en la original ni en la básica.
+    CHECK(!isTestor(m, ColumnSet::fromIndices(3, {0, 1, 2})));
+    CHECK(!isTestor(red.basic, ColumnSet::fromIndices(3, {0, 1, 2})));
 }
 
 TEST(superrow_witness_is_a_kept_row) {
@@ -108,9 +136,10 @@ TEST(basic_reduction_is_idempotent) {
     CHECK(toBasicMatrix(once) == once);
 }
 
-TEST(all_zero_matrix_reduces_to_empty) {
+TEST(all_zero_matrix_reduces_to_a_single_null_row) {
     const auto m = BooleanMatrix::fromGrid({{0, 0}, {0, 0}});
-    CHECK_EQ(toBasicMatrix(m).rows(), 0u);
+    CHECK(toBasicMatrix(m) == BooleanMatrix::fromGrid({{0, 0}}));
+    CHECK(toBasicMatrix(toBasicMatrix(m)) == toBasicMatrix(m));
 }
 
 TEST(testor_and_typical_testor_definitions) {

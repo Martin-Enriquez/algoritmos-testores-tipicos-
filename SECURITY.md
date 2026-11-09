@@ -22,8 +22,13 @@
 | \|Ψ*\| en YYC | 2 000 000 (~160 MB) | el número de testores puede crecer exponencialmente |
 | Instantáneas de Ψ* por fila | 200 000 conjuntos en total | evita memoria O(m·\|Ψ*\|) |
 | Repeticiones de medición | 100 000 | evita ejecuciones interminables |
+| Muestras temporales de YYC | 10 000 000 | evita reservar una tabla desproporcionada |
+| Repeticiones experimentales | 10 000 | límite del ejecutable de experimentos |
+| Tiempo por ejecución experimental | configurable; 10 s por defecto | cancelación cooperativa periódica |
+| Testores visitados almacenados por BT | 2 000 000 | después se conservan contadores e indicador de truncamiento |
+| Testores típicos de BT | 2 000 000 | límite que interrumpe la enumeración |
 
-Superar un límite produce un error claro (`YycResourceLimitExceeded`, `std::invalid_argument`…), nunca un fallo de memoria.
+Los límites comprobados producen errores explícitos (`YycResourceLimitExceeded`, `BtResourceLimitExceeded`, `std::invalid_argument`…). No garantizan memoria o tiempo constantes: el número de soluciones y candidatos puede ser exponencial. La cancelación periódica puede sobrepasar ligeramente el tiempo solicitado. Una ejecución interrumpida se etiqueta como tal y no se presenta como una enumeración completa.
 
 ## Compilación endurecida
 

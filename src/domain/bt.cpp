@@ -19,17 +19,24 @@ std::size_t lastColumn(const ColumnSet& set) {
     return last;
 }
 
-// Primera fila de la matriz con ceros en todas las columnas de α.
-std::optional<std::size_t> firstZeroRow(const BooleanMatrix& matrix, const ColumnSet& alpha) {
+}  // namespace
+
+std::optional<std::size_t> btZeroRow(const BooleanMatrix& matrix, const ColumnSet& alpha) {
+    std::optional<std::size_t> chosen;
+    std::size_t bestKey = 0;  // 0 = fila nula; si no, (posición del último 1) + 1
     for (std::size_t i = 0; i < matrix.rows(); ++i) {
-        if (!matrix.row(i).intersects(alpha)) {
-            return i;
+        const ColumnSet& row = matrix.row(i);
+        if (row.intersects(alpha)) {
+            continue;
+        }
+        const std::size_t key = row.none() ? 0 : row.lastIndex() + 1;
+        if (!chosen || key < bestKey) {
+            chosen = i;
+            bestKey = key;
         }
     }
-    return std::nullopt;
+    return chosen;
 }
-
-}  // namespace
 
 std::optional<std::uint64_t> btNumber(const ColumnSet& alpha) {
     const std::size_t n = alpha.width();
@@ -77,11 +84,6 @@ BtResult BtSolver::solve(const BooleanMatrix& matrix, const BtOptions& options) 
     if (matrix.empty()) {
         throw std::invalid_argument("BT requiere una matriz con al menos una fila y una columna");
     }
-    for (const ColumnSet& row : matrix.rowSets()) {
-        if (row.none()) {
-            throw std::invalid_argument("BT requiere una matriz sin filas nulas (use su matriz básica)");
-        }
-    }
 
     BtResult result;
     const std::size_t n = matrix.cols();
@@ -90,17 +92,28 @@ BtResult BtSolver::solve(const BooleanMatrix& matrix, const BtOptions& options) 
     std::optional<ColumnSet> alpha = start;
 
     while (alpha) {
+        if (result.stats.candidatesEvaluated >= options.maxCandidatesEvaluated) {
+            throw BtResourceLimitExceeded("BT superó el límite de " +
+                                          std::to_string(options.maxCandidatesEvaluated) + " candidatos");
+        }
+        if (options.shouldStop && (result.stats.candidatesEvaluated % 1024 == 0) && options.shouldStop()) {
+            throw BtResourceLimitExceeded("BT interrumpido por el límite de tiempo o cancelación");
+        }
         ++result.stats.candidatesEvaluated;
         BtStep step;
-        const std::optional<std::size_t> zeroRow = firstZeroRow(matrix, *alpha);
+        const std::optional<std::size_t> zeroRow = btZeroRow(matrix, *alpha);
         std::optional<ColumnSet> next;
 
         if (zeroRow) {
-            // (S1) α no es testor: saltar al primer n-uplo que cubre la fila de ceros.
+            // (S1) α no es testor: saltar al primer n-uplo que cubre la fila elegida.
             step.verdict = BtVerdict::NotTestor;
             step.zeroRow = *zeroRow;
-            step.pivot = lastColumn(matrix.row(*zeroRow));
-            next = btJumpNotTestor(*alpha, step.pivot);
+            if (matrix.row(*zeroRow).none()) {
+                step.zeroRowIsNull = true;  // ningún n-uplo cubre una fila nula: FIN, sin testores
+            } else {
+                step.pivot = lastColumn(matrix.row(*zeroRow));
+                next = btJumpNotTestor(*alpha, step.pivot);
+            }
         } else {
             // (S2) α es testor: decidir tipicidad y saltar sus superconjuntos consecutivos.
             ++result.stats.testorsFound;

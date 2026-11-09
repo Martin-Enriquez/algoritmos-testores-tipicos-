@@ -1,0 +1,44 @@
+﻿
+--- MATRIZ BÁSICA DE ENTRADA PARA YYC (8 x 7) ---
+      x1 x2 x3 x4 x5 x6 x7
+r1 |   1  0  1  0  0  0  0
+r2 |   1  0  0  1  0  0  0
+r3 |   1  0  0  0  0  1  0
+r4 |   1  0  0  0  0  0  1
+r5 |   0  0  0  1  1  0  0
+r6 |   0  1  0  0  0  1  1
+r7 |   0  0  1  1  0  1  0
+r8 |   0  0  0  1  0  1  1
+Densidad: 0.339286
+
+Tras procesar r1 (1/8): |Ψ*| = 2 | tiempo acumulado = 1.900 µs
+  Ψ* = {x1}, {x3}
+Tras procesar r2 (2/8): |Ψ*| = 2 | tiempo acumulado = 3.600 µs
+  Ψ* = {x1}, {x3, x4}
+Tras procesar r3 (3/8): |Ψ*| = 2 | tiempo acumulado = 4.600 µs
+  Ψ* = {x1}, {x3, x4, x6}
+Tras procesar r4 (4/8): |Ψ*| = 2 | tiempo acumulado = 5.800 µs
+  Ψ* = {x1}, {x3, x4, x6, x7}
+Tras procesar r5 (5/8): |Ψ*| = 3 | tiempo acumulado = 10.100 µs
+  Ψ* = {x1, x4}, {x1, x5}, {x3, x4, x6, x7}
+Tras procesar r6 (6/8): |Ψ*| = 7 | tiempo acumulado = 13.900 µs
+  Ψ* = {x1, x2, x4}, {x1, x2, x5}, {x1, x4, x6}, {x1, x4, x7}, {x1, x5, x6}, {x1, x5, x7}, {x3, x4, x6, x7}
+Tras procesar r7 (7/8): |Ψ*| = 7 | tiempo acumulado = 16.300 µs
+  Ψ* = {x1, x2, x4}, {x1, x4, x6}, {x1, x4, x7}, {x1, x5, x6}, {x1, x2, x3, x5}, {x1, x3, x5, x7}, {x3, x4, x6, x7}
+Tras procesar r8 (8/8): |Ψ*| = 6 | tiempo acumulado = 18.200 µs
+  Ψ* = {x1, x2, x4}, {x1, x4, x6}, {x1, x4, x7}, {x1, x5, x6}, {x1, x3, x5, x7}, {x3, x4, x6, x7}
+
+Tabla de resultados YYC:
+Fila  |Ψ*|    T. acumulado    Testores típicos de las filas procesadas
+r1    2       1.900 µs       {x1}, {x3}
+r2    2       3.600 µs       {x1}, {x3, x4}
+r3    2       4.600 µs       {x1}, {x3, x4, x6}
+r4    2       5.800 µs       {x1}, {x3, x4, x6, x7}
+r5    3       10.100 µs      {x1, x4}, {x1, x5}, {x3, x4, x6, x7}
+r6    7       13.900 µs      {x1, x2, x4}, {x1, x2, x5}, {x1, x4, x6}, {x1, x4, x7}, {x1, x5, x6}, {x1, x5, x7}, {x3, x4, x6, x7}
+r7    7       16.300 µs      {x1, x2, x4}, {x1, x4, x6}, {x1, x4, x7}, {x1, x5, x6}, {x1, x2, x3, x5}, {x1, x3, x5, x7}, {x3, x4, x6, x7}
+r8    6       18.200 µs      {x1, x2, x4}, {x1, x4, x6}, {x1, x4, x7}, {x1, x5, x6}, {x1, x3, x5, x7}, {x3, x4, x6, x7}
+
+Testores típicos de la matriz (6): {x1, x2, x4}, {x1, x4, x6}, {x1, x4, x7}, {x1, x5, x6}, {x1, x3, x5, x7}, {x3, x4, x6, x7}
+Tiempo total de ejecución: 18.200 µs
+Matriz en LaTeX guardada en docs/resultados/matriz_B.tex

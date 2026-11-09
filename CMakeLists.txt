@@ -36,7 +36,8 @@ endif()
 
 # ---------------------------------------------------------------------------
 # Capas (arquitectura limpia). Cada capa sólo enlaza con las capas internas:
-#   presentation -> infrastructure -> application -> domain
+#   presentation -> application -> domain <- application <- infrastructure
+# El ejecutable compone los adaptadores externos con la presentación.
 # ---------------------------------------------------------------------------
 add_library(testores_domain STATIC
     src/domain/column_set.cpp
@@ -45,6 +46,7 @@ add_library(testores_domain STATIC
     src/domain/testor.cpp
     src/domain/yyc.cpp
     src/domain/bt.cpp
+    src/domain/matrix_operators.cpp
     src/domain/notation.cpp)
 target_include_directories(testores_domain PUBLIC include)
 target_link_libraries(testores_domain PRIVATE testores_options)
@@ -52,27 +54,33 @@ target_link_libraries(testores_domain PRIVATE testores_options)
 add_library(testores_application STATIC
     src/application/matrix_generation.cpp
     src/application/yyc_runner.cpp
-    src/application/bt_runner.cpp)
+    src/application/bt_runner.cpp
+    src/application/experiments.cpp)
 target_link_libraries(testores_application PUBLIC testores_domain PRIVATE testores_options)
 
 add_library(testores_infrastructure STATIC
+    src/infrastructure/cli_adapters.cpp
     src/infrastructure/system_adapters.cpp
     src/infrastructure/output_file.cpp
     src/infrastructure/matrix_file.cpp
-    src/infrastructure/result_export.cpp)
+    src/infrastructure/result_export.cpp
+    src/infrastructure/experiment_export.cpp)
 target_link_libraries(testores_infrastructure PUBLIC testores_application PRIVATE testores_options)
 
 add_library(testores_presentation STATIC
     src/presentation/console_input.cpp
     src/presentation/console_view.cpp
     src/presentation/cli.cpp)
-target_link_libraries(testores_presentation PUBLIC testores_infrastructure PRIVATE testores_options)
+target_link_libraries(testores_presentation PUBLIC testores_application PRIVATE testores_options)
 
 add_executable(testores apps/main.cpp)
-target_link_libraries(testores PRIVATE testores_presentation testores_options)
+target_link_libraries(testores PRIVATE testores_presentation testores_infrastructure testores_options)
+add_executable(testores_experimentos apps/experimentos.cpp)
+target_link_libraries(testores_experimentos PRIVATE testores_infrastructure testores_options)
 if(MINGW)
     # Ejecutable autocontenido: no depende de las DLL de MinGW en el PATH.
     target_link_options(testores PRIVATE -static)
+    target_link_options(testores_experimentos PRIVATE -static)
 endif()
 
 # ---------------------------------------------------------------------------
@@ -83,15 +91,18 @@ if(TESTORES_BUILD_TESTS)
     add_executable(testores_tests
         tests/test_main.cpp
         tests/test_domain.cpp
+        tests/test_operators.cpp
         tests/test_yyc.cpp
         tests/test_bt.cpp
         tests/test_application.cpp
+        tests/test_experiments.cpp
         tests/test_infrastructure.cpp
         tests/test_presentation.cpp)
     target_include_directories(testores_tests PRIVATE tests)
-    target_link_libraries(testores_tests PRIVATE testores_presentation testores_options)
+    target_link_libraries(testores_tests PRIVATE testores_presentation testores_infrastructure testores_options)
     if(MINGW)
         target_link_options(testores_tests PRIVATE -static)
     endif()
     add_test(NAME testores_tests COMMAND testores_tests)
+    add_test(NAME architecture COMMAND ${CMAKE_COMMAND} -P "${CMAKE_CURRENT_SOURCE_DIR}/cmake/CheckArchitecture.cmake")
 endif()

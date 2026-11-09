@@ -75,19 +75,19 @@ void printMatrix(std::ostream& out, const BooleanMatrix& matrix, const std::stri
 }
 
 void printReduction(std::ostream& out, const BooleanMatrix& original, const domain::BasicReduction& reduction) {
-    std::size_t zero = 0;
     std::size_t duplicate = 0;
     std::size_t superrow = 0;
     out << "\nDetalle de la reducción a matriz básica:\n";
+    if (const auto nullRow = domain::firstNullRow(original)) {
+        out << "  " << rowLabel(*nullRow)
+            << " es nula: es subfila de toda fila no nula, así que la matriz básica es una sola fila nula.\n"
+               "  Ningún conjunto de rasgos cubre una fila nula: esta matriz NO tiene testores.\n";
+    }
     for (std::size_t i = 0; i < reduction.decisions.size(); ++i) {
         const auto& decision = reduction.decisions[i];
         switch (decision.fate) {
             case domain::RowFate::Kept:
                 continue;
-            case domain::RowFate::ZeroRow:
-                ++zero;
-                out << "  " << rowLabel(i) << " eliminada: fila nula\n";
-                break;
             case domain::RowFate::Duplicate:
                 ++duplicate;
                 out << "  " << rowLabel(i) << " eliminada: repetida de " << rowLabel(decision.witness) << '\n';
@@ -100,12 +100,11 @@ void printReduction(std::ostream& out, const BooleanMatrix& original, const doma
                 break;
         }
     }
-    if (zero + duplicate + superrow == 0) {
+    if (duplicate + superrow == 0) {
         out << "  (ninguna fila eliminada: la matriz ya era básica)\n";
     }
     out << "\nResumen:\n"
         << "  Filas originales:           " << original.rows() << '\n'
-        << "  Filas nulas eliminadas:     " << zero << '\n'
         << "  Filas repetidas eliminadas: " << duplicate << '\n'
         << "  Superfilas eliminadas:      " << superrow << '\n'
         << "  Filas de la matriz básica:  " << reduction.basic.rows() << '\n'
@@ -176,19 +175,42 @@ void printBtTrace(std::ostream& out, const BooleanMatrix& matrix, const domain::
     const std::size_t n = matrix.cols();
     out << "\nRecorrido de BT: los n-uplos α = (a1 ... a" << n
         << ") se leen como números binarios (a1 = bit más significativo)\n"
-           "y se analizan en orden creciente desde "
-        << std::string(n - 1, '0') << "1 hasta " << std::string(n, '1') << ".\n";
+           "y se analizan en orden creciente, con saltos, desde "
+        << std::string(n - 1, '0') << "1 hasta que el acarreo indica el fin.\n";
     for (std::size_t s = 0; s < result.trace.size(); ++s) {
         const domain::BtStep& step = result.trace[s];
         out << "\nPaso " << (s + 1) << ": α = " << tuple(step.candidate) << '\n';
         std::optional<std::uint64_t> skipped;
         switch (step.verdict) {
-            case domain::BtVerdict::NotTestor:
-                out << "  NO es testor: " << rowLabel(step.zeroRow) << " = " << domain::toBinaryString(matrix.row(step.zeroRow))
-                    << " es la primera fila con ceros en todas las columnas de α.\n"
-                    << "  Salto S1: último 1 de " << rowLabel(step.zeroRow) << " en " << domain::featureName(step.pivot)
+            case domain::BtVerdict::NotTestor: {
+                std::vector<std::size_t> uncovered;
+                for (std::size_t i = 0; i < matrix.rows(); ++i) {
+                    if (!matrix.row(i).intersects(step.candidate)) {
+                        uncovered.push_back(i);
+                    }
+                }
+                const std::string chosen =
+                    rowLabel(step.zeroRow) + " = " + domain::toBinaryString(matrix.row(step.zeroRow));
+                if (step.zeroRowIsNull) {
+                    out << "  NO es testor: " << chosen << " es una fila nula; ningún n-uplo la cubre.\n"
+                        << "  La matriz no tiene testores: FIN del recorrido.\n";
+                    break;
+                }
+                if (uncovered.size() == 1) {
+                    out << "  NO es testor: " << chosen << " es la única fila con ceros en todas las columnas de α.\n";
+                } else {
+                    out << "  NO es testor: filas con ceros en todas las columnas de α:";
+                    for (std::size_t k = 0; k < uncovered.size(); ++k) {
+                        const std::size_t i = uncovered[k];
+                        out << (k == 0 ? " " : ", ") << rowLabel(i) << " (último 1 en "
+                            << domain::featureName(matrix.row(i).lastIndex()) << ')';
+                    }
+                    out << ".\n  Se elige " << chosen << ", la de último 1 más a la izquierda (salto más grande).\n";
+                }
+                out << "  Salto S1: último 1 de " << rowLabel(step.zeroRow) << " en " << domain::featureName(step.pivot)
                     << " → poner 1 en " << domain::featureName(step.pivot) << " y ceros a su derecha.\n";
                 break;
+            }
             case domain::BtVerdict::TypicalTestor:
             case domain::BtVerdict::NonTypicalTestor:
                 out << "  ES testor (toda fila tiene un 1 en alguna columna de α) y ";
@@ -205,6 +227,8 @@ void printBtTrace(std::ostream& out, const BooleanMatrix& matrix, const domain::
         if (step.next) {
             skipped = skippedBetween(step.candidate, *step.next);
             out << "  Siguiente: α' = " << tuple(*step.next);
+        } else if (step.zeroRowIsNull) {
+            continue;
         } else {
             skipped = skippedUntilEnd(step.candidate);
             out << "  El acarreo se sale por la izquierda: FIN del recorrido";
@@ -228,8 +252,10 @@ void printBtSummary(std::ostream& out, const BooleanMatrix& matrix, const applic
         out << " de " << total << " posibles (2^" << matrix.cols() << " - 1); se saltaron "
             << (total - run.stats.candidatesEvaluated);
     }
-    out << "\n  Testores encontrados: " << run.stats.testorsFound << " (típicos: " << run.stats.typicalFound
+    out << "\n  Testores encontrados en los candidatos visitados: " << run.stats.testorsFound
+        << " (típicos: " << run.stats.typicalFound
         << ", no típicos: " << (run.stats.testorsFound - run.stats.typicalFound) << ")\n";
+    out << "  Los saltos omiten otros testores no típicos; este conteo no es el total de testores de la matriz.\n";
 
     if (run.testors.size() <= limit) {
         out << "\n  #    α" << std::string(matrix.cols() > 1 ? matrix.cols() - 1 : 0, ' ')

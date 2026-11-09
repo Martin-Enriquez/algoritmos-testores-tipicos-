@@ -115,10 +115,25 @@ void writeBtTraceLatex(std::ostream& output, const domain::BooleanMatrix& matrix
         output << (s + 1) << " & \\texttt{" << domain::toBinaryString(step.candidate) << "} & $"
                << latexFeatureSet(step.candidate) << "$ & ";
         switch (step.verdict) {
-            case domain::BtVerdict::NotTestor:
-                output << "no testor & $r_{" << (step.zeroRow + 1) << "}\\cap T_\\alpha=\\emptyset$ & S1: $x_{"
-                       << (step.pivot + 1) << "}$";
+            case domain::BtVerdict::NotTestor: {
+                if (step.zeroRowIsNull) {
+                    output << "no testor & $r_{" << (step.zeroRow + 1) << "}$ es nula & ---";
+                    break;
+                }
+                // Filas sin cubrir; en negrita, la de último 1 más a la izquierda (la que define el salto).
+                output << "no testor & sin cubrir: $";
+                bool first = true;
+                for (std::size_t i = 0; i < matrix.rows(); ++i) {
+                    if (matrix.row(i).intersects(step.candidate)) {
+                        continue;
+                    }
+                    output << (first ? "" : ",") << (i == step.zeroRow ? "\\mathbf{r}_{\\mathbf{" : "r_{") << (i + 1)
+                           << (i == step.zeroRow ? "}}" : "}");
+                    first = false;
+                }
+                output << "$ & S1: $x_{" << (step.pivot + 1) << "}$";
                 break;
+            }
             case domain::BtVerdict::TypicalTestor: {
                 // Primera fila típica de cada rasgo (existe por ser típico).
                 output << "\\textbf{típico} & $";

@@ -4,8 +4,22 @@
 #include "test_framework.hpp"
 #include "testores/presentation/cli.hpp"
 #include "testores/presentation/console_input.hpp"
+#include "testores/infrastructure/cli_adapters.hpp"
+#include "testores/infrastructure/system_adapters.hpp"
 
 using namespace testores::presentation;
+
+namespace {
+int runTestApplication(const std::vector<std::string>& args, std::istream& in,
+                       std::ostream& out, std::ostream& err) {
+    testores::infrastructure::FileMatrixRepository matrices;
+    testores::infrastructure::FileResultExporter exports;
+    testores::infrastructure::MersenneRandomFactory random;
+    testores::infrastructure::SteadyClock clock;
+    CliServices services{matrices, exports, random, clock};
+    return runApplication(args, in, out, err, services);
+}
+}  // namespace
 
 TEST(strict_number_parsing) {
     CHECK(parseInteger("42", 0, 100) == std::optional<long long>(42));
@@ -41,6 +55,7 @@ TEST(argument_parsing_validates_options) {
     CHECK_THROWS(parseArguments({"yyc", "--desconocida", "1"}), std::invalid_argument);
     CHECK_THROWS(parseArguments({"yyc", "--entrada"}), std::invalid_argument);
     CHECK_THROWS(parseArguments({"yyc", "--entrada", "a", "--entrada", "b"}), std::invalid_argument);
+    CHECK_THROWS(parseArguments({"yyc", "--traza", "--traza"}), std::invalid_argument);
     CHECK_THROWS(parseArguments({"borrar"}), std::invalid_argument);
     CHECK_EQ(parseArguments({}).command, std::string("menu"));
 }
@@ -49,7 +64,7 @@ TEST(generate_command_end_to_end) {
     std::istringstream in;
     std::ostringstream out;
     std::ostringstream err;
-    const int code = runApplication({"generar", "--filas", "100", "--columnas", "10", "--semilla", "1"}, in, out, err);
+    const int code = runTestApplication({"generar", "--filas", "100", "--columnas", "10", "--semilla", "1"}, in, out, err);
     CHECK_EQ(code, 0);
     CHECK(out.str().find("MATRIZ BÁSICA") != std::string::npos);
     CHECK(out.str().find("Densidad matriz básica") != std::string::npos);
@@ -59,7 +74,7 @@ TEST(invalid_command_line_returns_error_code) {
     std::istringstream in;
     std::ostringstream out;
     std::ostringstream err;
-    CHECK_EQ(runApplication({"generar", "--filas", "-5", "--columnas", "3"}, in, out, err), 1);
+    CHECK_EQ(runTestApplication({"generar", "--filas", "-5", "--columnas", "3"}, in, out, err), 1);
     CHECK(err.str().find("--filas") != std::string::npos);
 }
 
@@ -68,7 +83,7 @@ TEST(interactive_session_generates_and_runs_yyc) {
     std::istringstream in("1\n6\n5\n\n3\n6\n1\n0\n");
     std::ostringstream out;
     std::ostringstream err;
-    CHECK_EQ(runApplication({}, in, out, err), 0);
+    CHECK_EQ(runTestApplication({}, in, out, err), 0);
     CHECK(out.str().find("Testores típicos de la matriz") != std::string::npos);
     CHECK(out.str().find("tiempo acumulado") != std::string::npos);
 }
@@ -77,5 +92,5 @@ TEST(interactive_session_survives_eof) {
     std::istringstream in("1\n");
     std::ostringstream out;
     std::ostringstream err;
-    CHECK_EQ(runApplication({}, in, out, err), 0);
+    CHECK_EQ(runTestApplication({}, in, out, err), 0);
 }
