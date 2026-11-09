@@ -1,0 +1,221 @@
+Semilla utilizada: 2026 (úsela con --semilla para reproducir)
+
+--- MATRIZ BOOLEANA ALEATORIA (100 x 10) ---
+         x1  x2  x3  x4  x5  x6  x7  x8  x9 x10
+r1   |    1   0   1   0   1   0   1   0   0   1
+r2   |    1   1   1   1   1   0   0   0   1   1
+r3   |    0   1   1   0   1   0   0   0   0   0
+r4   |    1   1   0   1   1   0   1   1   1   1
+r5   |    1   1   1   0   0   1   0   1   0   1
+r6   |    0   0   1   0   0   1   1   1   0   0
+r7   |    0   1   1   0   0   0   0   1   0   1
+r8   |    1   0   0   1   1   0   0   1   0   0
+r9   |    1   1   1   0   0   0   1   1   1   1
+r10  |    0   0   0   0   1   1   0   0   1   0
+r11  |    0   1   1   0   1   0   1   1   0   0
+r12  |    1   1   1   0   0   1   0   1   0   1
+r13  |    0   0   1   1   0   1   0   1   1   1
+r14  |    0   1   1   1   1   1   0   1   0   1
+r15  |    1   1   0   0   0   0   1   1   1   1
+r16  |    1   0   0   0   1   0   1   1   1   1
+r17  |    0   0   1   0   1   1   1   0   1   1
+r18  |    0   0   0   0   1   0   0   1   0   1
+r19  |    1   0   1   0   1   1   1   1   0   1
+r20  |    1   0   0   0   0   1   1   0   1   0
+r21  |    1   0   1   1   0   0   0   0   1   0
+r22  |    0   0   0   1   1   0   1   1   0   0
+r23  |    0   1   0   0   1   1   1   0   0   0
+r24  |    0   1   1   0   0   1   0   1   1   1
+r25  |    0   1   1   1   0   1   0   1   0   0
+r26  |    1   0   1   0   1   0   1   1   0   0
+r27  |    1   0   0   1   1   1   0   1   0   1
+r28  |    1   0   1   1   0   0   1   1   0   1
+r29  |    0   0   0   1   1   0   0   0   1   1
+r30  |    0   1   0   0   0   0   1   0   1   1
+r31  |    0   1   0   1   0   0   0   0   0   0
+r32  |    0   1   1   0   0   1   1   1   0   0
+r33  |    0   1   0   0   1   0   0   0   0   0
+r34  |    1   0   0   1   0   1   1   0   0   1
+r35  |    1   1   0   1   1   1   0   1   0   1
+r36  |    0   1   0   0   1   1   0   1   1   0
+r37  |    1   0   1   1   1   0   1   1   1   1
+r38  |    1   1   1   0   1   1   1   0   0   1
+r39  |    0   0   1   0   0   1   0   1   1   0
+r40  |    1   0   0   0   0   1   1   1   0   0
+r41  |    0   1   1   1   0   1   1   1   0   1
+r42  |    1   0   1   1   0   1   0   1   0   1
+r43  |    1   0   0   0   0   1   1   1   0   0
+r44  |    0   0   0   0   1   0   0   0   1   1
+r45  |    1   1   0   1   1   0   1   0   1   1
+r46  |    0   1   1   1   1   0   1   0   1   1
+r47  |    1   1   0   0   0   1   1   1   1   1
+r48  |    0   0   1   0   1   0   0   0   1   0
+r49  |    0   0   0   1   0   1   1   1   1   1
+r50  |    0   0   0   0   0   0   1   0   0   1
+r51  |    0   1   0   1   0   0   0   1   1   1
+r52  |    0   0   0   1   1   0   0   0   0   0
+r53  |    1   0   0   1   0   1   0   1   0   0
+r54  |    1   1   0   1   0   1   1   0   0   0
+r55  |    0   0   0   1   1   0   1   0   1   1
+r56  |    1   1   0   1   1   1   1   1   1   1
+r57  |    1   0   1   0   0   0   0   0   1   1
+r58  |    0   1   1   0   0   1   1   0   1   0
+r59  |    1   1   1   1   1   1   1   1   1   0
+r60  |    0   1   1   1   0   1   0   1   1   0
+r61  |    0   1   0   0   0   0   0   0   0   0
+r62  |    1   1   1   1   0   0   0   1   0   1
+r63  |    1   0   0   1   1   0   1   0   0   1
+r64  |    0   1   1   0   1   1   1   1   1   1
+r65  |    0   1   1   0   1   1   1   0   0   1
+r66  |    0   1   1   1   0   0   0   0   0   1
+r67  |    0   0   1   0   1   0   1   0   1   0
+r68  |    0   1   1   1   0   1   1   1   1   0
+r69  |    1   0   1   1   0   1   1   0   0   0
+r70  |    1   1   1   0   0   0   1   1   1   0
+r71  |    1   1   0   0   0   0   1   1   0   0
+r72  |    1   1   1   0   0   0   0   0   1   1
+r73  |    0   0   0   1   1   0   0   1   1   0
+r74  |    1   1   0   1   0   1   1   0   1   0
+r75  |    1   1   1   0   0   0   1   1   1   1
+r76  |    1   1   0   0   0   1   1   1   0   1
+r77  |    1   0   1   1   0   0   0   1   0   0
+r78  |    1   1   1   1   0   1   0   1   0   1
+r79  |    0   1   1   0   0   1   0   1   1   0
+r80  |    0   1   1   0   0   1   1   0   1   1
+r81  |    0   0   1   0   0   1   1   1   0   0
+r82  |    1   1   1   1   0   0   0   0   0   0
+r83  |    1   0   1   0   1   0   0   1   0   0
+r84  |    0   0   1   0   0   0   0   0   1   1
+r85  |    1   0   1   0   0   0   1   0   1   0
+r86  |    0   0   1   1   0   1   1   0   1   1
+r87  |    1   1   0   0   0   0   0   0   0   0
+r88  |    1   1   0   0   0   1   1   1   0   1
+r89  |    1   0   0   1   1   0   1   1   0   1
+r90  |    0   1   1   0   1   0   0   0   0   1
+r91  |    0   0   0   0   1   0   1   1   1   1
+r92  |    1   1   1   0   1   0   0   1   0   1
+r93  |    0   0   0   0   0   0   1   0   0   0
+r94  |    0   1   1   1   1   0   1   0   1   0
+r95  |    1   0   1   0   0   1   1   1   0   1
+r96  |    1   0   1   1   1   0   1   0   0   0
+r97  |    1   1   1   0   1   1   0   1   0   1
+r98  |    0   1   0   1   0   1   0   0   1   1
+r99  |    0   1   1   0   0   0   1   1   1   1
+r100 |    0   0   0   1   1   0   1   0   0   1
+
+--- MATRIZ BÁSICA (13 x 10) ---
+        x1  x2  x3  x4  x5  x6  x7  x8  x9 x10
+r1  |    0   0   0   0   1   1   0   0   1   0
+r2  |    0   0   0   0   1   0   0   1   0   1
+r3  |    1   0   1   1   0   0   0   0   1   0
+r4  |    0   0   1   0   0   1   0   1   1   0
+r5  |    0   0   0   0   1   0   0   0   1   1
+r6  |    0   0   1   0   1   0   0   0   1   0
+r7  |    0   0   0   1   1   0   0   0   0   0
+r8  |    1   0   0   1   0   1   0   1   0   0
+r9  |    0   1   0   0   0   0   0   0   0   0
+r10 |    1   0   1   1   0   0   0   1   0   0
+r11 |    1   0   1   0   1   0   0   1   0   0
+r12 |    0   0   1   0   0   0   0   0   1   1
+r13 |    0   0   0   0   0   0   1   0   0   0
+
+Detalle de la reducción a matriz básica:
+  r1 eliminada: superfila de r93 (0 0 0 0 0 0 1 0 0 0 es subfila de 1 0 1 0 1 0 1 0 0 1)
+  r2 eliminada: superfila de r21 (1 0 1 1 0 0 0 0 1 0 es subfila de 1 1 1 1 1 0 0 0 1 1)
+  r3 eliminada: superfila de r61 (0 1 0 0 0 0 0 0 0 0 es subfila de 0 1 1 0 1 0 0 0 0 0)
+  r4 eliminada: superfila de r18 (0 0 0 0 1 0 0 1 0 1 es subfila de 1 1 0 1 1 0 1 1 1 1)
+  r5 eliminada: superfila de r61 (0 1 0 0 0 0 0 0 0 0 es subfila de 1 1 1 0 0 1 0 1 0 1)
+  r6 eliminada: superfila de r93 (0 0 0 0 0 0 1 0 0 0 es subfila de 0 0 1 0 0 1 1 1 0 0)
+  r7 eliminada: superfila de r61 (0 1 0 0 0 0 0 0 0 0 es subfila de 0 1 1 0 0 0 0 1 0 1)
+  r8 eliminada: superfila de r52 (0 0 0 1 1 0 0 0 0 0 es subfila de 1 0 0 1 1 0 0 1 0 0)
+  r9 eliminada: superfila de r61 (0 1 0 0 0 0 0 0 0 0 es subfila de 1 1 1 0 0 0 1 1 1 1)
+  r11 eliminada: superfila de r61 (0 1 0 0 0 0 0 0 0 0 es subfila de 0 1 1 0 1 0 1 1 0 0)
+  r12 eliminada: repetida de r5
+  r13 eliminada: superfila de r39 (0 0 1 0 0 1 0 1 1 0 es subfila de 0 0 1 1 0 1 0 1 1 1)
+  r14 eliminada: superfila de r18 (0 0 0 0 1 0 0 1 0 1 es subfila de 0 1 1 1 1 1 0 1 0 1)
+  r15 eliminada: superfila de r61 (0 1 0 0 0 0 0 0 0 0 es subfila de 1 1 0 0 0 0 1 1 1 1)
+  r16 eliminada: superfila de r18 (0 0 0 0 1 0 0 1 0 1 es subfila de 1 0 0 0 1 0 1 1 1 1)
+  r17 eliminada: superfila de r10 (0 0 0 0 1 1 0 0 1 0 es subfila de 0 0 1 0 1 1 1 0 1 1)
+  r19 eliminada: superfila de r18 (0 0 0 0 1 0 0 1 0 1 es subfila de 1 0 1 0 1 1 1 1 0 1)
+  r20 eliminada: superfila de r93 (0 0 0 0 0 0 1 0 0 0 es subfila de 1 0 0 0 0 1 1 0 1 0)
+  r22 eliminada: superfila de r52 (0 0 0 1 1 0 0 0 0 0 es subfila de 0 0 0 1 1 0 1 1 0 0)
+  r23 eliminada: superfila de r61 (0 1 0 0 0 0 0 0 0 0 es subfila de 0 1 0 0 1 1 1 0 0 0)
+  r24 eliminada: superfila de r39 (0 0 1 0 0 1 0 1 1 0 es subfila de 0 1 1 0 0 1 0 1 1 1)
+  r25 eliminada: superfila de r61 (0 1 0 0 0 0 0 0 0 0 es subfila de 0 1 1 1 0 1 0 1 0 0)
+  r26 eliminada: superfila de r83 (1 0 1 0 1 0 0 1 0 0 es subfila de 1 0 1 0 1 0 1 1 0 0)
+  r27 eliminada: superfila de r18 (0 0 0 0 1 0 0 1 0 1 es subfila de 1 0 0 1 1 1 0 1 0 1)
+  r28 eliminada: superfila de r77 (1 0 1 1 0 0 0 1 0 0 es subfila de 1 0 1 1 0 0 1 1 0 1)
+  r29 eliminada: superfila de r44 (0 0 0 0 1 0 0 0 1 1 es subfila de 0 0 0 1 1 0 0 0 1 1)
+  r30 eliminada: superfila de r61 (0 1 0 0 0 0 0 0 0 0 es subfila de 0 1 0 0 0 0 1 0 1 1)
+  r31 eliminada: superfila de r61 (0 1 0 0 0 0 0 0 0 0 es subfila de 0 1 0 1 0 0 0 0 0 0)
+  r32 eliminada: superfila de r61 (0 1 0 0 0 0 0 0 0 0 es subfila de 0 1 1 0 0 1 1 1 0 0)
+  r33 eliminada: superfila de r61 (0 1 0 0 0 0 0 0 0 0 es subfila de 0 1 0 0 1 0 0 0 0 0)
+  r34 eliminada: superfila de r93 (0 0 0 0 0 0 1 0 0 0 es subfila de 1 0 0 1 0 1 1 0 0 1)
+  r35 eliminada: superfila de r18 (0 0 0 0 1 0 0 1 0 1 es subfila de 1 1 0 1 1 1 0 1 0 1)
+  r36 eliminada: superfila de r10 (0 0 0 0 1 1 0 0 1 0 es subfila de 0 1 0 0 1 1 0 1 1 0)
+  r37 eliminada: superfila de r18 (0 0 0 0 1 0 0 1 0 1 es subfila de 1 0 1 1 1 0 1 1 1 1)
+  r38 eliminada: superfila de r61 (0 1 0 0 0 0 0 0 0 0 es subfila de 1 1 1 0 1 1 1 0 0 1)
+  r40 eliminada: superfila de r93 (0 0 0 0 0 0 1 0 0 0 es subfila de 1 0 0 0 0 1 1 1 0 0)
+  r41 eliminada: superfila de r61 (0 1 0 0 0 0 0 0 0 0 es subfila de 0 1 1 1 0 1 1 1 0 1)
+  r42 eliminada: superfila de r53 (1 0 0 1 0 1 0 1 0 0 es subfila de 1 0 1 1 0 1 0 1 0 1)
+  r43 eliminada: repetida de r40
+  r45 eliminada: superfila de r44 (0 0 0 0 1 0 0 0 1 1 es subfila de 1 1 0 1 1 0 1 0 1 1)
+  r46 eliminada: superfila de r44 (0 0 0 0 1 0 0 0 1 1 es subfila de 0 1 1 1 1 0 1 0 1 1)
+  r47 eliminada: superfila de r61 (0 1 0 0 0 0 0 0 0 0 es subfila de 1 1 0 0 0 1 1 1 1 1)
+  r49 eliminada: superfila de r93 (0 0 0 0 0 0 1 0 0 0 es subfila de 0 0 0 1 0 1 1 1 1 1)
+  r50 eliminada: superfila de r93 (0 0 0 0 0 0 1 0 0 0 es subfila de 0 0 0 0 0 0 1 0 0 1)
+  r51 eliminada: superfila de r61 (0 1 0 0 0 0 0 0 0 0 es subfila de 0 1 0 1 0 0 0 1 1 1)
+  r54 eliminada: superfila de r61 (0 1 0 0 0 0 0 0 0 0 es subfila de 1 1 0 1 0 1 1 0 0 0)
+  r55 eliminada: superfila de r44 (0 0 0 0 1 0 0 0 1 1 es subfila de 0 0 0 1 1 0 1 0 1 1)
+  r56 eliminada: superfila de r10 (0 0 0 0 1 1 0 0 1 0 es subfila de 1 1 0 1 1 1 1 1 1 1)
+  r57 eliminada: superfila de r84 (0 0 1 0 0 0 0 0 1 1 es subfila de 1 0 1 0 0 0 0 0 1 1)
+  r58 eliminada: superfila de r61 (0 1 0 0 0 0 0 0 0 0 es subfila de 0 1 1 0 0 1 1 0 1 0)
+  r59 eliminada: superfila de r10 (0 0 0 0 1 1 0 0 1 0 es subfila de 1 1 1 1 1 1 1 1 1 0)
+  r60 eliminada: superfila de r39 (0 0 1 0 0 1 0 1 1 0 es subfila de 0 1 1 1 0 1 0 1 1 0)
+  r62 eliminada: superfila de r61 (0 1 0 0 0 0 0 0 0 0 es subfila de 1 1 1 1 0 0 0 1 0 1)
+  r63 eliminada: superfila de r52 (0 0 0 1 1 0 0 0 0 0 es subfila de 1 0 0 1 1 0 1 0 0 1)
+  r64 eliminada: superfila de r10 (0 0 0 0 1 1 0 0 1 0 es subfila de 0 1 1 0 1 1 1 1 1 1)
+  r65 eliminada: superfila de r61 (0 1 0 0 0 0 0 0 0 0 es subfila de 0 1 1 0 1 1 1 0 0 1)
+  r66 eliminada: superfila de r61 (0 1 0 0 0 0 0 0 0 0 es subfila de 0 1 1 1 0 0 0 0 0 1)
+  r67 eliminada: superfila de r48 (0 0 1 0 1 0 0 0 1 0 es subfila de 0 0 1 0 1 0 1 0 1 0)
+  r68 eliminada: superfila de r39 (0 0 1 0 0 1 0 1 1 0 es subfila de 0 1 1 1 0 1 1 1 1 0)
+  r69 eliminada: superfila de r93 (0 0 0 0 0 0 1 0 0 0 es subfila de 1 0 1 1 0 1 1 0 0 0)
+  r70 eliminada: superfila de r61 (0 1 0 0 0 0 0 0 0 0 es subfila de 1 1 1 0 0 0 1 1 1 0)
+  r71 eliminada: superfila de r61 (0 1 0 0 0 0 0 0 0 0 es subfila de 1 1 0 0 0 0 1 1 0 0)
+  r72 eliminada: superfila de r61 (0 1 0 0 0 0 0 0 0 0 es subfila de 1 1 1 0 0 0 0 0 1 1)
+  r73 eliminada: superfila de r52 (0 0 0 1 1 0 0 0 0 0 es subfila de 0 0 0 1 1 0 0 1 1 0)
+  r74 eliminada: superfila de r61 (0 1 0 0 0 0 0 0 0 0 es subfila de 1 1 0 1 0 1 1 0 1 0)
+  r75 eliminada: repetida de r9
+  r76 eliminada: superfila de r61 (0 1 0 0 0 0 0 0 0 0 es subfila de 1 1 0 0 0 1 1 1 0 1)
+  r78 eliminada: superfila de r53 (1 0 0 1 0 1 0 1 0 0 es subfila de 1 1 1 1 0 1 0 1 0 1)
+  r79 eliminada: superfila de r39 (0 0 1 0 0 1 0 1 1 0 es subfila de 0 1 1 0 0 1 0 1 1 0)
+  r80 eliminada: superfila de r61 (0 1 0 0 0 0 0 0 0 0 es subfila de 0 1 1 0 0 1 1 0 1 1)
+  r81 eliminada: repetida de r6
+  r82 eliminada: superfila de r61 (0 1 0 0 0 0 0 0 0 0 es subfila de 1 1 1 1 0 0 0 0 0 0)
+  r85 eliminada: superfila de r93 (0 0 0 0 0 0 1 0 0 0 es subfila de 1 0 1 0 0 0 1 0 1 0)
+  r86 eliminada: superfila de r84 (0 0 1 0 0 0 0 0 1 1 es subfila de 0 0 1 1 0 1 1 0 1 1)
+  r87 eliminada: superfila de r61 (0 1 0 0 0 0 0 0 0 0 es subfila de 1 1 0 0 0 0 0 0 0 0)
+  r88 eliminada: repetida de r76
+  r89 eliminada: superfila de r18 (0 0 0 0 1 0 0 1 0 1 es subfila de 1 0 0 1 1 0 1 1 0 1)
+  r90 eliminada: superfila de r61 (0 1 0 0 0 0 0 0 0 0 es subfila de 0 1 1 0 1 0 0 0 0 1)
+  r91 eliminada: superfila de r18 (0 0 0 0 1 0 0 1 0 1 es subfila de 0 0 0 0 1 0 1 1 1 1)
+  r92 eliminada: superfila de r18 (0 0 0 0 1 0 0 1 0 1 es subfila de 1 1 1 0 1 0 0 1 0 1)
+  r94 eliminada: superfila de r48 (0 0 1 0 1 0 0 0 1 0 es subfila de 0 1 1 1 1 0 1 0 1 0)
+  r95 eliminada: superfila de r93 (0 0 0 0 0 0 1 0 0 0 es subfila de 1 0 1 0 0 1 1 1 0 1)
+  r96 eliminada: superfila de r52 (0 0 0 1 1 0 0 0 0 0 es subfila de 1 0 1 1 1 0 1 0 0 0)
+  r97 eliminada: superfila de r18 (0 0 0 0 1 0 0 1 0 1 es subfila de 1 1 1 0 1 1 0 1 0 1)
+  r98 eliminada: superfila de r61 (0 1 0 0 0 0 0 0 0 0 es subfila de 0 1 0 1 0 1 0 0 1 1)
+  r99 eliminada: superfila de r61 (0 1 0 0 0 0 0 0 0 0 es subfila de 0 1 1 0 0 0 1 1 1 1)
+  r100 eliminada: superfila de r52 (0 0 0 1 1 0 0 0 0 0 es subfila de 0 0 0 1 1 0 1 0 0 1)
+
+Resumen:
+  Filas originales:           100
+  Filas nulas eliminadas:     0
+  Filas repetidas eliminadas: 5
+  Superfilas eliminadas:      82
+  Filas de la matriz básica:  13
+  Densidad original:          0.5100 (51.00 %)
+  Densidad matriz básica:     0.3000 (30.00 %)
+
+Matriz original guardada en data/ej1_aleatoria_100x10.txt
+Matriz básica guardada en data/ej1_basica_100x10.txt

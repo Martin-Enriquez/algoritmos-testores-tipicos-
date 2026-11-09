@@ -12,6 +12,7 @@ bin/
 .idea/
 *.swp
 
+<<<<<<< HEAD
 # Archivos temporales de LaTeX
 docs/*.aux
 docs/*.log
@@ -19,3 +20,37 @@ docs/*.pdf
 docs/*.synctex.gz
 docs/*.toc
 docs/*.out
+=======
+# vcpkg
+vcpkg_installed/
+
+# debug information files
+*.dwo
+
+# test output & cache
+Testing/
+.cache/
+
+# Binarios compilados a mano
+/bin/
+/testores
+/ejecutable
+
+# LaTeX (se versionan sólo .tex y el PDF final)
+*.aux
+*.fdb_latexmk
+*.fls
+*.synctex.gz
+*.toc
+*.out
+*.lof
+*.lot
+*.bbl
+*.blg
+
+# Editores / SO
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+>>>>>>> 756a702e14d6b8159e985789a3eebf5182d5e49c

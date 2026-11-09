@@ -1,0 +1,58 @@
+% Generado por testores (BT --traza). Requiere el paquete booktabs.
+\begin{tabular}{r c l l l c c}
+\toprule
+Paso & $\alpha$ & $T_\alpha$ & Decisión & Justificación & Salto & $\alpha'$ \\
+\midrule
+1 & \texttt{0000001} & $\{x_{7}\}$ & no testor & $r_{2}\cap T_\alpha=\emptyset$ & S1: $x_{6}$ & \texttt{0000010} \\
+2 & \texttt{0000010} & $\{x_{6}\}$ & no testor & $r_{1}\cap T_\alpha=\emptyset$ & S1: $x_{7}$ & \texttt{0000011} \\
+3 & \texttt{0000011} & $\{x_{6},x_{7}\}$ & no testor & $r_{3}\cap T_\alpha=\emptyset$ & S1: $x_{4}$ & \texttt{0001000} \\
+4 & \texttt{0001000} & $\{x_{4}\}$ & no testor & $r_{1}\cap T_\alpha=\emptyset$ & S1: $x_{7}$ & \texttt{0001001} \\
+5 & \texttt{0001001} & $\{x_{4},x_{7}\}$ & no testor & $r_{2}\cap T_\alpha=\emptyset$ & S1: $x_{6}$ & \texttt{0001010} \\
+6 & \texttt{0001010} & $\{x_{4},x_{6}\}$ & no testor & $r_{1}\cap T_\alpha=\emptyset$ & S1: $x_{7}$ & \texttt{0001011} \\
+7 & \texttt{0001011} & $\{x_{4},x_{6},x_{7}\}$ & \textbf{típico} & $x_{4}{:}r_{3},\ x_{6}{:}r_{2},\ x_{7}{:}r_{1}$ & S2: $x_{7}$ & \texttt{0001100} \\
+8 & \texttt{0001100} & $\{x_{4},x_{5}\}$ & \textbf{típico} & $x_{4}{:}r_{3},\ x_{5}{:}r_{1}$ & S2: $x_{5}$ & \texttt{0010000} \\
+9 & \texttt{0010000} & $\{x_{3}\}$ & no testor & $r_{2}\cap T_\alpha=\emptyset$ & S1: $x_{6}$ & \texttt{0010010} \\
+10 & \texttt{0010010} & $\{x_{3},x_{6}\}$ & no testor & $r_{3}\cap T_\alpha=\emptyset$ & S1: $x_{4}$ & \texttt{0011000} \\
+11 & \texttt{0011000} & $\{x_{3},x_{4}\}$ & no testor & $r_{2}\cap T_\alpha=\emptyset$ & S1: $x_{6}$ & \texttt{0011010} \\
+12 & \texttt{0011010} & $\{x_{3},x_{4},x_{6}\}$ & \textbf{típico} & $x_{3}{:}r_{1},\ x_{4}{:}r_{3},\ x_{6}{:}r_{2}$ & S2: $x_{6}$ & \texttt{0011100} \\
+13 & \texttt{0011100} & $\{x_{3},x_{4},x_{5}\}$ & no típico & $x_{3}$ sin fila típica & S2: $x_{5}$ & \texttt{0100000} \\
+14 & \texttt{0100000} & $\{x_{2}\}$ & no testor & $r_{1}\cap T_\alpha=\emptyset$ & S1: $x_{7}$ & \texttt{0100001} \\
+15 & \texttt{0100001} & $\{x_{2},x_{7}\}$ & no testor & $r_{2}\cap T_\alpha=\emptyset$ & S1: $x_{6}$ & \texttt{0100010} \\
+16 & \texttt{0100010} & $\{x_{2},x_{6}\}$ & no testor & $r_{1}\cap T_\alpha=\emptyset$ & S1: $x_{7}$ & \texttt{0100011} \\
+17 & \texttt{0100011} & $\{x_{2},x_{6},x_{7}\}$ & \textbf{típico} & $x_{2}{:}r_{3},\ x_{6}{:}r_{2},\ x_{7}{:}r_{1}$ & S2: $x_{7}$ & \texttt{0100100} \\
+18 & \texttt{0100100} & $\{x_{2},x_{5}\}$ & no testor & $r_{4}\cap T_\alpha=\emptyset$ & S1: $x_{7}$ & \texttt{0100101} \\
+19 & \texttt{0100101} & $\{x_{2},x_{5},x_{7}\}$ & no testor & $r_{5}\cap T_\alpha=\emptyset$ & S1: $x_{6}$ & \texttt{0100110} \\
+20 & \texttt{0100110} & $\{x_{2},x_{5},x_{6}\}$ & no testor & $r_{6}\cap T_\alpha=\emptyset$ & S1: $x_{7}$ & \texttt{0100111} \\
+21 & \texttt{0100111} & $\{x_{2},x_{5},x_{6},x_{7}\}$ & no típico & $x_{5}$ sin fila típica & S2: $x_{7}$ & \texttt{0101000} \\
+22 & \texttt{0101000} & $\{x_{2},x_{4}\}$ & no testor & $r_{1}\cap T_\alpha=\emptyset$ & S1: $x_{7}$ & \texttt{0101001} \\
+23 & \texttt{0101001} & $\{x_{2},x_{4},x_{7}\}$ & no testor & $r_{2}\cap T_\alpha=\emptyset$ & S1: $x_{6}$ & \texttt{0101010} \\
+24 & \texttt{0101010} & $\{x_{2},x_{4},x_{6}\}$ & no testor & $r_{1}\cap T_\alpha=\emptyset$ & S1: $x_{7}$ & \texttt{0101011} \\
+25 & \texttt{0101011} & $\{x_{2},x_{4},x_{6},x_{7}\}$ & no típico & $x_{2}$ sin fila típica & S2: $x_{7}$ & \texttt{0101100} \\
+26 & \texttt{0101100} & $\{x_{2},x_{4},x_{5}\}$ & no típico & $x_{2}$ sin fila típica & S2: $x_{5}$ & \texttt{0110000} \\
+27 & \texttt{0110000} & $\{x_{2},x_{3}\}$ & no testor & $r_{2}\cap T_\alpha=\emptyset$ & S1: $x_{6}$ & \texttt{0110010} \\
+28 & \texttt{0110010} & $\{x_{2},x_{3},x_{6}\}$ & no testor & $r_{6}\cap T_\alpha=\emptyset$ & S1: $x_{7}$ & \texttt{0110011} \\
+29 & \texttt{0110011} & $\{x_{2},x_{3},x_{6},x_{7}\}$ & no típico & $x_{3}$ sin fila típica & S2: $x_{7}$ & \texttt{0110100} \\
+30 & \texttt{0110100} & $\{x_{2},x_{3},x_{5}\}$ & no testor & $r_{5}\cap T_\alpha=\emptyset$ & S1: $x_{6}$ & \texttt{0110110} \\
+31 & \texttt{0110110} & $\{x_{2},x_{3},x_{5},x_{6}\}$ & no testor & $r_{6}\cap T_\alpha=\emptyset$ & S1: $x_{7}$ & \texttt{0110111} \\
+32 & \texttt{0110111} & $\{x_{2},x_{3},x_{5},x_{6},x_{7}\}$ & no típico & $x_{3}$ sin fila típica & S2: $x_{7}$ & \texttt{0111000} \\
+33 & \texttt{0111000} & $\{x_{2},x_{3},x_{4}\}$ & no testor & $r_{2}\cap T_\alpha=\emptyset$ & S1: $x_{6}$ & \texttt{0111010} \\
+34 & \texttt{0111010} & $\{x_{2},x_{3},x_{4},x_{6}\}$ & no típico & $x_{2}$ sin fila típica & S2: $x_{6}$ & \texttt{0111100} \\
+35 & \texttt{0111100} & $\{x_{2},x_{3},x_{4},x_{5}\}$ & no típico & $x_{2}$ sin fila típica & S2: $x_{5}$ & \texttt{1000000} \\
+36 & \texttt{1000000} & $\{x_{1}\}$ & no testor & $r_{4}\cap T_\alpha=\emptyset$ & S1: $x_{7}$ & \texttt{1000001} \\
+37 & \texttt{1000001} & $\{x_{1},x_{7}\}$ & \textbf{típico} & $x_{1}{:}r_{2},\ x_{7}{:}r_{4}$ & S2: $x_{7}$ & \texttt{1000010} \\
+38 & \texttt{1000010} & $\{x_{1},x_{6}\}$ & \textbf{típico} & $x_{1}{:}r_{1},\ x_{6}{:}r_{4}$ & S2: $x_{6}$ & \texttt{1000100} \\
+39 & \texttt{1000100} & $\{x_{1},x_{5}\}$ & no testor & $r_{4}\cap T_\alpha=\emptyset$ & S1: $x_{7}$ & \texttt{1000101} \\
+40 & \texttt{1000101} & $\{x_{1},x_{5},x_{7}\}$ & no típico & $x_{5}$ sin fila típica & S2: $x_{7}$ & \texttt{1000110} \\
+41 & \texttt{1000110} & $\{x_{1},x_{5},x_{6}\}$ & no típico & $x_{5}$ sin fila típica & S2: $x_{6}$ & \texttt{1001000} \\
+42 & \texttt{1001000} & $\{x_{1},x_{4}\}$ & \textbf{típico} & $x_{1}{:}r_{1},\ x_{4}{:}r_{4}$ & S2: $x_{4}$ & \texttt{1010000} \\
+43 & \texttt{1010000} & $\{x_{1},x_{3}\}$ & \textbf{típico} & $x_{1}{:}r_{2},\ x_{3}{:}r_{4}$ & S2: $x_{3}$ & \texttt{1100000} \\
+44 & \texttt{1100000} & $\{x_{1},x_{2}\}$ & no testor & $r_{4}\cap T_\alpha=\emptyset$ & S1: $x_{7}$ & \texttt{1100001} \\
+45 & \texttt{1100001} & $\{x_{1},x_{2},x_{7}\}$ & no típico & $x_{2}$ sin fila típica & S2: $x_{7}$ & \texttt{1100010} \\
+46 & \texttt{1100010} & $\{x_{1},x_{2},x_{6}\}$ & no típico & $x_{2}$ sin fila típica & S2: $x_{6}$ & \texttt{1100100} \\
+47 & \texttt{1100100} & $\{x_{1},x_{2},x_{5}\}$ & no testor & $r_{4}\cap T_\alpha=\emptyset$ & S1: $x_{7}$ & \texttt{1100101} \\
+48 & \texttt{1100101} & $\{x_{1},x_{2},x_{5},x_{7}\}$ & no típico & $x_{2}$ sin fila típica & S2: $x_{7}$ & \texttt{1100110} \\
+49 & \texttt{1100110} & $\{x_{1},x_{2},x_{5},x_{6}\}$ & no típico & $x_{2}$ sin fila típica & S2: $x_{6}$ & \texttt{1101000} \\
+50 & \texttt{1101000} & $\{x_{1},x_{2},x_{4}\}$ & no típico & $x_{2}$ sin fila típica & S2: $x_{4}$ & \texttt{1110000} \\
+51 & \texttt{1110000} & $\{x_{1},x_{2},x_{3}\}$ & no típico & $x_{2}$ sin fila típica & S2: $x_{3}$ & fin \\
+\bottomrule
+\end{tabular}

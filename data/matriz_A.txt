@@ -1,0 +1,7 @@
+# Matriz básica (Ej. 2.1). Generada: 8 x 7, P(1) = 0.5, semilla = 2026, intento = 1, densidad = 0.47619
+1 0 1 0 1 0 1
+1 0 0 0 1 1 0
+1 1 0 1 0 0 0
+0 0 1 1 0 1 1
+1 0 0 1 0 1 0
+1 0 0 1 0 0 1
