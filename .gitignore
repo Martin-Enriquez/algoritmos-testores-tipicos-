@@ -1,26 +1,62 @@
-# Compilación de C++
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
 *.o
 *.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Linker files
+*.ilk
+
+# Debugger Files
+*.pdb
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+*.so.*
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
 *.exe
 *.out
 *.app
-build/
-bin/
 
-# IDEs y Editores
-.vscode/
-.idea/
+# Build directories
+build/
+Build/
+build-*/
+
+# CMake generated files
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+install_manifest.txt
+compile_commands.json
+
+# Temporary files
+*.tmp
+*.log
+*.bak
 *.swp
 
-<<<<<<< HEAD
-# Archivos temporales de LaTeX
-docs/*.aux
-docs/*.log
-docs/*.pdf
-docs/*.synctex.gz
-docs/*.toc
-docs/*.out
-=======
 # vcpkg
 vcpkg_installed/
 
@@ -53,11 +89,9 @@ Testing/
 .idea/
 .DS_Store
 Thumbs.db
-<<<<<<< HEAD
->>>>>>> 756a702e14d6b8159e985789a3eebf5182d5e49c
-=======
 
-# Referencias de trabajo y entregables privados ajenos al repositorio
+# Compilación del informe y entregables privados
+/docs/.latex-build/
+/tmp/
 /.local/
 /entrega-local/
->>>>>>> 83698765a2c4cc8678953daefabf71da29c56f46

@@ -1,0 +1,12 @@
+% BT en orden ascendente, una ejecución sin traza por matriz. N=1 compartido.
+\begin{tabular}{c l r r r r l}
+\toprule
+N & Matriz & Filas & Cols. & TT esperados & BT ascendente (ms) & Estado \\
+\midrule
+1 & $\gamma^{1}(\theta(A,B))$ & 48 & 14 & 14 & 1.278900 & Completo \\
+2 & $\gamma^{2}(\theta(A,B))$ & 96 & 28 & 196 & 46466.069100 & Completo \\
+3 & $\gamma^{3}(\theta(A,B))$ & 144 & 42 & 2744 & ND & Límite \\
+4 & $\gamma^{4}(\theta(A,B))$ & 192 & 56 & 38416 & ND & Límite \\
+\bottomrule
+\end{tabular}
+{\footnotesize ND: el proceso no finalizó en 60 segundos. Este límite incluye preparación y verificación posterior; no es un tiempo medido del algoritmo.\par}

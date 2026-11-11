@@ -1,0 +1,263 @@
+\subsection{Ejercicio 5.3: análisis del desempeño de YYC y BT}
+\label{sec:analisis53}
+
+El objetivo de este apartado es comparar los tiempos de YYC y BT y observar
+cómo cambia su desempeño al ordenar las filas por cantidad ascendente de
+unos. Se utilizan las mediciones manuales registradas durante las ejecuciones;
+Los tiempos de BT corresponden a la versión histórica identificada en 5.2,
+no a la implementación corregida integrada posteriormente. Tampoco
+se mezclan con la serie automática previa que tenía un límite de
+60 segundos por proceso.
+
+\subsubsection*{Condiciones de las mediciones}
+
+La serie local se realizó en un equipo con procesador Intel Core Ultra 7
+155H, 16 GB de RAM y Windows de 64 bits. La frecuencia de 1.40 GHz mostrada
+en la información del sistema es un dato de identificación del equipo, no
+una medición de la frecuencia efectiva durante cada ejecución. Estas
+especificaciones corresponden a esta serie del ejercicio 5 y son distintas
+del entorno descrito para los ejercicios 1 a 3.
+
+Se registró una ejecución por combinación de matriz, algoritmo y orden de
+filas. El orden ascendente se obtuvo contando los unos de cada fila; en
+caso de empate se conservó su orden relativo. El ordenamiento se realizó
+antes de ejecutar el algoritmo, por lo que su costo no se incluye en los
+tiempos presentados. Todos los valores de las tablas se expresan en
+milisegundos: los microsegundos se dividieron para 1000 y los segundos se
+multiplicaron por 1000.
+
+Se tomó el valor que el programa muestra como tiempo total de ejecución.
+En YYC corresponde a la suma de los intervalos de procesamiento de las
+filas; en BT corresponde al intervalo de resolución del algoritmo, sin la
+verificación posterior por minimalidad. La impresión y exportación de
+resultados quedan fuera de estos intervalos. Los criterios de medición
+son, por tanto, los implementados en cada algoritmo y no el tiempo total
+que permanece abierta la terminal.
+
+También se recibió un registro de BT sobre $\gamma^3(\theta(A,B))$, en orden
+original, de 19 horas, 14 minutos y 43 segundos, reportado por el programa:
+\[
+19\cdot3600+14\cdot60+43=69\,283\text{ s}
+=69\,283\,000\text{ ms}.
+\]
+Este dato se identifica con un asterisco porque no se verificó la
+equivalencia de sus condiciones de ejecución con las de la serie local.
+Se conserva como registro adicional, sin atribuirlo al equipo local ni
+utilizarlo para calcular ventajas de un algoritmo sobre otro.
+
+Como se dispone de una observación por caso y no se controlaron de forma
+documentada la carga del sistema, la temperatura o la posible concurrencia
+de procesos, las diferencias describen estas ejecuciones. No permiten
+estimar una variabilidad estadística ni concluir que diferencias pequeñas
+se repetirán en cualquier sesión.
+
+\subsubsection*{Resultados registrados}
+
+Se utiliza $C=\theta(A,B)$. Las mediciones analizadas son las de
+las Tablas~\ref{tab:resultadosphi52} y~\ref{tab:resultadosgamma52}
+del punto 5.2. Los casos sin resultado final conservan el estado
+\emph{falta ejecutar}; sus proyecciones se presentan separadas
+más adelante y no se incorporan a las tablas de tiempos medidos.
+
+\subsubsection*{Comparación entre los algoritmos}
+
+En los casos de la serie local donde ambos algoritmos finalizaron, YYC
+registró un tiempo menor que BT. La diferencia se hace especialmente
+grande en $\varphi^3(C)$: en orden original, YYC tardó 231.593 ms,
+mientras BT tardó 806\,341 ms, aproximadamente 13 minutos y 26 segundos.
+La razón entre esos tiempos es cercana a 3482. En orden ascendente,
+YYC tardó 57.589 ms y BT 3\,055\,669 ms, aproximadamente 50 minutos y
+56 segundos; en esa ejecución, la razón fue cercana a 53\,060.
+Estas razones se refieren a las mediciones registradas y no a constantes
+de rendimiento de los algoritmos.
+
+La diferencia tiene una explicación en sus estrategias de búsqueda.
+YYC construye los testores típicos de manera incremental y conserva los
+conjuntos compatibles de las filas ya procesadas. BT recorre candidatos
+en orden binario y aplica saltos para omitir bloques que no pueden
+contener testores típicos. Sin embargo, durante ese recorrido también
+puede analizar testores que no son típicos. Por ello, tener pocos
+testores típicos finales no garantiza que el recorrido de BT sea corto.
+
+En la familia $\varphi^N(C)$ se mantienen 48 filas y las columnas pasan
+de 14 a 70. La cantidad de testores típicos es
+\[
+5N^2+7N^3+2N^4,
+\]
+pero el espacio de todos los subconjuntos de columnas tiene
+$2^{14N}$ elementos, incluido el vacío. Por ejemplo, con 70 columnas
+existen $2^{70}\approx1.18\cdot10^{21}$ subconjuntos posibles. BT no
+los visita necesariamente todos: sus saltos reducen la búsqueda. Aun
+así, esta escala ayuda a comprender por qué algunas entradas pueden
+requerir mucho trabajo aunque su matriz tenga pocas filas.
+
+En la familia $\gamma^N(C)$ aumentan tanto las filas como las columnas:
+la matriz tiene $48N$ filas, $14N$ columnas y $14^N$ testores típicos.
+Esto incrementa también el volumen de resultados que cualquier
+algoritmo completo debe producir. Las dos familias permiten estudiar
+fenómenos distintos, como propone la metodología de \cite{alba2016}.
+No se puede explicar el tiempo utilizando solamente la cantidad de
+filas, columnas o testores finales de manera aislada.
+
+\subsubsection*{Efecto del ordenamiento sobre YYC}
+
+En las cuatro matrices $\varphi^2(C),\ldots,\varphi^5(C)$, el orden
+ascendente produjo un tiempo menor que el original. Para expresar
+esa diferencia se calcula el factor observado
+\[
+S=\frac{t_{\mathrm{original}}}{t_{\mathrm{ascendente}}}.
+\]
+Los factores fueron aproximadamente 2.63, 4.02, 5.03 y 6.43,
+respectivamente. Por ejemplo, en $\varphi^5(C)$ el tiempo pasó de
+14.095 s a 2.192 s.
+
+Una explicación posible es que las filas con menos unos imponen
+restricciones más fuertes al inicio y pueden reducir la cantidad de
+conjuntos intermedios que YYC debe mantener o extender. Esta es una
+interpretación consistente con su funcionamiento; no se midió en esta
+serie un perfil completo de operaciones que permita atribuir toda
+la diferencia a una sola causa.
+
+El efecto no fue uniforme en la familia $\gamma$. En $\gamma^2(C)$
+el tiempo bajó de 34.407 a 11.666 ms. En cambio, en $\gamma^3(C)$
+subió de 280.705 a 337.262 ms, un aumento aproximado del 20.15\%,
+y en $\gamma^4(C)$ pasó de 10.640 a 15.790 s, un aumento del 48.40\%.
+Por tanto, ordenar por cantidad de unos no es una regla que siempre
+acelere YYC. También influye cómo se distribuyen esas entradas entre
+columnas y cómo las filas de distintos bloques interactúan durante
+la construcción de los conjuntos intermedios.
+
+\subsubsection*{Efecto del ordenamiento sobre BT}
+
+Los resultados completos de la serie local tampoco muestran una
+mejora uniforme para BT. En $\varphi^2(C)$ el tiempo pasó de 1.169
+a 1.124 s, una diferencia pequeña en una sola observación.
+En $\varphi^3(C)$ sucedió lo contrario: aumentó de 806.341 a
+3055.669 s, aproximadamente 3.79 veces. En $\gamma^2(C)$ disminuyó
+de 31.476 a 25.520 s. En el caso base $C$ aumentó de 0.7632 a
+1.027 ms, aunque su corta duración aconseja no generalizar a partir
+de esa diferencia aislada.
+
+En la versión histórica de BT usada para estas mediciones, el salto
+aplicado a un candidato que no es testor depende
+de la primera fila que queda sin cubrir. Cambiar el orden de las
+filas puede cambiar esa primera fila y, con ello, la posición que
+determina el salto y el trabajo de comprobación. Ordenar por número
+de unos no optimiza directamente ese mecanismo. Esto explica por
+qué la misma ordenación puede ayudar a un algoritmo y perjudicar
+al otro. En particular, en $\varphi^3(C)$ favoreció a YYC y coincidió
+con un aumento considerable del tiempo de esa versión de BT.
+
+En la implementación corregida, S1 considera todas las filas no cubiertas
+y utiliza el último uno situado más a la izquierda. Reordenar las mismas
+filas no cambia ese límite ni la secuencia de candidatos; sí puede variar
+el costo de las comprobaciones. Los factores de tiempo de la versión
+histórica no se trasladan a la implementación corregida.
+
+\subsubsection*{Falta ejecutar}
+
+Los siguientes casos no tienen un resultado final registrado en
+la serie utilizada para este reporte:
+\begin{itemize}[nosep]
+\item BT original y ascendente sobre $\varphi^4(C)$.
+\item BT original y ascendente sobre $\varphi^5(C)$.
+\item BT ascendente sobre $\gamma^3(C)$.
+\item BT original y ascendente sobre $\gamma^4(C)$.
+\end{itemize}
+Su estado es \textbf{falta ejecutar}. No se analizan como resultados
+obtenidos ni se les asigna un tiempo observado.
+
+\subsubsection*{Estimaciones exploratorias de los casos pendientes}
+
+Para describir la escala que podrían alcanzar las ejecuciones se
+plantea un \textbf{escenario de extrapolación geométrica no validado}.
+El escenario corresponde exclusivamente a la versión histórica de BT.
+Estas cifras no sustituyen los casos pendientes ni predicen de forma
+fiable cuándo terminará un proceso que ya está ejecutándose. Tampoco
+son cotas inferiores, superiores ni intervalos de confianza.
+
+Para cada orden de filas de la familia $\varphi$, se toma el factor
+entre los dos últimos casos completos de BT:
+\[
+r_{\varphi,o}=\frac{806.341}{1.169}\approx689.77,
+\qquad
+r_{\varphi,a}=\frac{3055.669}{1.124}\approx2718.57.
+\]
+Todos los valores de estas razones están en segundos. Si, como
+hipótesis, se mantuviera ese factor por cada copia adicional,
+el modelo sería
+\[
+\widehat t_{\varphi,o}(N)=806.341\,r_{\varphi,o}^{N-3},
+\qquad
+\widehat t_{\varphi,a}(N)=3055.669\,r_{\varphi,a}^{N-3}.
+\]
+
+Para $\gamma$ puede construirse únicamente un escenario
+\emph{condicional}: suponiendo que el registro prolongado sea
+comparable con el de $\gamma^2(C)$ original, el factor sería
+\[
+r_\gamma=\frac{69\,283}{31.476}\approx2201.14.
+\]
+Aplicar ese mismo factor al orden ascendente requiere una segunda
+hipótesis, aún no comprobada. Bajo ambas hipótesis se tendría
+$\widehat t_{\gamma,o}(4)=69\,283r_\gamma$,
+$\widehat t_{\gamma,a}(3)=25.520r_\gamma$ y
+$\widehat t_{\gamma,a}(4)=25.520r_\gamma^2$.
+
+\begin{table}[htbp]
+\centering
+\small
+\begin{tabular}{l l r}
+\toprule
+Matriz & Orden de BT & Proyección del escenario\\
+\midrule
+$\varphi^4(C)$ & Original   & 6.44 días\\
+$\varphi^4(C)$ & Ascendente & 96.15 días\\
+$\varphi^5(C)$ & Original   & 12.16 años\\
+$\varphi^5(C)$ & Ascendente & 715.62 años\\
+$\gamma^3(C)$  & Ascendente & 15.60 horas\\
+$\gamma^4(C)$  & Original   & 4.83 años\\
+$\gamma^4(C)$  & Ascendente & 3.92 años\\
+\bottomrule
+\end{tabular}
+\caption{Estimaciones exploratorias, no tiempos medidos ni pronósticos
+validados. Para expresar años se usaron 365.25 días. Las proyecciones
+de $\gamma$ dependen además de una equivalencia de condiciones no verificada.}
+\label{tab:escenario53}
+\end{table}
+
+Los valores extremos evidencian la sensibilidad del modelo a sus
+supuestos. Por ejemplo, la cifra de 715.62 años no significa que
+una ejecución vaya a durar ese tiempo: resulta de prolongar dos
+veces una razón muy grande obtenida con sólo dos observaciones.
+No hay datos suficientes para validar que esa razón permanezca
+constante. La conclusión defendible es que algunos casos pueden
+ser imprácticos de completar dentro del plazo disponible, no que
+se conozca su fecha de finalización. Hasta obtener una ejecución
+completa, conservan el estado \emph{falta ejecutar}.
+
+La explicación de las duraciones elevadas no debe reducirse a
+calificar el computador como lento. La implementación de BT
+recorre sus candidatos de forma secuencial; disponer de varios
+núcleos no convierte automáticamente ese recorrido en paralelo.
+Además, un equipo con 16 GB de RAM no elimina el crecimiento
+combinatorio del trabajo. La potencia del procesador y la carga
+del sistema pueden modificar el tiempo, pero la estructura de
+la matriz y la estrategia de búsqueda siguen siendo determinantes.
+
+\subsubsection*{Conclusiones del análisis}
+
+En las comparaciones completas de la serie local, YYC obtuvo
+menores tiempos que BT. Ordenar las filas por cantidad ascendente
+de unos benefició a YYC en la familia $\varphi$, pero no en todos
+los casos de $\gamma$. En BT se observaron tanto disminuciones
+como aumentos, incluido el incremento de aproximadamente 3.79 veces
+en $\varphi^3(C)$. Por ello, el ordenamiento debe evaluarse para
+cada familia de matrices y no asumirse como una mejora universal.
+
+Los resultados apoyan la utilidad de experimentar con distintas
+estructuras de matrices, en lugar de concluir el desempeño de un
+algoritmo a partir de una única entrada. Las conclusiones anteriores
+se limitan a las ejecuciones registradas; los casos pendientes y
+las proyecciones no se utilizan para afirmar resultados que todavía
+no se han obtenido.

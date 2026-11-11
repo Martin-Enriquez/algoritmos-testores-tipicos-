@@ -1,0 +1,326 @@
+\subsection{Ejercicio 5.1: implementación de los operadores y generación de matrices}
+\label{sec:ejercicio51}
+
+En este ejercicio se implementaron los operadores $\varphi$, $\theta$ y
+$\gamma$ descritos por Alba-Cabrera et al.~\cite{alba2016}. Su propósito
+es construir matrices básicas con dimensiones controladas y con un número
+de testores típicos que puede calcularse de antemano. Esto permite preparar
+experimentos cuya respuesta esperada es conocida, en lugar de elegir
+matrices aleatorias sin una referencia para comprobar los resultados.
+
+Se conserva el procedimiento de las Tablas 5 y 6 del artículo, pero se
+utilizan las matrices $A$ y $B$ de nuestros ejercicios 2.1 y 4.1.
+Por tanto, se reproducen las familias de operaciones y los valores de $N$,
+no los valores numéricos de las matrices originales del artículo.
+La generación de matrices corresponde al punto 5.1; sus tiempos de
+resolución con YYC y BT corresponden al punto 5.2.
+
+\subsubsection*{Definición de los operadores}
+
+Sean $U$ una matriz básica de $m\times n$ y $V$ una matriz básica de
+$p\times q$. Al unirlas, las columnas de $V$ ocupan posiciones nuevas,
+desde $n+1$ hasta $n+q$. No se identifican con las columnas de $U$,
+aunque en sus archivos originales ambas matrices comiencen por $x_1$.
+
+\paragraph{Operador $\theta$: todas las parejas de filas.}
+Cada fila de $U$ se concatena horizontalmente con cada fila de $V$:
+\[
+\theta(U,V)=
+\begin{pmatrix}
+u_1\mid v_1\\
+u_1\mid v_2\\
+\vdots\\
+u_1\mid v_p\\
+u_2\mid v_1\\
+\vdots\\
+u_m\mid v_p
+\end{pmatrix}.
+\]
+La notación $u_i\mid v_j$ significa escribir primero los $n$ valores
+de $u_i$ y después los $q$ valores de $v_j$; la barra sólo separa
+visualmente los bloques. El resultado tiene $mp$ filas y $n+q$
+columnas. No requiere que las entradas tengan el mismo número de filas.
+
+El procedimiento computacional recorre las filas de $U$ con un ciclo
+externo y las de $V$ con un ciclo interno. Así produce, en ese orden,
+$(u_1\mid v_1),\ldots,(u_1\mid v_p),(u_2\mid v_1),\ldots$.
+No se utiliza la multiplicación matricial usual ni el producto de
+Kronecker: la operación definida aquí es una concatenación para cada
+pareja de filas.
+
+\paragraph{Operador $\varphi$: concatenación fila por fila.}
+Requiere $m=p$. Une la primera fila de $U$ con la primera de $V$,
+la segunda con la segunda, y así sucesivamente:
+\[
+\varphi(U,V)=[\,U\mid V\,]
+=\begin{pmatrix}
+u_1\mid v_1\\
+u_2\mid v_2\\
+\vdots\\
+u_m\mid v_m
+\end{pmatrix}.
+\]
+El resultado tiene $m$ filas y $n+q$ columnas. A diferencia de
+$\theta$, no genera todas las parejas posibles. Para obtener
+$\varphi^N(U)$ se colocan $N$ copias de $U$ horizontalmente:
+\[
+\varphi^N(U)=[\,\underbrace{U\mid U\mid\cdots\mid U}_{N\text{ copias}}\,].
+\]
+Así se conservan las $m$ filas y se obtienen $Nn$ columnas.
+
+\paragraph{Operador $\gamma$: bloques diagonales.}
+Coloca $U$ arriba a la izquierda y $V$ abajo a la derecha, y completa
+con ceros los otros dos bloques:
+\[
+\gamma(U,V)=
+\begin{pmatrix}
+U & 0_{m\times q}\\
+0_{p\times n} & V
+\end{pmatrix}.
+\]
+Su tamaño es $(m+p)\times(n+q)$. Para $\gamma^N(U)$ se colocan $N$
+copias de $U$ en la diagonal y ceros fuera de esos bloques. En este
+caso se obtienen $Nm$ filas y $Nn$ columnas.
+
+En la notación del artículo, $N$ cuenta las copias de la matriz,
+no el número de llamadas adicionales a la función. Por ello,
+$\varphi^1(U)=\gamma^1(U)=U$ y
+$\gamma^2(U)=\gamma(U,U)$.
+
+\subsubsection*{Ejemplo para distinguir las tres construcciones}
+
+Considérese la matriz pequeña $P=I_2$, independiente de las matrices
+$A$ y $B$ del proyecto:
+\[
+P=\begin{pmatrix}1&0\\0&1\end{pmatrix}.
+\]
+Aplicando cada operador a dos copias de $P$, se obtiene:
+\[
+\theta(P,P)=\begin{pmatrix}
+1&0&1&0\\1&0&0&1\\0&1&1&0\\0&1&0&1
+\end{pmatrix},\qquad
+\varphi(P,P)=\begin{pmatrix}
+1&0&1&0\\0&1&0&1
+\end{pmatrix},\qquad
+\gamma(P,P)=\begin{pmatrix}
+1&0&0&0\\0&1&0&0\\0&0&1&0\\0&0&0&1
+\end{pmatrix}.
+\]
+Las tres matrices tienen cuatro columnas, pero se construyen de
+manera distinta: $\theta$ combina todas las parejas, $\varphi$ une
+filas correspondientes y $\gamma$ separa las copias en bloques
+diagonales. En este ejemplo tienen, respectivamente, 4, 2 y 4 filas.
+
+\subsubsection*{Conservación de la basicidad}
+
+Los operadores conservan la condición de matriz básica cuando sus
+entradas son básicas y no contienen filas nulas~\cite{alba2016}. Esta propiedad puede entenderse
+comparando los bloques de las filas:
+\begin{itemize}[nosep]
+\item En $\theta(U,V)$, si una fila fuera subfila de otra, su bloque
+de $U$ tendría que estar contenido en el otro bloque de $U$, y lo
+mismo ocurriría con los bloques de $V$. La basicidad obliga a que
+ambos bloques sean iguales, por lo que no existe una inclusión estricta.
+Además, parejas distintas no producen filas repetidas.
+\item En $\varphi(U,V)$, dos filas diferentes ya son incomparables
+en el bloque correspondiente a $U$. Agregar el bloque de $V$ no
+elimina esa diferencia ni puede convertirlas en filas repetidas.
+\item En $\gamma(U,V)$, dentro de cada bloque se conserva la
+incomparabilidad original. Entre bloques distintos, cada fila
+tiene algún 1 en posiciones donde la otra tiene sólo ceros.
+\end{itemize}
+Las filas tampoco son nulas, porque cada una conserva una fila
+no nula de alguna matriz de entrada. Por tanto, no es necesario
+reducir ni reordenar los resultados antes de usarlos en los experimentos.
+Esta afirmación se comprobó también con la rutina de matriz básica.
+
+\subsubsection*{Implementación computacional}
+
+La implementación está escrita en C++17 y utiliza la representación
+\texttt{BooleanMatrix}. Cada fila es un \texttt{ColumnSet}, que
+almacena las posiciones de sus unos. Las funciones públicas se
+declaran en \texttt{include/testores/domain/matrix\_operators.hpp}
+y se implementan en \texttt{src/domain/matrix\_operators.cpp}.
+
+\begin{center}
+\begin{tabular}{l p{9cm}}
+\toprule
+Función & Responsabilidad\\
+\midrule
+\texttt{theta(U,V)} & Generar todas las concatenaciones $u_i\mid v_j$.\\
+\texttt{phi(U,V)} & Concatenar las filas correspondientes, comprobando que haya igual cantidad de filas.\\
+\texttt{phiPower(U,N)} & Construir directamente las $N$ copias horizontales de $U$.\\
+\texttt{gamma(U,V)} & Construir los dos bloques diagonales y sus ceros.\\
+\texttt{gammaPower(U,N)} & Construir directamente $N$ bloques diagonales de $U$.\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Para concatenar un bloque a la derecha, las posiciones de sus unos
+se desplazan por el ancho del bloque izquierdo. Por ejemplo, si
+éste tiene siete columnas, la primera columna del bloque derecho
+ocupa la posición $x_8$. En las potencias de $\gamma$, las posiciones
+fuera del bloque activo permanecen en cero.
+
+Las funciones rechazan entradas vacías, cero copias y resultados
+que excedan los límites de 100\,000 filas o 512 columnas. La
+validación de dimensiones se realiza antes de reservar la memoria.
+La interfaz de comandos exige entradas básicas y no las reduce
+automáticamente, para conservar el orden de generación.
+
+Las pruebas automáticas incluyen ejemplos con resultados conocidos,
+dimensiones incompatibles, límites de recursos y desplazamientos
+que atraviesan posiciones de 64 bits. En ejemplos pequeños se
+comprueba además que YYC y BT recuperen los testores típicos esperados.
+
+\subsubsection*{Construcción de la matriz base del experimento}
+
+Los datos de partida de este proyecto son:
+\begin{center}
+\begin{tabular}{c r r r l}
+\toprule
+Matriz & Filas & Columnas & $|\Psi^*|$ & Tamaños de los testores típicos\\
+\midrule
+$A$ & 6 & 7 & 8 & 5 de tamaño 2 y 3 de tamaño 3\\
+$B$ & 8 & 7 & 6 & 4 de tamaño 3 y 2 de tamaño 4\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Como $A$ y $B$ tienen distinta cantidad de filas, no se aplica
+$\varphi(A,B)$ directamente. Siguiendo las Tablas 5 y 6 del artículo,
+primero se construye
+\[
+C=\theta(A,B),\qquad
+\text{filas}(C)=6\cdot8=48,\qquad
+\text{columnas}(C)=7+7=14.
+\]
+Las primeras ocho filas son $a_1\mid b_1,\ldots,a_1\mid b_8$;
+las siguientes ocho corresponden a $a_2$, y así sucesivamente.
+Por ejemplo, la primera fila se obtiene de
+\[
+a_1=(1,0,1,0,1,0,1),\qquad b_1=(1,0,1,0,0,0,0),
+\]
+y queda
+\[
+c_1=(1,0,1,0,1,0,1\mid1,0,1,0,0,0,0).
+\]
+El bloque de $A$ ocupa $x_1,\ldots,x_7$ y el de $B$ ocupa
+$x_8,\ldots,x_{14}$. Esta separación es importante al contar
+los testores típicos.
+
+\subsubsection*{Cálculo previo del número de testores típicos}
+
+Las proposiciones del artículo permiten conocer la respuesta
+esperada antes de resolver las matrices grandes. En $\theta(U,V)$,
+los testores típicos son los de $U$ o los de $V$, cada grupo dentro
+de su propio bloque de columnas. Si un conjunto no cubriera ni
+$U$ ni $V$, existiría una pareja de filas cuya concatenación
+tampoco quedaría cubierta. Por tanto:
+\[
+|\Psi^*(\theta(U,V))|=|\Psi^*(U)|+|\Psi^*(V)|,
+\qquad |\Psi^*(C)|=8+6=14.
+\]
+De los 14 testores de $C$, cinco tienen tamaño 2, siete tienen
+tamaño 3 y dos tienen tamaño 4. Los siete de tamaño 3 provienen
+de los tres de $A$ y los cuatro de $B$.
+
+En $\varphi^N(C)$ cada columna original aparece en $N$ copias
+idénticas. Un testor típico de tamaño $k$ origina $N^k$
+selecciones: se elige una copia para cada una de sus $k$
+características. No se necesitan dos copias de la misma
+característica, porque una sería redundante. En consecuencia:
+\[
+|\Psi^*(\varphi^N(C))|
+=\sum_{T\in\Psi^*(C)}N^{|T|}
+=5N^2+7N^3+2N^4.
+\]
+Por ejemplo, para $N=2$ se esperan
+$5\cdot4+7\cdot8+2\cdot16=108$ testores típicos.
+
+En $\gamma(U,V)$ se deben cubrir ambos bloques, de modo que
+cada testor típico resulta de combinar uno de $U$ con uno de
+$V$, desplazando las columnas del segundo bloque:
+\[
+|\Psi^*(\gamma(U,V))|=|\Psi^*(U)|\,|\Psi^*(V)|.
+\]
+Al repetir $C$ en $N$ bloques diagonales, hay 14 elecciones
+por bloque y las combinaciones son independientes:
+\[
+|\Psi^*(\gamma^N(C))|=14^N.
+\]
+Por ejemplo, $\gamma^2(C)$ debe tener $14^2=196$ testores
+típicos. Estos conteos son resultados teóricos utilizados para
+validar las ejecuciones, no tiempos de los algoritmos.
+
+\subsubsection*{Matrices generadas para las Tablas 5 y 6}
+
+Para reproducir la familia de la Tabla 5 se generaron
+$\varphi^N(C)$ con $N=1,2,3,4,5$. Para la Tabla 6 se generaron
+$\gamma^N(C)$ con $N=1,2,3,4$. El caso $N=1$ es $C$ en ambas
+familias, por lo que sólo se necesitan ocho archivos distintos.
+
+\begin{table}[htbp]
+\centering
+\small
+\input{resultados/ej5_1/tabla_phi.tex}
+\caption{Familia de la Tabla 5 del artículo, adaptada a nuestras
+matrices $A$ y $B$. Se mantienen 48 filas y aumentan las columnas.}
+\label{tab:generacionphi51}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\small
+\input{resultados/ej5_1/tabla_gamma.tex}
+\caption{Familia de la Tabla 6 del artículo, adaptada a nuestras
+matrices $A$ y $B$. Crecen las dimensiones y el número de testores
+típicos aumenta exponencialmente.}
+\label{tab:generaciongamma51}
+\end{table}
+
+En la primera familia, las dimensiones son $48\times14N$.
+En la segunda son $48N\times14N$. Todas las matrices generadas
+resultaron básicas: la rutina de reducción no eliminó filas
+nulas, repetidas ni superfilas. Se mantuvo su orden de generación;
+las copias ordenadas para comparar tiempos se tratan por separado.
+
+\subsubsection*{Cómo reproducir la generación}
+
+Desde la carpeta principal del proyecto, después de compilar
+en Release, se puede ejecutar en PowerShell:
+\begin{Verbatim}[fontsize=\small, frame=single]
+.\scripts\generar_ejercicio_5_1.ps1
+\end{Verbatim}
+El script utiliza los archivos \texttt{data/matriz\_A.txt} y
+\texttt{data/matriz\_B.txt}. Guarda una nueva serie en
+\texttt{data/ej5\_1/} y las tablas y comprobaciones en
+\texttt{docs/resultados/ej5\_1/}. Si esas carpetas ya existen,
+se debe indicar otra salida o añadir \texttt{-Forzar} para
+reemplazar esa generación. Los archivos originales empleados
+en las mediciones manuales permanecen en \texttt{data/}.
+
+También se puede generar cada operación individualmente:
+\begin{Verbatim}[fontsize=\small, frame=single]
+$exe = ".\build-review\Release\testores.exe"
+& $exe theta --entrada-a data/matriz_A.txt `
+    --entrada-b data/matriz_B.txt `
+    --salida data/ejemplo_theta.txt
+& $exe phi --entrada data/ejemplo_theta.txt `
+    --copias 2 --salida data/ejemplo_phi2.txt
+& $exe gamma --entrada data/ejemplo_theta.txt `
+    --copias 2 --salida data/ejemplo_gamma2.txt
+\end{Verbatim}
+
+El script comprueba todas las filas generadas contra las
+concatenaciones y bloques esperados, verifica que las matrices
+sean básicas y registra sus dimensiones y hashes. Para calcular
+los conteos teóricos obtiene primero con YYC los testores de
+$A$ y $B$, que son matrices pequeñas. No ejecuta BT sobre las
+matrices grandes ni presenta sus conteos analíticos como si
+fueran resultados de una ejecución larga.
+
+Con ello queda preparada la entrada del experimento: las
+matrices se generan de forma reproducible y sus propiedades
+esperadas están determinadas. La comparación de tiempos de
+YYC y BT, con y sin ordenar las filas, constituye el punto 5.2.

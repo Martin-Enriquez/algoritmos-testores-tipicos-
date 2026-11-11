@@ -43,10 +43,10 @@ add_library(testores_domain STATIC
     src/domain/column_set.cpp
     src/domain/boolean_matrix.cpp
     src/domain/basic_matrix.cpp
+    src/domain/matrix_operators.cpp
     src/domain/testor.cpp
     src/domain/yyc.cpp
     src/domain/bt.cpp
-    src/domain/matrix_operators.cpp
     src/domain/notation.cpp)
 target_include_directories(testores_domain PUBLIC include)
 target_link_libraries(testores_domain PRIVATE testores_options)

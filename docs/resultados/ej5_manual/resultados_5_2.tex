@@ -1,0 +1,55 @@
+\subsection{Ejercicio 5.2: resultados experimentales de YYC y BT}
+\label{sec:ejercicio52}
+
+\paragraph{Versión de la serie manual.}
+Estos tiempos se conservaron de la versión anterior a la integración de
+las correcciones de BT (revisión \texttt{66804cb}). Esa versión elegía
+la primera fila no cubierta para el salto S1. La implementación corregida
+elige, entre todas las filas no cubiertas, aquella cuyo último uno está
+más a la izquierda. Las mediciones BT de estas tablas son históricas y
+no caracterizan los tiempos de la implementación corregida. Su serie
+actualizada en \texttt{resultados/experimentos.csv} se mantiene separada.
+
+Se procesaron las matrices del punto 5.1 con YYC y BT, primero
+con las filas en su orden de generación y después ordenadas de
+menor a mayor cantidad de unos. En los empates se conservó el
+orden relativo original. El ordenamiento se realizó antes de
+iniciar la medición y no forma parte del tiempo del algoritmo.
+
+Las Tablas~\ref{tab:resultadosphi52} y~\ref{tab:resultadosgamma52}
+adaptan las Tablas 5 y 6 de \cite{alba2016}: conservan las primeras
+cinco columnas y añaden los cuatro tiempos solicitados. Se utiliza
+$C=\theta(A,B)$; el caso $N=1$ es la misma matriz en ambas familias
+y comparte sus mediciones. Los conteos de testores corresponden
+a las propiedades calculadas en 5.1, comprobadas con YYC.
+
+Se registró una ejecución manual por caso, utilizando el tiempo
+reportado por el programa, sin traza. En YYC se acumulan los
+intervalos de procesamiento de las filas; en BT se mide la
+resolución, excluyendo la verificación posterior por minimalidad.
+La impresión y exportación quedan fuera de la medición. Los valores
+están expresados en milisegundos; los casos sin resultado final
+se identifican como \emph{falta ejecutar} y no se completan con
+estimaciones. El análisis de estos resultados se presenta en 5.3.
+
+\begin{table}[htbp]
+\centering
+\input{resultados/ej5_manual/tabla_phi_5_2.tex}
+\caption{Resultados manuales de YYC y BT sobre $\varphi^N(C)$,
+en orden original y ascendente. Todos los tiempos están en ms.}
+\label{tab:resultadosphi52}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\input{resultados/ej5_manual/tabla_gamma_5_2.tex}
+\caption{Resultados manuales de YYC y BT sobre $\gamma^N(C)$,
+en orden original y ascendente. Todos los tiempos están en ms.}
+\label{tab:resultadosgamma52}
+\end{table}
+
+El asterisco de BT original sobre $\gamma^3(C)$ identifica el
+registro de 19 h 14 min 43 s, equivalente a 69\,283\,000 ms.
+No se verificó la equivalencia de sus condiciones con las de
+la serie local; por ello se conserva como registro adicional,
+sin utilizarlo para calcular ventajas entre algoritmos.

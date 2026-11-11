@@ -1,0 +1,5 @@
+N,matriz,filas,columnas,testores_tipicos,yyc_original_ms,yyc_ascendente_ms,bt_original_ms,bt_ascendente_ms
+1,"theta(A,B)",48,14,14,0.2622,0.1681,0.7632,1.027
+2,gamma2,96,28,196,34.407,11.666,31476,25520
+3,gamma3,144,42,2744,280.705,337.262,69283000,falta ejecutar
+4,gamma4,192,56,38416,10640,15790,falta ejecutar,falta ejecutar

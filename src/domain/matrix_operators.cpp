@@ -1,87 +1,152 @@
 #include "testores/domain/matrix_operators.hpp"
 
-#include <algorithm>
 #include <stdexcept>
+#include <algorithm>
 #include <utility>
+#include <vector>
 
 namespace testores::domain {
-namespace {
-void nonempty(const BooleanMatrix& matrix) {
-    if (matrix.empty()) throw std::invalid_argument("El operador requiere matrices no vacías");
-}
-void dimensions(std::size_t rows, std::size_t cols) {
-    if (rows > MatrixLimits::kMaxRows || cols > MatrixLimits::kMaxCols)
-        throw std::length_error("El resultado del operador excede los límites de la matriz");
-}
-ColumnSet concatenate(const ColumnSet& a, const ColumnSet& b) {
-    ColumnSet result(a.width() + b.width());
-    for (const auto col : a.indices()) result.set(col);
-    for (const auto col : b.indices()) result.set(a.width() + col);
-    return result;
-}
+
+BooleanMatrix theta(const BooleanMatrix& a, const BooleanMatrix& b) {
+    if (a.empty() || b.empty()) {
+        throw std::invalid_argument("Theta requiere dos matrices no vacías");
+    }
+    if (a.cols() > MatrixLimits::kMaxCols - b.cols()) {
+        throw std::invalid_argument("Theta excede el máximo de columnas permitido");
+    }
+    // Comprobar antes de multiplicar y reservar memoria.
+    if (a.rows() > MatrixLimits::kMaxRows / b.rows()) {
+        throw std::invalid_argument("Theta excede el máximo de filas permitido");
+    }
+
+    const std::size_t cols = a.cols() + b.cols();
+    std::vector<ColumnSet> rows;
+    rows.reserve(a.rows() * b.rows());
+    for (const ColumnSet& left : a.rowSets()) {
+        for (const ColumnSet& right : b.rowSets()) {
+            ColumnSet joined(cols);
+            for (std::size_t col : left.indices()) {
+                joined.set(col);
+            }
+            for (std::size_t col : right.indices()) {
+                joined.set(a.cols() + col);
+            }
+            rows.push_back(std::move(joined));
+        }
+    }
+    return BooleanMatrix(cols, std::move(rows));
 }
 
 BooleanMatrix phi(const BooleanMatrix& a, const BooleanMatrix& b) {
-    nonempty(a); nonempty(b);
-    if (a.rows() != b.rows())
-        throw std::invalid_argument("Phi requiere el mismo número de filas");
-    dimensions(a.rows(), a.cols() + b.cols());
+    if (a.empty() || b.empty() || a.rows() != b.rows()) {
+        throw std::invalid_argument("Phi requiere dos matrices no vacías con el mismo número de filas");
+    }
+    if (a.cols() > MatrixLimits::kMaxCols - b.cols()) {
+        throw std::invalid_argument("Phi excede el máximo de columnas permitido");
+    }
+    const std::size_t cols = a.cols() + b.cols();
     std::vector<ColumnSet> rows;
     rows.reserve(a.rows());
-    for (std::size_t i = 0; i < a.rows(); ++i) rows.push_back(concatenate(a.row(i), b.row(i)));
-    return {a.cols() + b.cols(), std::move(rows)};
+    for (std::size_t i = 0; i < a.rows(); ++i) {
+        ColumnSet joined(cols);
+        for (std::size_t col : a.row(i).indices()) joined.set(col);
+        for (std::size_t col : b.row(i).indices()) joined.set(a.cols() + col);
+        rows.push_back(std::move(joined));
+    }
+    return BooleanMatrix(cols, std::move(rows));
 }
 
-BooleanMatrix theta(const BooleanMatrix& a, const BooleanMatrix& b) {
-    nonempty(a); nonempty(b);
-    // La división evita desbordar al multiplicar dimensiones.
-    if (a.rows() > MatrixLimits::kMaxRows / b.rows())
-        throw std::length_error("Theta excede el límite de filas");
-    dimensions(a.rows() * b.rows(), a.cols() + b.cols());
+BooleanMatrix phiPower(const BooleanMatrix& a, std::size_t copies) {
+    if (a.empty() || copies == 0) {
+        throw std::invalid_argument("Phi requiere una matriz no vacía y al menos una copia");
+    }
+    if (copies > MatrixLimits::kMaxCols / a.cols()) {
+        throw std::invalid_argument("Phi excede el máximo de columnas permitido");
+    }
+    const std::size_t cols = a.cols() * copies;
     std::vector<ColumnSet> rows;
-    rows.reserve(a.rows() * b.rows());
-    for (const auto& ar : a.rowSets())
-        for (const auto& br : b.rowSets()) rows.push_back(concatenate(ar, br));
-    return {a.cols() + b.cols(), std::move(rows)};
+    rows.reserve(a.rows());
+    for (const ColumnSet& row : a.rowSets()) {
+        ColumnSet joined(cols);
+        const auto indices = row.indices();
+        for (std::size_t copy = 0; copy < copies; ++copy) {
+            for (std::size_t col : indices) joined.set(copy * a.cols() + col);
+        }
+        rows.push_back(std::move(joined));
+    }
+    return BooleanMatrix(cols, std::move(rows));
 }
 
 BooleanMatrix gamma(const BooleanMatrix& a, const BooleanMatrix& b) {
-    nonempty(a); nonempty(b);
-    dimensions(a.rows() + b.rows(), a.cols() + b.cols());
+    if (a.empty() || b.empty()) {
+        throw std::invalid_argument("Gamma requiere dos matrices no vacías");
+    }
+    if (a.cols() > MatrixLimits::kMaxCols - b.cols() ||
+        a.rows() > MatrixLimits::kMaxRows - b.rows()) {
+        throw std::invalid_argument("Gamma excede las dimensiones máximas permitidas");
+    }
+    const std::size_t cols = a.cols() + b.cols();
     std::vector<ColumnSet> rows;
     rows.reserve(a.rows() + b.rows());
-    const ColumnSet zerosA(a.cols()), zerosB(b.cols());
-    for (const auto& row : a.rowSets()) rows.push_back(concatenate(row, zerosB));
-    for (const auto& row : b.rowSets()) rows.push_back(concatenate(zerosA, row));
-    return {a.cols() + b.cols(), std::move(rows)};
+    for (const ColumnSet& row : a.rowSets()) {
+        ColumnSet padded(cols);
+        for (std::size_t col : row.indices()) padded.set(col);
+        rows.push_back(std::move(padded));
+    }
+    for (const ColumnSet& row : b.rowSets()) {
+        ColumnSet padded(cols);
+        for (std::size_t col : row.indices()) padded.set(a.cols() + col);
+        rows.push_back(std::move(padded));
+    }
+    return BooleanMatrix(cols, std::move(rows));
 }
 
-BooleanMatrix repeatPhi(const BooleanMatrix& matrix, std::size_t copies) {
-    nonempty(matrix);
-    if (copies == 0) throw std::invalid_argument("El número de copias debe ser positivo");
-    if (copies > MatrixLimits::kMaxCols / matrix.cols())
-        throw std::length_error("Phi iterado excede el límite de columnas");
-    BooleanMatrix result = matrix;
-    for (std::size_t i = 1; i < copies; ++i) result = phi(result, matrix);
-    return result;
+BooleanMatrix gammaPower(const BooleanMatrix& a, std::size_t copies) {
+    if (a.empty() || copies == 0) {
+        throw std::invalid_argument("Gamma requiere una matriz no vacía y al menos una copia");
+    }
+    if (copies > MatrixLimits::kMaxCols / a.cols() ||
+        copies > MatrixLimits::kMaxRows / a.rows()) {
+        throw std::invalid_argument("Gamma excede las dimensiones máximas permitidas");
+    }
+    const std::size_t cols = a.cols() * copies;
+    std::vector<ColumnSet> rows;
+    rows.reserve(a.rows() * copies);
+    for (std::size_t copy = 0; copy < copies; ++copy) {
+        for (const ColumnSet& row : a.rowSets()) {
+            ColumnSet padded(cols);
+            for (std::size_t col : row.indices()) padded.set(copy * a.cols() + col);
+            rows.push_back(std::move(padded));
+        }
+    }
+    return BooleanMatrix(cols, std::move(rows));
 }
 
-BooleanMatrix repeatGamma(const BooleanMatrix& matrix, std::size_t copies) {
-    nonempty(matrix);
-    if (copies == 0) throw std::invalid_argument("El número de copias debe ser positivo");
-    if (copies > MatrixLimits::kMaxCols / matrix.cols() ||
-        copies > MatrixLimits::kMaxRows / matrix.rows())
-        throw std::length_error("Gamma iterado excede los límites de la matriz");
-    BooleanMatrix result = matrix;
-    for (std::size_t i = 1; i < copies; ++i) result = gamma(result, matrix);
-    return result;
-}
-
-BooleanMatrix sortRowsAscending(const BooleanMatrix& matrix) {
+BooleanMatrix sortRowsByOnes(const BooleanMatrix& matrix) {
     auto rows = matrix.rowSets();
     std::stable_sort(rows.begin(), rows.end(), [](const ColumnSet& a, const ColumnSet& b) {
         return a.count() < b.count();
     });
-    return {matrix.cols(), std::move(rows)};
+    return BooleanMatrix(matrix.cols(), std::move(rows));
 }
+
+BooleanMatrix repeatPhi(const BooleanMatrix& matrix, std::size_t copies) {
+    if (!matrix.empty() && copies > MatrixLimits::kMaxCols / matrix.cols()) {
+        throw std::length_error("Phi iterado excede el límite de columnas");
+    }
+    return phiPower(matrix, copies);
+}
+
+BooleanMatrix repeatGamma(const BooleanMatrix& matrix, std::size_t copies) {
+    if (!matrix.empty() && (copies > MatrixLimits::kMaxCols / matrix.cols() ||
+                           copies > MatrixLimits::kMaxRows / matrix.rows())) {
+        throw std::length_error("Gamma iterado excede los límites de la matriz");
+    }
+    return gammaPower(matrix, copies);
+}
+
+BooleanMatrix sortRowsAscending(const BooleanMatrix& matrix) {
+    return sortRowsByOnes(matrix);
+}
+
 }  // namespace testores::domain

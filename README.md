@@ -1,4 +1,4 @@
-﻿# Algoritmos para calcular testores típicos
+# Algoritmos para calcular testores típicos
 
 Proyecto de Matemáticas Discretas, USFQ, semestre 202610. Implementa los ejercicios 1 a 5: matrices booleanas y básicas, YYC, BT, dualidad y experimentos con los operadores del artículo de Alba-Cabrera et al. (2016). El ejercicio 6 corresponde a grupos de cuatro integrantes; este grupo tiene tres.
 
@@ -115,3 +115,26 @@ El dominio no conoce archivos, consola ni reloj del sistema. Aplicación define 
 ## Integrantes
 
 Martín Enríquez, Paula Gallardo y Eduardo Tapia. Profesor: Eduardo Alba.
+
+## Desarrollo y serie manual conservados de ejercicio_4
+
+El reporte principal conserva el desarrollo detallado de los ejercicios 4 y 5
+preparado en esta rama e incorpora las correcciones matemáticas de main.
+Los tiempos de `docs/resultados/ej5_manual/` pertenecen a la versión previa
+que elegía la primera fila sin cubrir en BT; son una serie histórica y no
+se presentan como mediciones de la implementación corregida. Las tablas del
+nuevo ejecutable están en `docs/resultados/experimentos*.tex` y `experimentos.csv`.
+
+Se conservan los comandos individuales `theta`, `phi`, `gamma`, `ordenar` y
+la exportación `--testores-salida` de YYC y BT. La presentación accede a los
+archivos mediante los puertos inyectados en `CliServices`.
+
+```powershell
+.\scripts\generar_ejercicio_5_1.ps1
+```
+
+Este script genera las familias en `data/ej5_1/` y sus comprobaciones en
+`docs/resultados/ej5_1/`. Para repetirlo se puede indicar otra salida o `-Forzar`.
+Los nombres `phiPower`, `gammaPower` y `sortRowsByOnes` siguen disponibles;
+`repeatPhi`, `repeatGamma` y `sortRowsAscending` permiten usar el nuevo
+módulo de experimentos sin romper los comandos y pruebas de esta rama.
