@@ -1,0 +1,5 @@
+"N","matriz","filas","columnas","testores_esperados","bt_ascendente_ms","estado","limite_proceso_s","tiempo_proceso_s"
+"1","gamma^1(theta(A,B))","48","14","14","1.278900","completado","60","0.345"
+"2","gamma^2(theta(A,B))","96","28","196","46466.069100","completado","60","46.608"
+"3","gamma^3(theta(A,B))","144","42","2744","","limite_proceso","60","60.246"
+"4","gamma^4(theta(A,B))","192","56","38416","","limite_proceso","60","60.244"

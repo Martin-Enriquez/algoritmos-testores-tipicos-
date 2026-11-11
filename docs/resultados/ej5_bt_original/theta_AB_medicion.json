@@ -1,0 +1,12 @@
+{
+  "matriz": "data/theta_AB.txt",
+  "sha256": "0C3327FDF0EBC17077BEA54C3D4981840DEC0FCBF5179DF80DDA9D14619A611B",
+  "estado": "completado",
+  "limite_proceso_s": 60,
+  "tiempo_proceso_s": "0.167",
+  "bt_original_ms": "1.136400",
+  "testores_esperados": 14,
+  "testores_obtenidos": 14,
+  "coincide_con_YYC": true,
+  "codigo_salida": 0
+}

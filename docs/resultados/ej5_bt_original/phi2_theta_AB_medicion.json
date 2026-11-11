@@ -1,0 +1,12 @@
+{
+  "matriz": "data/phi2_theta_AB.txt",
+  "sha256": "B8C2A6E3EC01F6EF9484FEB4B898243A730A0975C786EF34F706B30E381961FA",
+  "estado": "limite_proceso",
+  "limite_proceso_s": 60,
+  "tiempo_proceso_s": "60.150",
+  "bt_original_ms": "",
+  "testores_esperados": 108,
+  "testores_obtenidos": null,
+  "coincide_con_YYC": null,
+  "codigo_salida": -1
+}

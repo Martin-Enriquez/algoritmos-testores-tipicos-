@@ -14,6 +14,7 @@
 #include "testores/application/yyc_runner.hpp"
 #include "testores/domain/basic_matrix.hpp"
 #include "testores/domain/boolean_matrix.hpp"
+#include "testores/domain/matrix_operators.hpp"
 #include "testores/infrastructure/matrix_file.hpp"
 #include "testores/infrastructure/output_file.hpp"
 #include "testores/infrastructure/result_export.hpp"
@@ -42,12 +43,16 @@ const std::set<std::string> kFlags = {"--forzar", "--traza", "--completo"};
 const std::map<std::string, std::set<std::string>> kAllowedOptions = {
     {"generar", {"--filas", "--columnas", "--prob", "--semilla", "--salida", "--salida-basica", "--forzar"}},
     {"basica", {"--entrada", "--salida", "--forzar"}},
+    {"ordenar", {"--entrada", "--salida", "--forzar"}},
+    {"theta", {"--entrada-a", "--entrada-b", "--salida", "--forzar"}},
+    {"phi", {"--entrada", "--copias", "--salida", "--forzar"}},
+    {"gamma", {"--entrada", "--copias", "--salida", "--forzar"}},
     {"buscar",
      {"--filas", "--columnas", "--prob", "--densidad-min", "--min-filas-basica", "--max-filas-basica", "--semilla",
       "--intentos", "--salida", "--forzar"}},
     {"yyc",
-     {"--entrada", "--traza", "--completo", "--repeticiones", "--csv", "--latex", "--latex-matriz", "--forzar"}},
-    {"bt", {"--entrada", "--traza", "--completo", "--repeticiones", "--csv", "--latex", "--latex-traza", "--forzar"}},
+     {"--entrada", "--traza", "--completo", "--repeticiones", "--csv", "--latex", "--latex-matriz", "--testores-salida", "--forzar"}},
+    {"bt", {"--entrada", "--traza", "--completo", "--repeticiones", "--csv", "--latex", "--latex-traza", "--testores-salida", "--forzar"}},
     {"ayuda", {}},
     {"menu", {}},
 };
@@ -76,6 +81,19 @@ void printUsage(std::ostream& out) {
            "      Ejercicios 3.1-3.3: algoritmo BT; muestra los testores encontrados,\n"
            "      cuáles son típicos y el tiempo total. --traza explica cada n-uplo α\n"
            "      analizado y cada salto. --repeticiones reporta la mediana de R tiempos.\n\n"
+           "  theta    --entrada-a archivo --entrada-b archivo --salida archivo [--forzar]\n"
+           "      Ejercicio 5.1: concatena cada fila de A con cada fila de B.\n"
+           "      Las dos entradas deben ser matrices básicas.\n\n"
+           "  phi      --entrada archivo --copias N --salida archivo [--forzar]\n"
+           "      Ejercicio 5.1: N copias horizontales de una matriz básica.\n"
+           "      N cuenta los bloques; con N=1 se conserva la matriz original.\n\n"
+           "  gamma    --entrada archivo --copias N --salida archivo [--forzar]\n"
+           "      Ejercicio 5.1: N copias diagonales, completando con ceros.\n"
+           "      N=1 conserva la matriz original. La entrada debe ser básica.\n\n"
+           "  ordenar  --entrada archivo --salida archivo [--forzar]\n"
+           "      Ordena filas por cantidad ascendente de unos, con empates estables.\n\n"
+           "  YYC y BT aceptan --testores-salida archivo para guardar todos sus\n"
+           "  testores típicos finales como filas binarias, fuera de la medición.\n\n"
            "  ayuda    Muestra este mensaje.\n\n"
            "Formato de archivo: una fila por línea con 0/1 (separadores ' ', ',', ';'\n"
            "opcionales); '#' inicia un comentario.\n";
@@ -246,6 +264,62 @@ int commandGenerate(const ParsedArguments& args, std::ostream& out) {
     return 0;
 }
 
+int commandTheta(const ParsedArguments& args, std::ostream& out) {
+    const std::string inputA = requireOption(args, "--entrada-a");
+    const std::string inputB = requireOption(args, "--entrada-b");
+    const std::string output = requireOption(args, "--salida");
+    const BooleanMatrix a = infrastructure::loadMatrix(inputA);
+    const BooleanMatrix b = infrastructure::loadMatrix(inputB);
+    if (!domain::isBasicMatrix(a) || !domain::isBasicMatrix(b)) {
+        throw std::invalid_argument("Theta requiere matrices básicas; use el comando basica para reducirlas primero");
+    }
+    const BooleanMatrix result = domain::theta(a, b);
+    infrastructure::saveMatrix(output, result,
+                               {"Theta(A,B): " + inputA + " | " + inputB},
+                               args.flags.count("--forzar") > 0);
+    showMatrix(out, result, "THETA(A,B)");
+    out << "Filas: " << a.rows() << " * " << b.rows() << " = " << result.rows()
+        << "\nColumnas: " << a.cols() << " + " << b.cols() << " = " << result.cols()
+        << "\nDensidad: " << result.density()
+        << "\nMatriz guardada en " << output << '\n';
+    return 0;
+}
+
+int commandCopies(const ParsedArguments& args, std::ostream& out) {
+    const bool diagonal = args.command == "gamma";
+    const std::string name = diagonal ? "Gamma" : "Phi";
+    const std::string input = requireOption(args, "--entrada");
+    const std::string output = requireOption(args, "--salida");
+    (void)requireOption(args, "--copias");
+    const std::size_t copies = sizeOption(args, "--copias", 1, 1, MatrixLimits::kMaxCols);
+    const BooleanMatrix matrix = infrastructure::loadMatrix(input);
+    if (!domain::isBasicMatrix(matrix)) {
+        throw std::invalid_argument(name + " requiere una matriz básica; use el comando basica para reducirla primero");
+    }
+    const BooleanMatrix result = diagonal ? domain::gammaPower(matrix, copies) : domain::phiPower(matrix, copies);
+    infrastructure::saveMatrix(output, result,
+                               {name + "^" + std::to_string(copies) + " de " + input},
+                               args.flags.count("--forzar") > 0);
+    showMatrix(out, result, (diagonal ? "GAMMA^" : "PHI^") + std::to_string(copies));
+    out << "Filas: " << result.rows()
+        << "\nColumnas: " << matrix.cols() << " * " << copies << " = " << result.cols()
+        << "\nDensidad: " << result.density()
+        << "\nMatriz guardada en " << output << '\n';
+    return 0;
+}
+
+int commandSort(const ParsedArguments& args, std::ostream& out) {
+    const std::string input = requireOption(args, "--entrada");
+    const std::string output = requireOption(args, "--salida");
+    const BooleanMatrix matrix = infrastructure::loadMatrix(input);
+    const BooleanMatrix sorted = domain::sortRowsByOnes(matrix);
+    infrastructure::saveMatrix(output, sorted, {"Filas ordenadas por cantidad de unos: " + input},
+                               args.flags.count("--forzar") > 0);
+    showMatrix(out, sorted, "ORDEN ASCENDENTE POR CANTIDAD DE UNOS");
+    out << "Matriz guardada en " << output << '\n';
+    return 0;
+}
+
 int commandBasic(const ParsedArguments& args, std::ostream& out) {
     const std::string input = requireOption(args, "--entrada");
     const BooleanMatrix matrix = infrastructure::loadMatrix(input);
@@ -302,6 +376,12 @@ int commandYyc(const ParsedArguments& args, std::ostream& out) {
     const std::size_t shown = args.flags.count("--completo") > 0 ? kShowAll : kDefaultShownSets;
     const YycRunResult result = executeYyc(out, basic, args.flags.count("--traza") > 0, repetitions, shown);
 
+    if (const auto path = optionalOption(args, "--testores-salida")) {
+        infrastructure::saveMatrix(*path, BooleanMatrix(basic.cols(), result.typicalTestors),
+                                   {"Testores típicos finales de " + input}, overwrite);
+        out << "Testores típicos completos guardados en " << *path << '\n';
+    }
+
     if (const auto path = optionalOption(args, "--csv")) {
         infrastructure::exportYycCsv(*path, result, overwrite);
         out << "Tabla CSV guardada en " << *path << '\n';
@@ -328,6 +408,12 @@ int commandBt(const ParsedArguments& args, std::ostream& out) {
     const std::size_t shown = args.flags.count("--completo") > 0 ? kShowAll : kDefaultShownSets;
     const bool explain = args.flags.count("--traza") > 0 || args.options.count("--latex-traza") > 0;
     const BtRunResult result = executeBt(out, basic, explain, repetitions, shown);
+
+    if (const auto path = optionalOption(args, "--testores-salida")) {
+        infrastructure::saveMatrix(*path, BooleanMatrix(basic.cols(), result.run.typicalTestors),
+                                   {"Testores típicos finales de " + input}, overwrite);
+        out << "Testores típicos completos guardados en " << *path << '\n';
+    }
 
     if (const auto path = optionalOption(args, "--csv")) {
         infrastructure::exportBtCsv(*path, result, overwrite);
@@ -644,6 +730,15 @@ int runApplication(const std::vector<std::string>& args, std::istream& in, std::
         }
         if (parsed.command == "basica") {
             return commandBasic(parsed, out);
+        }
+        if (parsed.command == "ordenar") {
+            return commandSort(parsed, out);
+        }
+        if (parsed.command == "theta") {
+            return commandTheta(parsed, out);
+        }
+        if (parsed.command == "phi" || parsed.command == "gamma") {
+            return commandCopies(parsed, out);
         }
         if (parsed.command == "buscar") {
             return commandSearch(parsed, out);

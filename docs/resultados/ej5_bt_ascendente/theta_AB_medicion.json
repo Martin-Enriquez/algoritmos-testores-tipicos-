@@ -1,0 +1,15 @@
+{
+  "matriz": "docs/resultados/ej5_yyc_ascendente/matrices/theta_AB_ascendente.txt",
+  "sha256": "02BBF7FBE0A0A3E3566671906E76AACBFB6457E67E69B55BEFFB655CBF2209DC",
+  "estado": "completado",
+  "orden": "ascendente",
+  "matriz_original": "data/theta_AB.txt",
+  "sha256_original": "0C3327FDF0EBC17077BEA54C3D4981840DEC0FCBF5179DF80DDA9D14619A611B",
+  "limite_proceso_s": 60,
+  "tiempo_proceso_s": "0.345",
+  "bt_ascendente_ms": "1.278900",
+  "testores_esperados": 14,
+  "testores_obtenidos": 14,
+  "coincide_con_YYC": true,
+  "codigo_salida": 0
+}

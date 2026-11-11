@@ -42,6 +42,7 @@ add_library(testores_domain STATIC
     src/domain/column_set.cpp
     src/domain/boolean_matrix.cpp
     src/domain/basic_matrix.cpp
+    src/domain/matrix_operators.cpp
     src/domain/testor.cpp
     src/domain/yyc.cpp
     src/domain/bt.cpp

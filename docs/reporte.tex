@@ -934,6 +934,196 @@ encontrados está en \texttt{docs/resultados/bt\_A.csv}.}
 \end{itemize}
 
 % ==============================================================================
+\section{Ejercicio 4: construcción y análisis de la matriz $B$}
+\label{sec:ejercicio4}
+% ==============================================================================
+
+\subsection{Ejercicio 4.1: construcción de la matriz $B$}
+
+Los algoritmos YYC y BT obtuvieron los mismos ocho testores típicos de la matriz $A$, de acuerdo con los resultados presentados en los ejercicios anteriores. Utilizamos la notación $\Psi^{*}(M)$ para representar el conjunto de testores típicos de una matriz $M$, siguiendo la terminología de \cite{yyc2014,guevara}. En este caso,
+\[
+\begin{aligned}
+\Psi^{*}(A)=\big\{&
+\{x_1,x_3\},\{x_1,x_4\},\{x_1,x_6\},\{x_1,x_7\},\\
+&\{x_4,x_5\},\{x_2,x_6,x_7\},\{x_3,x_4,x_6\},
+\{x_4,x_6,x_7\}\big\}.
+\end{aligned}
+\]
+
+Para construir $B$, convertimos cada testor típico en una fila binaria de siete posiciones, correspondientes a las características $x_1,\ldots,x_7$, como pide el ejercicio 4.1 del proyecto \cite{proyecto}. Escribimos un 1 cuando la característica pertenece al testor y un 0 cuando no pertenece. Por ejemplo,
+\[
+\{x_1,x_3\}\longrightarrow(1,0,1,0,0,0,0).
+\]
+
+Al convertir los ocho testores típicos, obtenemos la matriz
+\[
+B=\begin{pmatrix}
+1&0&1&0&0&0&0\\
+1&0&0&1&0&0&0\\
+1&0&0&0&0&1&0\\
+1&0&0&0&0&0&1\\
+0&0&0&1&1&0&0\\
+0&1&0&0&0&1&1\\
+0&0&1&1&0&1&0\\
+0&0&0&1&0&1&1
+\end{pmatrix}.
+\]
+
+La matriz $B$ tiene ocho filas, siete columnas y diecinueve unos. Por tanto, su densidad es
+\[
+\rho(B)=\frac{19}{8\cdot7}=\frac{19}{56}\approx0.3393.
+\]
+Este resultado cumple el enunciado, ya que la condición de densidad mayor o igual a $0.4$ se exigió para $A$, no para $B$ \cite{proyecto}.
+
+\subsubsection*{Demostración de que $B$ es básica}
+
+Para demostrar que $B$ es una matriz básica, verificamos que no tiene filas nulas, filas repetidas ni superfilas. Estas condiciones corresponden a la definición de matriz básica utilizada en la teoría de testores \cite{shul82,guevara}.
+
+\begin{enumerate}
+    \item \textbf{Ausencia de filas nulas.}
+    Una fila nula es aquella cuyas entradas son todas iguales a cero. En $B$, las primeras cinco filas contienen dos unos y las tres restantes contienen tres unos. Por lo tanto, ninguna de sus filas es nula.
+
+    \item \textbf{Ausencia de filas repetidas.}
+    Los ocho testores típicos de $A$ utilizados para construir $B$ son distintos. Como cada conjunto tiene una representación binaria única para el orden de columnas $x_1,x_2,\ldots,x_7$, las filas correspondientes también son distintas. Por tanto, $B$ no contiene filas repetidas.
+
+    \item \textbf{Ausencia de superfilas.}
+    Una fila es superfila de otra si contiene unos en todas las posiciones donde la otra tiene unos y, además, tiene al menos un uno adicional. En términos de conjuntos, esto significa que el conjunto representado por una fila contiene estrictamente al representado por la otra.
+
+    Supongamos que en $B$ existe una fila que es superfila de otra. Si los testores típicos de $A$ representados por estas filas son $T_j$ y $T_i$, respectivamente, entonces
+    \[
+      T_i\subsetneq T_j.
+    \]
+    Como $T_i$ es un testor de $A$, sus características son suficientes para cubrir todas las filas de $A$. Por tanto, $T_j$ contiene un subconjunto propio que ya es testor. Esto contradice la tipicidad de $T_j$, pues un testor típico es minimal por inclusión, es decir, ninguno de sus subconjuntos propios puede ser testor. En consecuencia, ninguna fila de $B$ es superfila de otra.
+\end{enumerate}
+
+Por lo tanto, $B$ cumple las tres condiciones de la definición y se concluye que \textbf{$B$ es una matriz básica}. Este resultado también concuerda con el lema 2.18 presentado por Guevara Romero \cite{guevara}, según el cual la matriz construida con los testores típicos de una matriz básica es igualmente básica.
+
+\subsection{Ejercicio 4.2: aplicación del algoritmo BT sobre $B$}
+
+Se utilizó la implementación del algoritmo BT para procesar la matriz $B$, almacenada, según el texto de trabajo, en el archivo \texttt{data/matriz\_B.txt}. Se indica el siguiente comando de ejecución:
+\begin{verbatim}
+testores bt --entrada data/matriz_B.txt --completo
+\end{verbatim}
+
+En la ejecución reportada, BT analizó 45 de los $2^7-1=127$ subconjuntos no vacíos posibles. Mediante sus reglas de salto, omitió los 82 candidatos restantes, siguiendo la estrategia de búsqueda del algoritmo BT \cite{shul82}. Durante ese recorrido se reportaron 20 testores, de los cuales 6 son típicos y 14 no típicos. Los seis testores típicos de $B$, comprobados también a partir de la matriz binaria, se presentan en la Tabla~\ref{tab:testores-tipicos-B}.
+
+\begin{table}[htbp]
+    \centering
+    \begin{tabular}{clc}
+        \toprule
+        Número & Testor típico de $B$ & Representación binaria \\
+        \midrule
+        1 & $\{x_1,x_2,x_4\}$ & \texttt{1101000} \\
+        2 & $\{x_1,x_4,x_6\}$ & \texttt{1001010} \\
+        3 & $\{x_1,x_4,x_7\}$ & \texttt{1001001} \\
+        4 & $\{x_1,x_5,x_6\}$ & \texttt{1000110} \\
+        5 & $\{x_1,x_3,x_5,x_7\}$ & \texttt{1010101} \\
+        6 & $\{x_3,x_4,x_6,x_7\}$ & \texttt{0011011} \\
+        \bottomrule
+    \end{tabular}
+    \caption{Testores típicos de la matriz $B$.}
+    \label{tab:testores-tipicos-B}
+\end{table}
+
+La tipicidad se verificó mediante dos procedimientos. Durante la ejecución se comprobó que cada característica del testor tuviera una fila típica, es decir, una fila cubierta únicamente por esa característica dentro del testor. Posteriormente, se identificaron los conjuntos minimales por inclusión entre los testores encontrados. Ambos procedimientos produjeron los mismos seis testores típicos. El criterio de las filas típicas coincide con la caracterización teórica de tipicidad \cite{yyc2014,guevara}.
+
+El tiempo total registrado en el texto de trabajo fue de $41.8\,\mu\mathrm{s}$. Este valor corresponde a una ejecución individual y puede variar según las condiciones del equipo.
+
+\medskip
+\noindent\textit{[FALTA INFORMACIÓN: no se adjuntaron el código ejecutable ni el registro de salida de BT para confirmar de manera independiente el comando utilizado, los 45 subconjuntos analizados, los 20 testores reportados y el tiempo de $41.8\,\mu\mathrm{s}$. Los seis testores típicos de la tabla sí se verificaron a partir de la matriz $B$.]}
+
+\subsection{Ejercicio 4.3: comparación entre $A$ y $B$}
+
+\subsubsection*{Comparación de las matrices}
+
+Las matrices $A$ y $B$ son básicas y tienen siete columnas, que representan las mismas características $x_1,\ldots,x_7$. Sin embargo, difieren en su número de filas, densidad y cantidad de testores típicos. La Tabla~\ref{tab:comparacion-A-B} resume estas propiedades.
+
+\begin{table}[htbp]
+    \centering
+    \begin{tabular}{lcc}
+        \toprule
+        Propiedad & Matriz $A$ & Matriz $B$ \\
+        \midrule
+        Número de filas & 6 & 8 \\
+        Número de columnas & 7 & 7 \\
+        Cantidad de unos & 20 & 19 \\
+        Densidad & $20/42\approx0.4762$ & $19/56\approx0.3393$ \\
+        Número de testores típicos & 8 & 6 \\
+        Tamaños de los testores típicos & 2 y 3 & 3 y 4 \\
+        Es matriz básica & Sí & Sí \\
+        \bottomrule
+    \end{tabular}
+    \caption{Comparación de las matrices $A$ y $B$.}
+    \label{tab:comparacion-A-B}
+\end{table}
+
+La matriz $B$ tiene ocho filas porque se construyó a partir de los ocho testores típicos de $A$. Cada fila indica, mediante sus unos, las características que pertenecen al testor correspondiente. Aunque ambas matrices son básicas, sus densidades son diferentes. Por tanto, en este caso la construcción conserva el número de columnas y la basicidad, pero no conserva el número de filas ni la densidad.
+
+\subsubsection*{Relación entre las filas y los testores típicos}
+
+Al calcular los testores típicos de $B$, se obtuvieron seis conjuntos. Sus representaciones binarias coinciden exactamente con las seis filas de $A$, aunque aparecen en un orden diferente, como se observa en la Tabla~\ref{tab:correspondencia-A-B}.
+
+\begin{table}[htbp]
+    \centering
+    \begin{tabular}{ccl}
+        \toprule
+        Fila de $A$ & Representación binaria & Testor típico de $B$ \\
+        \midrule
+        $r_1$ & \texttt{1010101} & $\{x_1,x_3,x_5,x_7\}$ \\
+        $r_2$ & \texttt{1000110} & $\{x_1,x_5,x_6\}$ \\
+        $r_3$ & \texttt{1101000} & $\{x_1,x_2,x_4\}$ \\
+        $r_4$ & \texttt{0011011} & $\{x_3,x_4,x_6,x_7\}$ \\
+        $r_5$ & \texttt{1001010} & $\{x_1,x_4,x_6\}$ \\
+        $r_6$ & \texttt{1001001} & $\{x_1,x_4,x_7\}$ \\
+        \bottomrule
+    \end{tabular}
+    \caption{Correspondencia entre las filas de $A$ y los testores típicos de $B$.}
+    \label{tab:correspondencia-A-B}
+\end{table}
+
+Para expresar esta relación, denotamos por $\mathcal{R}(M)$ la familia de conjuntos representados por las filas de una matriz $M$, y por $\Psi^{*}(M)$ su conjunto de testores típicos. Por la construcción de $B$ y los resultados obtenidos, se cumple
+\[
+\mathcal{R}(B)=\Psi^{*}(A),
+\qquad
+\mathcal{R}(A)=\Psi^{*}(B).
+\]
+Esta relación es una dualidad entre las restricciones representadas por las filas y las selecciones minimales de características que permiten satisfacerlas. También aparece como propiedad de doble aplicación de los testores típicos en el lema 2.19 de \cite{guevara}.
+
+\subsubsection*{Justificación de la dualidad}
+
+Sea $X=\{x_1,\ldots,x_7\}$ el conjunto de características. Interpretamos cada fila como el conjunto de columnas donde tiene unos.
+
+Primero, cualquier fila $R$ de $A$ intersecta todos los testores típicos de $A$, porque estos deben cubrir todas las filas. Como dichos testores constituyen las filas de $B$, el conjunto $R$ es un testor de $B$. Cualquier conjunto que contenga una fila de $A$ también será testor de $B$.
+
+Ahora demostraremos que todo testor de $B$ debe contener alguna fila completa de $A$. Supongamos que un conjunto $S$ no contiene ninguna fila completa de $A$. Entonces cada fila de $A$ tiene al menos una característica fuera de $S$. Por tanto, el complemento $X\setminus S$ cubre todas las filas de $A$ y es un testor de esta matriz.
+
+Al eliminar las características que sobren de ese complemento, se obtiene un testor típico $T$ de $A$ tal que
+\[
+T\subseteq X\setminus S.
+\]
+El conjunto $T$ es una fila de $B$ y no tiene características en común con $S$. Por ello, $S$ no cubre esa fila y no puede ser testor de $B$.
+
+Así, los testores de $B$ son precisamente los conjuntos que contienen alguna fila de $A$. Como $A$ es básica, ninguna de sus filas contiene a otra. En consecuencia, sus filas son exactamente los testores minimales por inclusión de $B$, es decir, sus testores típicos.
+
+\subsubsection*{Conclusiones}
+
+Los conjuntos de testores típicos de $A$ y $B$ son diferentes, tanto en su cantidad como en sus elementos. Sin embargo, existe una correspondencia recíproca entre las filas de una matriz y los testores típicos de la otra.
+
+Si se construye una nueva matriz $C$ utilizando las representaciones binarias de todos los testores típicos de $B$, se recupera $A$, salvo una posible permutación de sus filas. Por tanto, esta construcción es reversible para la matriz básica estudiada. La condición de basicidad de $A$ garantiza que todas sus filas son necesarias en esta correspondencia, pues ninguna es redundante por repetición o por ser superfila de otra.
+
+La construcción conserva las columnas y la basicidad, pero en este caso cambia el número de filas, la densidad y la cantidad de testores típicos. Aunque $B$ tiene más filas que $A$, posee menos testores típicos. Por ello, tener más filas no implica necesariamente tener más testores típicos.
+
+% ==============================================================================
+\clearpage
+\section{Ejercicio 5}
+\label{sec:ejercicio5}
+% Espacio reservado para incorporar el desarrollo del ejercicio 5.
+% Añadir aquí las subsecciones, tablas, resultados y conclusiones.
+\noindent\textit{Espacio reservado para el desarrollo del ejercicio 5.}
+\vfill
+\clearpage
+
+% ==============================================================================
 \begin{thebibliography}{9}
 % ==============================================================================
 
@@ -975,6 +1165,19 @@ pseudo-random number generator.
 ISO/IEC 14882:2017.
 \newblock \emph{Programming languages --- C\texttt{++}}. International Organization for
 Standardization, 2017.
+
+\bibitem{guevara}
+I.~J.~Guevara Romero.
+\newblock \emph{Implementación computacional del algoritmo LEX para el cálculo
+de testores típicos usando aprendizaje simbólico}.
+\newblock Trabajo de titulación de Ingeniería Matemática, Escuela Politécnica
+Nacional, Quito, mayo de 2021. Lemas 2.18 y 2.19.
+
+\bibitem{proyecto}
+\emph{Proyecto: algoritmos para el cálculo de todos los testores típicos de una
+matriz básica}.
+\newblock Enunciado del proyecto de Matemáticas Discretas, Universidad San
+Francisco de Quito, semestre 202610. Ejercicio 4.
 
 \end{thebibliography}
 
