@@ -7,8 +7,9 @@ manuales no se atribuyen a la versión corregida; su serie automática queda
 separada en `docs/resultados/experimentos.csv`.
 
 `mediciones.csv` transcribe los tiempos comunicados por el usuario en el chat,
-convertidos a milisegundos. No reemplaza las series automáticas de las carpetas
-`ej5_yyc_original`, `ej5_yyc_ascendente`, `ej5_bt_original` y `ej5_bt_ascendente`.
+convertidos a milisegundos. Las series automáticas previas con límite de 60 s
+se eliminaron del repositorio porque el reporte no las utiliza; la serie
+reproducible con el código actual está en `docs/resultados/experimentos*`.
 
 El usuario confirmó que las 19 h 14 min 43 s corresponden a BT sobre gamma3
 en orden original y al tiempo reportado por el programa C++. La conversión es

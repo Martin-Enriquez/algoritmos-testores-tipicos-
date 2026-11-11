@@ -6,7 +6,7 @@
 )
 $ErrorActionPreference = 'Stop'
 if (-not (Get-Command -Name $Python -ErrorAction SilentlyContinue)) {
-    throw 'No se encontr? Python. Indique su ejecutable con -Python ruta/al/python.exe.'
+    throw 'No se encontró Python. Indique su ejecutable con -Python ruta/al/python.exe.'
 }
 $previousConsoleEncoding = [Console]::OutputEncoding
 $previousOutputEncoding = $OutputEncoding
@@ -49,7 +49,7 @@ try {
     Invoke-Testores -NativeArguments @('bt','--entrada','data/matriz_B.txt','--traza','--completo') -Log "$out/bt_B_traza.txt"
     & $Python scripts/actualizar_metadatos.py --build $BuildDirectory --repeticiones $Repeticiones --limite-ms $LimiteMs
     if ($LASTEXITCODE -ne 0) { throw 'Falló la generación de metadatos.' }
-    Write-Output 'Resultados y estados de ejecuci?n guardados en docs/resultados.'
+    Write-Output 'Resultados y estados de ejecución guardados en docs/resultados.'
 } finally {
     Pop-Location
     [Console]::OutputEncoding = $previousConsoleEncoding

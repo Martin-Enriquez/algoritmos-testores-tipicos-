@@ -1,6 +1,0 @@
-"N","matriz","filas","columnas","testores_esperados","bt_original_ms","estado","limite_proceso_s","tiempo_proceso_s"
-"1","phi^1(theta(A,B))","48","14","14","1.136400","completado","60","0.167"
-"2","phi^2(theta(A,B))","48","28","108","","limite_proceso","60","60.150"
-"3","phi^3(theta(A,B))","48","42","396","","limite_proceso","60","60.310"
-"4","phi^4(theta(A,B))","48","56","1040","","limite_proceso","60","60.175"
-"5","phi^5(theta(A,B))","48","70","2250","","limite_proceso","60","60.244"

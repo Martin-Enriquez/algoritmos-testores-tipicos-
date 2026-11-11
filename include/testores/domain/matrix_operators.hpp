@@ -1,8 +1,13 @@
 #pragma once
 
+#include <cstddef>
+
 #include "testores/domain/boolean_matrix.hpp"
 
 namespace testores::domain {
+
+// Operadores de Alba-Cabrera et al. (2016). No reducen ni reordenan filas y
+// validan las dimensiones antes de reservar memoria (std::invalid_argument).
 
 // Concatena cada fila de a con cada fila de b (a como bloque izquierdo).
 // Orden: a1|b1, a1|b2, ..., a2|b1, ... . No reduce ni reordena.
@@ -24,11 +29,6 @@ BooleanMatrix gamma(const BooleanMatrix& a, const BooleanMatrix& b);
 // gamma^copies(a): copies bloques diagonales; gamma^1(a) = a.
 // Dimensiones: (copies * a.rows()) x (copies * a.cols()).
 BooleanMatrix gammaPower(const BooleanMatrix& a, std::size_t copies);
-
-// Nombres usados por el ejecutable de experimentos de main.
-BooleanMatrix repeatPhi(const BooleanMatrix& matrix, std::size_t copies);
-BooleanMatrix repeatGamma(const BooleanMatrix& matrix, std::size_t copies);
-BooleanMatrix sortRowsAscending(const BooleanMatrix& matrix);
 
 // Orden ascendente por cantidad de unos. En empates conserva el orden original.
 // No cambia las columnas ni elimina filas.

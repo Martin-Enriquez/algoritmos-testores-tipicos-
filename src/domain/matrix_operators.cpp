@@ -1,7 +1,7 @@
 #include "testores/domain/matrix_operators.hpp"
 
-#include <stdexcept>
 #include <algorithm>
+#include <stdexcept>
 #include <utility>
 #include <vector>
 
@@ -128,25 +128,6 @@ BooleanMatrix sortRowsByOnes(const BooleanMatrix& matrix) {
         return a.count() < b.count();
     });
     return BooleanMatrix(matrix.cols(), std::move(rows));
-}
-
-BooleanMatrix repeatPhi(const BooleanMatrix& matrix, std::size_t copies) {
-    if (!matrix.empty() && copies > MatrixLimits::kMaxCols / matrix.cols()) {
-        throw std::length_error("Phi iterado excede el límite de columnas");
-    }
-    return phiPower(matrix, copies);
-}
-
-BooleanMatrix repeatGamma(const BooleanMatrix& matrix, std::size_t copies) {
-    if (!matrix.empty() && (copies > MatrixLimits::kMaxCols / matrix.cols() ||
-                           copies > MatrixLimits::kMaxRows / matrix.rows())) {
-        throw std::length_error("Gamma iterado excede los límites de la matriz");
-    }
-    return gammaPower(matrix, copies);
-}
-
-BooleanMatrix sortRowsAscending(const BooleanMatrix& matrix) {
-    return sortRowsByOnes(matrix);
 }
 
 }  // namespace testores::domain

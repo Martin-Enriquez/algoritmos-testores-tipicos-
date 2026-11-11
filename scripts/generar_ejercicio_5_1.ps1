@@ -1,5 +1,5 @@
 param(
-    [string]$Ejecutable = 'build-review/Release/testores.exe',
+    [string]$Ejecutable = '',
     [string]$SalidaMatrices = 'data/ej5_1',
     [string]$SalidaResultados = 'docs/resultados/ej5_1',
     [switch]$Forzar
@@ -8,7 +8,11 @@ param(
 $ErrorActionPreference = 'Stop'
 Push-Location -LiteralPath (Split-Path -Parent $PSScriptRoot)
 try {
-    if (-not (Test-Path -LiteralPath $Ejecutable -PathType Leaf)) { throw 'Compile primero el programa en Release.' }
+    if (-not $Ejecutable) {
+        $Ejecutable = @('build/testores.exe', 'build/Release/testores.exe', 'build/testores') |
+            Where-Object { Test-Path -LiteralPath $_ -PathType Leaf } | Select-Object -First 1
+    }
+    if (-not $Ejecutable -or -not (Test-Path -LiteralPath $Ejecutable -PathType Leaf)) { throw 'Compile primero el programa en Release.' }
     foreach ($folder in @($SalidaMatrices, $SalidaResultados)) {
         if ((Test-Path -LiteralPath $folder) -and -not $Forzar) {
             throw "Ya existe $folder. Use otra carpeta de salida o -Forzar para reemplazar la generación."

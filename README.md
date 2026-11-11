@@ -116,25 +116,26 @@ El dominio no conoce archivos, consola ni reloj del sistema. Aplicación define 
 
 Martín Enríquez, Paula Gallardo y Eduardo Tapia. Profesor: Eduardo Alba.
 
-## Desarrollo y serie manual conservados de ejercicio_4
+## Ejercicios 4 y 5: comandos individuales y serie manual
 
-El reporte principal conserva el desarrollo detallado de los ejercicios 4 y 5
-preparado en esta rama e incorpora las correcciones matemáticas de main.
-Los tiempos de `docs/resultados/ej5_manual/` pertenecen a la versión previa
-que elegía la primera fila sin cubrir en BT; son una serie histórica y no
-se presentan como mediciones de la implementación corregida. Las tablas del
-nuevo ejecutable están en `docs/resultados/experimentos*.tex` y `experimentos.csv`.
+El reporte integra el desarrollo de los ejercicios 4 y 5 de la rama `ejercicio_4`
+con el formato y las correcciones de `main`. La tabla principal de 5.2 es la serie
+manual de `docs/resultados/ej5_manual/`; sus columnas de BT se midieron con la
+versión previa de BT (primera fila sin cubrir en S1), lo que el reporte indica
+explícitamente. La serie reproducible con el código actual está en
+`docs/resultados/experimentos*.tex` y `experimentos.csv`.
 
-Se conservan los comandos individuales `theta`, `phi`, `gamma`, `ordenar` y
-la exportación `--testores-salida` de YYC y BT. La presentación accede a los
-archivos mediante los puertos inyectados en `CliServices`.
+Operadores y ordenamiento desde la línea de comandos:
 
 ```powershell
-.\scripts\generar_ejercicio_5_1.ps1
+.uild	estores.exe theta --entrada-a data/matriz_A.txt --entrada-b data/matriz_B.txt --salida theta_AB.txt
+.uild	estores.exe phi   --entrada theta_AB.txt --copias 2 --salida phi2.txt
+.uild	estores.exe gamma --entrada theta_AB.txt --copias 2 --salida gamma2.txt
+.uild	estores.exe ordenar --entrada theta_AB.txt --salida theta_AB_asc.txt
+.uild	estores.exe yyc --entrada phi2.txt --testores-salida testores_phi2.txt
 ```
 
-Este script genera las familias en `data/ej5_1/` y sus comprobaciones en
-`docs/resultados/ej5_1/`. Para repetirlo se puede indicar otra salida o `-Forzar`.
-Los nombres `phiPower`, `gammaPower` y `sortRowsByOnes` siguen disponibles;
-`repeatPhi`, `repeatGamma` y `sortRowsAscending` permiten usar el nuevo
-módulo de experimentos sin romper los comandos y pruebas de esta rama.
+`scripts/generar_ejercicio_5_1.ps1` regenera las familias en `data/ej5_1/` y sus
+comprobaciones en `docs/resultados/ej5_1/` (use `-Forzar` para reemplazarlas).
+En el dominio, los operadores son `theta`, `phi`, `phiPower`, `gamma`,
+`gammaPower` y `sortRowsByOnes`.

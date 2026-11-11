@@ -297,19 +297,16 @@ El script utiliza los archivos \texttt{data/matriz\_A.txt} y
 \texttt{data/ej5\_1/} y las tablas y comprobaciones en
 \texttt{docs/resultados/ej5\_1/}. Si esas carpetas ya existen,
 se debe indicar otra salida o añadir \texttt{-Forzar} para
-reemplazar esa generación. Los archivos originales empleados
-en las mediciones manuales permanecen en \texttt{data/}.
+reemplazar esa generación. Estas matrices son idénticas a las que
+guarda \texttt{testores\_experimentos} en \texttt{docs/resultados/}.
 
 También se puede generar cada operación individualmente:
 \begin{Verbatim}[fontsize=\small, frame=single]
-$exe = ".\build-review\Release\testores.exe"
-& $exe theta --entrada-a data/matriz_A.txt `
-    --entrada-b data/matriz_B.txt `
-    --salida data/ejemplo_theta.txt
-& $exe phi --entrada data/ejemplo_theta.txt `
-    --copias 2 --salida data/ejemplo_phi2.txt
-& $exe gamma --entrada data/ejemplo_theta.txt `
-    --copias 2 --salida data/ejemplo_gamma2.txt
+testores theta --entrada-a data/matriz_A.txt --entrada-b data/matriz_B.txt \
+               --salida ejemplo_theta.txt
+testores phi     --entrada ejemplo_theta.txt --copias 2 --salida ejemplo_phi2.txt
+testores gamma   --entrada ejemplo_theta.txt --copias 2 --salida ejemplo_gamma2.txt
+testores ordenar --entrada ejemplo_theta.txt --salida ejemplo_theta_asc.txt
 \end{Verbatim}
 
 El script comprueba todas las filas generadas contra las

@@ -48,10 +48,10 @@ std::vector<ExperimentCase> buildExperimentCases(const domain::BooleanMatrix& a)
     for (std::size_t n = 1; n <= 5; ++n) {
         std::size_t count = 0;
         for (const auto size : sizes) count = checkedAdd(count, power(n, size));
-        cases.push_back({"phi", n, domain::repeatPhi(base,n), count});
+        cases.push_back({"phi", n, domain::phiPower(base,n), count});
     }
     for (std::size_t n = 1; n <= 4; ++n)
-        cases.push_back({"gamma", n, domain::repeatGamma(base,n), power(sizes.size(),n)});
+        cases.push_back({"gamma", n, domain::gammaPower(base,n), power(sizes.size(),n)});
     return cases;
 }
 
@@ -60,7 +60,7 @@ ExperimentMeasurements measureExperiment(const ExperimentCase& experiment, Clock
     if (options.repetitions == 0 || options.repetitions > 10000 || options.timeLimit.count() < 0)
         throw std::invalid_argument("Repeticiones fuera de [1,10000] o límite negativo");
     ExperimentMeasurements measurements;
-    const auto ascending = domain::sortRowsAscending(experiment.matrix);
+    const auto ascending = domain::sortRowsByOnes(experiment.matrix);
     std::optional<std::vector<domain::ColumnSet>> reference;
     for (std::size_t method = 0; method < measurements.size(); ++method) {
         auto& measurement = measurements[method];
