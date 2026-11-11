@@ -128,11 +128,11 @@ explícitamente. La serie reproducible con el código actual está en
 Operadores y ordenamiento desde la línea de comandos:
 
 ```powershell
-.uild	estores.exe theta --entrada-a data/matriz_A.txt --entrada-b data/matriz_B.txt --salida theta_AB.txt
-.uild	estores.exe phi   --entrada theta_AB.txt --copias 2 --salida phi2.txt
-.uild	estores.exe gamma --entrada theta_AB.txt --copias 2 --salida gamma2.txt
-.uild	estores.exe ordenar --entrada theta_AB.txt --salida theta_AB_asc.txt
-.uild	estores.exe yyc --entrada phi2.txt --testores-salida testores_phi2.txt
+.\build\testores.exe theta --entrada-a data/matriz_A.txt --entrada-b data/matriz_B.txt --salida theta_AB.txt
+.\build\testores.exe phi   --entrada theta_AB.txt --copias 2 --salida phi2.txt
+.\build\testores.exe gamma --entrada theta_AB.txt --copias 2 --salida gamma2.txt
+.\build\testores.exe ordenar --entrada theta_AB.txt --salida theta_AB_asc.txt
+.\build\testores.exe yyc --entrada phi2.txt --testores-salida testores_phi2.txt
 ```
 
 `scripts/generar_ejercicio_5_1.ps1` regenera las familias en `data/ej5_1/` y sus
