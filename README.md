@@ -12,8 +12,11 @@ Proyecto de **Matemáticas Discretas (USFQ, 202610)**: implementación, evaluaci
 | 3.1 Ejecución manual de BT sobre A | ✅ | `docs/reporte.tex` §5.2 y `docs/resultados/bt_A_traza.txt` |
 | 3.2 Implementación de BT (testores, típicos y tiempo total) | ✅ | `testores bt`, menú 10–12 |
 | 3.3 Resultados de BT sobre A | ✅ | `docs/resultados/bt_A_resumen.tex`, `bt_A.csv` |
-| 4. Matriz B | ⏳ | — |
-| 5. Operadores φ, θ, γ y experimentos | ⏳ | — |
+| 4.1 Construcción de B y prueba de que es básica | ✅ | `data/matriz_B.txt`; `docs/reporte.tex` §6.1 |
+| 4.2 Testores típicos de B con BT | ✅ | `testores bt --entrada data/matriz_B.txt --completo`; `docs/reporte.tex` §6.2 |
+| 4.3 Comparación entre A y B | ✅ | `docs/reporte.tex` §6.3 |
+| 5.1 Operadores φ, θ, γ y generación de las familias | ✅ | `scripts/generar_ejercicio_5_1.ps1`; reporte §7.1 |
+| 5.2 Tablas de tiempos y 5.3 análisis | En desarrollo | Serie manual en `docs/resultados/ej5_manual/`; casos de BT pendientes |
 
 ## Compilación
 
@@ -22,7 +25,7 @@ Requisitos: compilador C++17 (GCC ≥ 9, Clang ≥ 10 o MSVC 2019+) y CMake ≥ 
 ```bash
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build
-ctest --test-dir build --output-on-failure    # 63 pruebas
+ctest --test-dir build --output-on-failure    # ejecutar las pruebas
 ```
 
 En Windows con MSYS2 (UCRT64) agregue `C:\msys64\ucrt64\bin` al `PATH` y use `-G Ninja`.
@@ -48,11 +51,34 @@ En Windows con MSYS2 (UCRT64) agregue `C:\msys64\ucrt64\bin` al `PATH` y use `-G
 ./build/testores bt --entrada data/matriz_A.txt --traza             # cada n-uplo α y cada salto
 ./build/testores bt --entrada data/matriz_A.txt --repeticiones 10000 \
     --csv bt.csv --latex bt.tex                                     # testores típicos y tiempo total
+
+# Ejercicio 4.2: BT sobre la matriz B construida en 4.1
+./build/testores bt --entrada data/matriz_B.txt --completo
 ```
 
-Todos los resultados del reporte se regeneran con `sh scripts/generar_resultados.sh`.
+Los resultados de los ejercicios 1–3 se regeneran con
+`sh scripts/generar_resultados.sh`.
 
-Primer paso del Ejercicio 5.1 (requiere guardar previamente `data/matriz_B.txt`):
+La matriz B de `data/matriz_B.txt` tiene 8 filas, 7 columnas y es básica.
+BT encuentra 6 testores típicos, cuyas representaciones binarias coinciden con
+las 6 filas de A, salvo el orden. La construcción, la ejecución y la comparación
+entre A y B están explicadas en el ejercicio 4 de `docs/reporte.tex` y `docs/reporte.pdf`.
+
+Generación completa y verificada del Ejercicio 5.1 (PowerShell):
+
+```powershell
+.\scripts\generar_ejercicio_5_1.ps1
+```
+
+Genera ocho matrices distintas en `data/ej5_1/`, las tablas adaptadas a A y B
+en `docs/resultados/ej5_1/` y un registro de dimensiones, hashes y basicidad.
+Calcula los conteos teóricos a partir de los testores de A y B obtenidos con
+YYC. No ejecuta los experimentos largos de BT. Usa `-Forzar` para reemplazar
+esa generación; los archivos de matrices y mediciones anteriores se conservan.
+Las opciones `-SalidaMatrices`, `-SalidaResultados` y `-Ejecutable` permiten
+escoger otras rutas. La explicación completa está en el apartado 5.1 del reporte.
+
+Operaciones individuales:
 
 ```bash
 ./build/testores theta --entrada-a data/matriz_A.txt --entrada-b data/matriz_B.txt --salida data/theta_AB.txt

@@ -1,0 +1,122 @@
+{
+  "entradas": {
+    "B": "data/matriz_B.txt",
+    "hashes": {
+      "A": "3E93098C6BAF4F314187B3D9D3D3344C6A21D94BD64ADDC08C274C9160A6880F",
+      "B": "6894EAC8CC54BA180079EF59D0F903CEFFFAF0F95E1282830FF0AEA0E50D521E"
+    },
+    "A": "data/matriz_A.txt"
+  },
+  "columnas_base": 14,
+  "filas_base": 48,
+  "testores_base_teoricos": 14,
+  "longitudes_testores_base": [
+    2,
+    2,
+    2,
+    2,
+    2,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    4,
+    4
+  ],
+  "resultados": [
+    {
+      "familia": "phi",
+      "N": 1,
+      "archivo": "data\\ej5_1\\theta_AB.txt",
+      "sha256": "0C3327FDF0EBC17077BEA54C3D4981840DEC0FCBF5179DF80DDA9D14619A611B",
+      "filas": 48,
+      "columnas": 14,
+      "es_basica": true,
+      "testores_teoricos": 14
+    },
+    {
+      "familia": "phi",
+      "N": 2,
+      "archivo": "data\\ej5_1\\phi2_theta_AB.txt",
+      "sha256": "8C3042A47B64EA57F268699A559C9ABF570FDE43C4B658C861C11709BDC79E8E",
+      "filas": 48,
+      "columnas": 28,
+      "es_basica": true,
+      "testores_teoricos": 108
+    },
+    {
+      "familia": "phi",
+      "N": 3,
+      "archivo": "data\\ej5_1\\phi3_theta_AB.txt",
+      "sha256": "2F7D660431AF0CD5862080F3608F278FA515A4ACBA3D2420413183F1E1E9802E",
+      "filas": 48,
+      "columnas": 42,
+      "es_basica": true,
+      "testores_teoricos": 396
+    },
+    {
+      "familia": "phi",
+      "N": 4,
+      "archivo": "data\\ej5_1\\phi4_theta_AB.txt",
+      "sha256": "ECADB6E1349C319A244BB50EB133E9795917B9DAAA218EB21E60310831952567",
+      "filas": 48,
+      "columnas": 56,
+      "es_basica": true,
+      "testores_teoricos": 1040
+    },
+    {
+      "familia": "phi",
+      "N": 5,
+      "archivo": "data\\ej5_1\\phi5_theta_AB.txt",
+      "sha256": "7D9478FEF560C82F99E8AD950725DFF2611CA764E77607CD17F981DF5C88A284",
+      "filas": 48,
+      "columnas": 70,
+      "es_basica": true,
+      "testores_teoricos": 2250
+    },
+    {
+      "familia": "gamma",
+      "N": 1,
+      "archivo": "data\\ej5_1\\theta_AB.txt",
+      "sha256": "0C3327FDF0EBC17077BEA54C3D4981840DEC0FCBF5179DF80DDA9D14619A611B",
+      "filas": 48,
+      "columnas": 14,
+      "es_basica": true,
+      "testores_teoricos": 14
+    },
+    {
+      "familia": "gamma",
+      "N": 2,
+      "archivo": "data\\ej5_1\\gamma2_theta_AB.txt",
+      "sha256": "3EF60F606F50A07EC88C1ABD7075C55B33E6C866DF7F641B3E462837EF30FADB",
+      "filas": 96,
+      "columnas": 28,
+      "es_basica": true,
+      "testores_teoricos": 196
+    },
+    {
+      "familia": "gamma",
+      "N": 3,
+      "archivo": "data\\ej5_1\\gamma3_theta_AB.txt",
+      "sha256": "581905904E2DAC6789AE71A3C9611D71070C82BE1EBF81CD32484D31AE4D0123",
+      "filas": 144,
+      "columnas": 42,
+      "es_basica": true,
+      "testores_teoricos": 2744
+    },
+    {
+      "familia": "gamma",
+      "N": 4,
+      "archivo": "data\\ej5_1\\gamma4_theta_AB.txt",
+      "sha256": "E4D250C349B9E3AB09F60BC51468AEDDC684D7FCC893587ED89588822AA6DE67",
+      "filas": 192,
+      "columnas": 56,
+      "es_basica": true,
+      "testores_teoricos": 38416
+    }
+  ],
+  "observacion": "Los conteos se calculan analíticamente. N=1 reutiliza C en ambas familias. No se reordenan filas."
+}
