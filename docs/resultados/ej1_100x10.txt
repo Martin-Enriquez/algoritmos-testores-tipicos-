@@ -210,7 +210,6 @@ Detalle de la reducción a matriz básica:
 
 Resumen:
   Filas originales:           100
-  Filas nulas eliminadas:     0
   Filas repetidas eliminadas: 5
   Superfilas eliminadas:      82
   Filas de la matriz básica:  13

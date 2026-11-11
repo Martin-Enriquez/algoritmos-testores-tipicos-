@@ -1,6 +1,8 @@
 #include <algorithm>
 #include <chrono>
 #include <cstdint>
+#include <filesystem>
+#include <fstream>
 #include <random>
 #include <sstream>
 #include <stdexcept>
@@ -14,7 +16,10 @@
 #include "testores/domain/testor.hpp"
 #include "testores/domain/yyc.hpp"
 #include "testores/infrastructure/result_export.hpp"
+#include "testores/infrastructure/cli_adapters.hpp"
+#include "testores/infrastructure/system_adapters.hpp"
 #include "testores/presentation/cli.hpp"
+#include "testores/presentation/console_view.hpp"
 
 using namespace testores;
 using namespace testores::domain;
@@ -93,6 +98,16 @@ private:
     std::chrono::nanoseconds ticks_{0};
 };
 
+int runTestApplication(const std::vector<std::string>& args, std::istream& in,
+                       std::ostream& out, std::ostream& err) {
+    infrastructure::FileMatrixRepository matrices;
+    infrastructure::FileResultExporter exports;
+    infrastructure::MersenneRandomFactory random;
+    infrastructure::SteadyClock clock;
+    presentation::CliServices services{matrices, exports, random, clock};
+    return presentation::runApplication(args, in, out, err, services);
+}
+
 }  // namespace
 
 TEST(bt_number_uses_x1_as_most_significant_bit) {
@@ -146,6 +161,29 @@ TEST(bt_trace_on_small_example_is_exact) {
     CHECK_EQ(result.typicalTestors.size(), 3u);
 }
 
+TEST(bt_chooses_the_zero_row_whose_last_one_is_leftmost) {
+    // "Algo BT", Paso 3: si varias filas provocan que α no sea testor, se toma
+    // la que tenga el último 1 más a la izquierda. En A, α = 0000001 = {x7} no
+    // cubre r2 = 1000110, r3 = 1101000 ni r5 = 1001010; la de último 1 más a la
+    // izquierda es r3 (x4), así que BT salta de 0000001 a 0001000.
+    BtOptions options;
+    options.recordTrace = true;
+    const auto result = BtSolver::solve(matrixA(), options);
+    CHECK(result.trace[0].candidate == bits("0000001"));
+    CHECK_EQ(result.trace[0].zeroRow, 2u);  // r3
+    CHECK_EQ(result.trace[0].pivot, 3u);    // x4
+    CHECK(*result.trace[0].next == bits("0001000"));
+    CHECK(btZeroRow(matrixA(), bits("0000001")) == std::optional<std::size_t>(2));
+    // Empate en la posición del último 1: se elige la fila de menor índice.
+    const auto tie = BooleanMatrix::fromGrid({{0, 1, 0}, {1, 1, 0}, {1, 0, 1}});
+    CHECK(btZeroRow(tie, bits("001")) == std::optional<std::size_t>(0));
+    // Con esta regla BT analiza 44 n-uplos de A (24 testores y 20 que no lo son),
+    // en lugar de los 51 que analizaría tomando siempre la primera fila sin cubrir.
+    CHECK_EQ(result.stats.candidatesEvaluated, 44u);
+    CHECK_EQ(result.stats.testorsFound, 24u);
+    CHECK_EQ(result.stats.typicalFound, 8u);
+}
+
 TEST(bt_finds_the_eight_typical_testors_of_matrix_a) {
     const auto result = BtSolver::solve(matrixA());
     CHECK_EQ(formatFeatureSets(result.typicalTestors),
@@ -169,6 +207,43 @@ TEST(bt_matches_brute_force_and_yyc_on_random_basic_matrices) {
         ++checked;
     }
     CHECK(checked > 400);
+}
+
+TEST(both_solvers_and_basic_reduction_match_all_small_boolean_matrices) {
+    // Enumeración completa, sin suponer que las entradas ya son básicas.
+    // Incluye todas las matrices m x n con 1 <= m <= 4, 1 <= n <= 4
+    // y m*n <= 12: filas nulas, duplicadas, superfilas y columnas nulas.
+    std::size_t checked = 0;
+    for (std::size_t rows = 1; rows <= 4; ++rows) {
+        for (std::size_t cols = 1; cols <= 4; ++cols) {
+            const std::size_t cells = rows * cols;
+            if (cells > 12) continue;
+            for (unsigned encoding = 0; encoding < (1U << cells); ++encoding) {
+                std::vector<std::vector<int>> grid(rows, std::vector<int>(cols));
+                for (std::size_t i = 0; i < rows; ++i) {
+                    for (std::size_t j = 0; j < cols; ++j) {
+                        grid[i][j] = static_cast<int>((encoding >> (i * cols + j)) & 1U);
+                    }
+                }
+                const auto matrix = BooleanMatrix::fromGrid(grid);
+                const auto basic = toBasicMatrix(matrix);
+                const auto expected = bruteForceTypicalTestors(grid);
+                CHECK(BtSolver::solve(matrix).typicalTestors == expected);
+                CHECK(YycSolver::solve(matrix) == expected);
+                CHECK(BtSolver::solve(basic).typicalTestors == expected);
+                CHECK(YycSolver::solve(basic) == expected);
+                CHECK(isBasicMatrix(basic));
+                CHECK(toBasicMatrix(basic) == basic);
+                // La reducción debe preservar todos los testores, no sólo
+                // sus elementos minimales.
+                for (unsigned mask = 0; mask < (1U << cols); ++mask) {
+                    CHECK_EQ(isTestorMask(grid, mask), isTestorMask(basic.toGrid(), mask));
+                }
+                ++checked;
+            }
+        }
+    }
+    CHECK_EQ(checked, 9418u);
 }
 
 TEST(bt_visits_in_increasing_order_and_only_skips_non_typical_tuples) {
@@ -200,7 +275,20 @@ TEST(bt_visits_in_increasing_order_and_only_skips_non_typical_tuples) {
             const bool testor = isTestorMask(grid, mask);
             CHECK_EQ(step.verdict != BtVerdict::NotTestor, testor);
             if (testor) CHECK_EQ(step.verdict == BtVerdict::TypicalTestor, isTypicalMask(grid, mask));
-            if (!testor) CHECK(!basic.row(step.zeroRow).intersects(step.candidate));
+            if (!testor) {
+                // La fila elegida no está cubierta y su último 1 es el que está más
+                // a la izquierda entre las filas no cubiertas (empate: menor índice).
+                const ColumnSet& chosen = basic.row(step.zeroRow);
+                CHECK(!chosen.intersects(step.candidate));
+                CHECK_EQ(step.zeroRowIsNull, chosen.none());
+                for (std::size_t i = 0; i < basic.rows(); ++i) {
+                    const ColumnSet& other = basic.row(i);
+                    if (other.intersects(step.candidate) || chosen.none()) continue;
+                    CHECK(!other.none());
+                    CHECK(chosen.lastIndex() < other.lastIndex() ||
+                          (chosen.lastIndex() == other.lastIndex() && step.zeroRow <= i));
+                }
+            }
         }
         for (unsigned mask = 1; mask < (1U << cols); ++mask) {
             if (!visited[mask]) CHECK(!isTypicalMask(grid, mask));
@@ -225,17 +313,80 @@ TEST(bt_minimal_testors_found_are_the_typical_ones) {
     }
 }
 
-TEST(bt_result_does_not_depend_on_row_order_but_trace_does) {
+TEST(bt_visited_tuples_do_not_depend_on_row_order) {
+    // La fila del salto S1 se elige por la posición de su último 1, no por su
+    // posición en la matriz: reordenar las filas no cambia el recorrido.
+    auto visitedTuples = [](const BooleanMatrix& m) {
+        BtOptions options;
+        options.recordTrace = true;
+        std::vector<ColumnSet> visited;
+        for (const auto& step : BtSolver::solve(m, options).trace) visited.push_back(step.candidate);
+        return visited;
+    };
     const BooleanMatrix a = matrixA();
     auto rows = a.rowSets();
     std::sort(rows.begin(), rows.end(), [](const ColumnSet& x, const ColumnSet& y) { return x.count() < y.count(); });
     const BooleanMatrix sorted(a.cols(), rows);
     CHECK(BtSolver::solve(a).typicalTestors == BtSolver::solve(sorted).typicalTestors);
+    CHECK(visitedTuples(a) == visitedTuples(sorted));
+
+    std::mt19937 rng(777);
+    for (int trial = 0; trial < 100; ++trial) {
+        const std::size_t cols = 2 + static_cast<std::size_t>(trial % 9);
+        const BooleanMatrix basic = toBasicMatrix(BooleanMatrix::fromGrid(randomGrid(rng, 12, cols, 0.35)));
+        auto shuffled = basic.rowSets();
+        std::shuffle(shuffled.begin(), shuffled.end(), rng);
+        CHECK(visitedTuples(basic) == visitedTuples(BooleanMatrix(basic.cols(), shuffled)));
+    }
 }
 
-TEST(bt_rejects_empty_matrix_and_zero_rows) {
+TEST(bt_rejects_empty_matrix_and_finds_no_testor_with_a_null_row) {
     CHECK_THROWS(BtSolver::solve(BooleanMatrix()), std::invalid_argument);
-    CHECK_THROWS(BtSolver::solve(BooleanMatrix::fromGrid({{1, 0}, {0, 0}})), std::invalid_argument);
+    // Con una fila nula ningún subconjunto es testor: BT analiza 0...01, ve la
+    // fila nula y termina. Lo mismo ocurre con YYC y con la matriz básica.
+    const auto m = BooleanMatrix::fromGrid({{1, 1, 0}, {0, 0, 0}, {0, 1, 1}});
+    BtOptions options;
+    options.recordTrace = true;
+    const auto result = BtSolver::solve(m, options);
+    CHECK(result.typicalTestors.empty());
+    CHECK(result.testors.empty());
+    CHECK_EQ(result.stats.candidatesEvaluated, 1u);
+    CHECK_EQ(result.trace.size(), 1u);
+    CHECK(result.trace[0].verdict == BtVerdict::NotTestor);
+    CHECK(result.trace[0].zeroRowIsNull);
+    CHECK_EQ(result.trace[0].zeroRow, 1u);
+    CHECK(!result.trace[0].next.has_value());
+    CHECK(bruteForceTypicalTestors(m.toGrid()).empty());
+    CHECK(YycSolver::solve(m).empty());
+    const BooleanMatrix basic = toBasicMatrix(m);
+    CHECK(BtSolver::solve(basic).typicalTestors.empty());
+    CHECK(YycSolver::solve(basic).empty());
+
+    std::ostringstream text;
+    presentation::printBtTrace(text, m, result);
+    CHECK(text.str().find("fila nula") != std::string::npos);
+    std::ostringstream latex;
+    infrastructure::writeBtTraceLatex(latex, m, result);
+    CHECK(latex.str().find("es nula") != std::string::npos);
+}
+
+TEST(cli_reports_no_testors_for_a_matrix_with_a_null_row) {
+    // Antes se descartaba la fila nula y se "encontraban" {x2} y {x1, x3}.
+    const std::filesystem::path path = std::filesystem::temp_directory_path() / "testores_fila_nula_prueba.txt";
+    {
+        std::ofstream file(path);
+        file << "1 1 0\n0 0 0\n0 1 1\n";
+    }
+    for (const char* algorithm : {"yyc", "bt"}) {
+        std::istringstream in("");
+        std::ostringstream out;
+        std::ostringstream err;
+        const int code = runTestApplication({algorithm, "--entrada", path.string()}, in, out, err);
+        CHECK_EQ(code, 0);
+        CHECK(out.str().find("Testores típicos de la matriz (0)") != std::string::npos);
+        CHECK(out.str().find("{x1, x3}") == std::string::npos);
+    }
+    std::filesystem::remove(path);
 }
 
 TEST(bt_single_column_and_resource_limit) {
@@ -254,6 +405,45 @@ TEST(bt_single_column_and_resource_limit) {
     options.maxTypicalTestors = 10;
     CHECK_THROWS(BtSolver::solve(BooleanMatrix::fromGrid(grid), options), BtResourceLimitExceeded);
     CHECK_EQ(BtSolver::solve(BooleanMatrix::fromGrid(grid)).typicalTestors.size(), 64u);
+}
+
+TEST(solvers_and_jumps_work_at_the_maximum_column_width) {
+    const std::size_t width = ColumnSet::kMaxWidth;
+    ColumnSet first(width);
+    first.set(0);
+    ColumnSet last(width);
+    last.set(width - 1);
+    std::vector<ColumnSet> rows;
+    ColumnSet all(width);
+    for (std::size_t i = 0; i < width; ++i) {
+        rows.push_back(ColumnSet::fromIndices(width, {i}));
+        all.set(i);
+    }
+    const BooleanMatrix matrix(width, rows);
+    CHECK(BtSolver::solve(matrix).typicalTestors == std::vector<ColumnSet>{all});
+    CHECK(YycSolver::solve(matrix) == std::vector<ColumnSet>{all});
+    CHECK(btJumpNotTestor(last, 0) == first);
+    CHECK(!btJumpTestor(first).has_value());
+    CHECK(!btNumber(all).has_value());
+}
+
+TEST(bt_candidate_and_cooperative_limits_stop_without_returning_partial_results) {
+    const auto small = BooleanMatrix::fromGrid({{1, 1, 0}, {0, 1, 1}, {1, 0, 1}});
+    BtOptions options;
+    options.maxCandidatesEvaluated = 5;
+    CHECK_THROWS(BtSolver::solve(small, options), BtResourceLimitExceeded);
+    options.maxCandidatesEvaluated = 6;
+    CHECK_EQ(BtSolver::solve(small, options).stats.candidatesEvaluated, 6u);
+
+    std::vector<ColumnSet> rows;
+    for (std::size_t i = 0; i < 12; ++i) {
+        rows.push_back(ColumnSet::fromIndices(24, {2 * i, 2 * i + 1}));
+    }
+    options = BtOptions{};
+    std::size_t polls = 0;
+    options.shouldStop = [&]() { return ++polls == 2; };
+    CHECK_THROWS(BtSolver::solve(BooleanMatrix(24, rows), options), BtResourceLimitExceeded);
+    CHECK_EQ(polls, 2u);  // inicio y después de 1024 candidatos
 }
 
 TEST(run_bt_measures_total_time_and_checks_typicality_both_ways) {
@@ -293,7 +483,7 @@ TEST(interactive_session_runs_bt) {
     std::istringstream in("1\n6\n5\n\n3\n10\n1\n11\n0\n");
     std::ostringstream out;
     std::ostringstream err;
-    CHECK_EQ(presentation::runApplication({}, in, out, err), 0);
+    CHECK_EQ(runTestApplication({}, in, out, err), 0);
     CHECK(out.str().find("Testores típicos de la matriz") != std::string::npos);
     CHECK(out.str().find("Tiempo total de ejecución") != std::string::npos);
     CHECK(out.str().find("Ambos procedimientos coinciden") != std::string::npos);

@@ -1,0 +1,37 @@
+Protocolo: 1 calentamiento, 9 repeticiones medidas, l?mite de 10000 ms por ejecuci?n.
+phi^1 YYC original: ok 0.785 ms
+phi^1 YYC ascendente: ok 0.478 ms
+phi^1 BT original: ok 2.304 ms
+phi^1 BT ascendente: ok 2.069 ms
+phi^2 YYC original: ok 38.906 ms
+phi^2 YYC ascendente: ok 14.312 ms
+phi^2 BT original: ok 3838.097 ms
+phi^2 BT ascendente: ok 7198.112 ms
+phi^3 YYC original: ok 2269.560 ms
+phi^3 YYC ascendente: ok 181.681 ms
+phi^3 BT original: limite (l?mite de tiempo)
+phi^3 BT ascendente: limite (l?mite de tiempo)
+phi^4 YYC original: ok 5524.166 ms
+phi^4 YYC ascendente: ok 915.090 ms
+phi^4 BT original: limite (l?mite de tiempo)
+phi^4 BT ascendente: limite (l?mite de tiempo)
+phi^5 YYC original: limite (l?mite de tiempo)
+phi^5 YYC ascendente: ok 4635.513 ms
+phi^5 BT original: limite (l?mite de tiempo)
+phi^5 BT ascendente: limite (l?mite de tiempo)
+gamma^1 YYC original: ok 0.827 ms
+gamma^1 YYC ascendente: ok 0.479 ms
+gamma^1 BT original: ok 2.075 ms
+gamma^1 BT ascendente: ok 1.879 ms
+gamma^2 YYC original: ok 24.863 ms
+gamma^2 YYC ascendente: ok 20.359 ms
+gamma^2 BT original: limite (l?mite de tiempo)
+gamma^2 BT ascendente: limite (l?mite de tiempo)
+gamma^3 YYC original: ok 710.857 ms
+gamma^3 YYC ascendente: ok 648.492 ms
+gamma^3 BT original: limite (l?mite de tiempo)
+gamma^3 BT ascendente: limite (l?mite de tiempo)
+gamma^4 YYC original: limite (l?mite de tiempo)
+gamma^4 YYC ascendente: limite (l?mite de tiempo)
+gamma^4 BT original: limite (l?mite de tiempo)
+gamma^4 BT ascendente: limite (l?mite de tiempo)

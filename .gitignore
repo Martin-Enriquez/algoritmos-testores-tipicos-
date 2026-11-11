@@ -53,4 +53,11 @@ Testing/
 .idea/
 .DS_Store
 Thumbs.db
+<<<<<<< HEAD
 >>>>>>> 756a702e14d6b8159e985789a3eebf5182d5e49c
+=======
+
+# Referencias de trabajo y entregables privados ajenos al repositorio
+/.local/
+/entrega-local/
+>>>>>>> 83698765a2c4cc8678953daefabf71da29c56f46

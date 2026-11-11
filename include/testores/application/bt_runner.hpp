@@ -27,6 +27,7 @@ BtRunResult runBt(const domain::BooleanMatrix& matrix, Clock& clock, const domai
 
 // Repite BT `repetitions` veces (sin traza) y reporta la mediana del tiempo
 // total. El resultado (testores) es el de la primera ejecución con `options`.
+// Si R es par se promedian las dos muestras centrales (resolución de 1 ns).
 BtRunResult benchmarkBt(const domain::BooleanMatrix& matrix, Clock& clock, std::size_t repetitions,
                         const domain::BtOptions& options = {});
 

@@ -4,6 +4,7 @@
 
 #include "test_framework.hpp"
 #include "testores/application/matrix_generation.hpp"
+#include "testores/application/bt_runner.hpp"
 #include "testores/application/yyc_runner.hpp"
 #include "testores/domain/basic_matrix.hpp"
 #include "testores/infrastructure/system_adapters.hpp"
@@ -30,6 +31,22 @@ public:
     }
     std::vector<std::size_t> rows;
     std::vector<std::size_t> sizes;
+};
+
+class DurationClock final : public application::Clock {
+public:
+    explicit DurationClock(std::vector<long long> durations) : durations_(std::move(durations)) {}
+    std::chrono::nanoseconds now() override {
+        if ((reads_++ % 2) == 1) {
+            ticks_ += std::chrono::nanoseconds(durations_.at(next_++));
+        }
+        return ticks_;
+    }
+private:
+    std::vector<long long> durations_;
+    std::size_t next_ = 0;
+    std::size_t reads_ = 0;
+    std::chrono::nanoseconds ticks_{0};
 };
 
 }  // namespace
@@ -100,6 +117,19 @@ TEST(search_reports_failure_when_impossible) {
     CHECK_EQ(outcome.attempts, 50u);
 }
 
+TEST(search_rejects_invalid_constraints_before_generating) {
+    infrastructure::MersenneRandomSource random(3);
+    application::BasicMatrixConstraints constraints;
+    constraints.minDensity = std::nan("");
+    CHECK_THROWS(application::searchBasicMatrix({2, 4, 0.5}, constraints, random), std::invalid_argument);
+    constraints.minDensity = 0.4;
+    constraints.minRows = 0;
+    CHECK_THROWS(application::searchBasicMatrix({2, 4, 0.5}, constraints, random), std::invalid_argument);
+    constraints.minRows = 1;
+    constraints.maxAttempts = 0;
+    CHECK_THROWS(application::searchBasicMatrix({2, 4, 0.5}, constraints, random), std::invalid_argument);
+}
+
 TEST(run_yyc_reports_each_row_with_monotonic_cumulative_time) {
     const auto m = domain::BooleanMatrix::fromGrid({{1, 1, 0}, {0, 1, 1}, {1, 0, 1}});
     FakeClock clock;
@@ -128,6 +158,38 @@ TEST(run_yyc_omits_snapshots_beyond_limit_but_keeps_counts_and_result) {
     CHECK_EQ(result.typicalTestors.size(), 3u);
 }
 
+TEST(benchmark_yyc_reports_the_median_of_the_cumulative_time) {
+    // Reloj programado: duraciones (µs) de las filas r1 y r2 en tres corridas.
+    //   corrida 1: 1 y 10  -> acumulados 1 y 11
+    //   corrida 2: 10 y 1  -> acumulados 10 y 11
+    //   corrida 3: 5 y 5   -> acumulados 5 y 10
+    // Mediana del acumulado: r1 = 5, r2 = 11. Sumar las medianas por fila daría
+    // r2 = 5 + 5 = 10, que no es el acumulado de ninguna corrida.
+    class ScriptedClock final : public application::Clock {
+    public:
+        explicit ScriptedClock(std::vector<long> durations) : durations_(std::move(durations)) {}
+        std::chrono::nanoseconds now() override {
+            // Lecturas impares: inicio de fila; pares: fin de fila (inicio + duración).
+            const bool end = (reads_++ % 2) == 1;
+            if (end) now_ += std::chrono::microseconds(durations_.at(next_++));
+            else now_ += std::chrono::microseconds(100);  // tiempo fuera de la medición
+            return now_;
+        }
+
+    private:
+        std::vector<long> durations_;
+        std::size_t next_ = 0;
+        std::size_t reads_ = 0;
+        std::chrono::nanoseconds now_{0};
+    };
+    const auto m = domain::BooleanMatrix::fromGrid({{1, 1, 0}, {0, 1, 1}});
+    ScriptedClock clock({1, 10, 10, 1, 5, 5});
+    const auto result = application::benchmarkYyc(m, clock, 3);
+    CHECK(result.rows[0].cumulative == std::chrono::microseconds(5));
+    CHECK(result.rows[1].cumulative == std::chrono::microseconds(11));
+    CHECK(result.total == std::chrono::microseconds(11));
+}
+
 TEST(benchmark_yyc_uses_median_and_keeps_results) {
     const auto m = domain::BooleanMatrix::fromGrid({{1, 1, 0}, {0, 1, 1}, {1, 0, 1}});
     FakeClock clock;
@@ -137,4 +199,18 @@ TEST(benchmark_yyc_uses_median_and_keeps_results) {
     CHECK(result.rows[0].cumulative <= result.rows[1].cumulative);
     CHECK(result.rows[1].cumulative <= result.rows[2].cumulative);
     CHECK_THROWS(application::benchmarkYyc(m, clock, 0), std::invalid_argument);
+    CHECK_THROWS(application::benchmarkYyc(m, clock, 10000001), std::invalid_argument);
+}
+
+TEST(benchmarks_average_the_two_central_samples_for_even_repetitions) {
+    const auto m = domain::BooleanMatrix::fromGrid({{1, 1, 0}, {0, 1, 1}});
+    DurationClock yycClock({1000, 10000, 10000, 1000, 5000, 5000, 7000, 1000});
+    const auto yyc = application::benchmarkYyc(m, yycClock, 4);
+    CHECK(yyc.rows[0].cumulative == std::chrono::nanoseconds(6000));
+    CHECK(yyc.rows[1].cumulative == std::chrono::nanoseconds(10500));
+    CHECK(yyc.total == yyc.rows.back().cumulative);
+    DurationClock btClock({1000, 9000, 3000, 5000});
+    const auto bt = application::benchmarkBt(m, btClock, 4);
+    CHECK(bt.total == std::chrono::nanoseconds(4000));
+    CHECK(bt.typicalityProceduresAgree);
 }

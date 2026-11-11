@@ -6,6 +6,7 @@
 #include "test_framework.hpp"
 #include "testores/application/yyc_runner.hpp"
 #include "testores/infrastructure/matrix_file.hpp"
+#include "testores/infrastructure/experiment_export.hpp"
 #include "testores/infrastructure/result_export.hpp"
 #include "testores/infrastructure/system_adapters.hpp"
 
@@ -105,4 +106,51 @@ TEST(csv_and_latex_exports) {
     infrastructure::writeYycLatexTable(tex, result);
     CHECK(tex.str().find("$\\{x_{1},x_{3}\\}$") != std::string::npos);
     CHECK(tex.str().find("(omitidos") != std::string::npos);
+}
+
+TEST(experiment_exports_keep_limits_separate_from_measured_times_and_quote_details) {
+    const auto directory = tempPath("experiment_exports");
+    std::filesystem::create_directories(directory);
+    const application::ExperimentCase experiment{
+        "phi", 1, domain::BooleanMatrix::fromGrid({{1}}), 1};
+    application::ExperimentMeasurements measurements;
+    measurements[0].status = "ok";
+    measurements[0].median = std::chrono::nanoseconds(1250000);
+    measurements[0].completedRuns = 3;
+    measurements[1].status = "limite";
+    measurements[1].median = std::chrono::nanoseconds(777);  // no se debe publicar
+    measurements[1].completedRuns = 1;
+    measurements[1].detail = "interrumpido, causa \"límite\"";
+    measurements[2].status = "recurso";
+    measurements[3].status = "ok";
+    measurements[3].median = std::chrono::nanoseconds(2500000);
+    application::ExperimentOptions options;
+    options.repetitions = 3;
+    options.timeLimit = std::chrono::milliseconds(2);
+    const auto csvPath = directory / "experimentos.csv";
+    infrastructure::ExperimentCsv writer(csvPath, true);
+    writer.append(experiment, 0, measurements[0]);
+    writer.append(experiment, 1, measurements[1]);
+    writer.close();
+    {
+        std::ifstream file(csvPath);
+        std::ostringstream contents;
+        contents << file.rdbuf();
+        CHECK(contents.str().find("candidatos_bt,detalle\n") != std::string::npos);
+        CHECK(contents.str().find("ok,1250000,3,") != std::string::npos);
+        CHECK(contents.str().find("limite,,1,0,\"interrumpido, causa \"\"límite\"\"\"") != std::string::npos);
+    }
+    infrastructure::writeExperimentTables(directory, {{experiment, measurements}}, options, true);
+    {
+        std::ifstream file(directory / "experimentos_phi.tex");
+        std::ostringstream contents;
+        contents << file.rdbuf();
+        CHECK(contents.str().find("\\varphi^{1}") != std::string::npos);
+        CHECK(contents.str().find("1.250 & $\\ge 2.000$ & recurso & 2.500") != std::string::npos);
+        CHECK(contents.str().find("777") == std::string::npos);
+    }
+    std::filesystem::remove(csvPath);
+    std::filesystem::remove(directory / "experimentos_phi.tex");
+    std::filesystem::remove(directory / "experimentos_gamma.tex");
+    std::filesystem::remove(directory);
 }
