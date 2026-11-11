@@ -162,3 +162,32 @@ TEST(yyc_enforces_resource_limit) {
     CHECK_THROWS(YycSolver::solve(BooleanMatrix::fromGrid(grid), options), YycResourceLimitExceeded);
     CHECK_EQ(YycSolver::solve(BooleanMatrix::fromGrid(grid)).size(), 64u);
 }
+
+TEST(yyc_enforces_resource_limit_on_the_first_row_too) {
+    YycOptions options;
+    options.maxCompatibleSets = 2;
+    CHECK_THROWS(YycSolver::solve(BooleanMatrix::fromGrid({{1, 1, 1}}), options),
+                 YycResourceLimitExceeded);
+    CHECK_EQ(YycSolver::solve(BooleanMatrix::fromGrid({{1, 0, 1}}), options).size(), 2u);
+    options.maxCompatibleSets = 0;
+    CHECK_THROWS(YycSolver::solve(BooleanMatrix::fromGrid({{1}}), options), YycResourceLimitExceeded);
+    CHECK(YycSolver::solve(BooleanMatrix::fromGrid({{0}}), options).empty());
+}
+
+TEST(yyc_cooperative_limit_can_interrupt_within_a_row) {
+    std::vector<ColumnSet> rows;
+    for (std::size_t i = 0; i < 11; ++i) {
+        rows.push_back(ColumnSet::fromIndices(22, {2 * i, 2 * i + 1}));
+    }
+    bool enableCancellation = false;
+    std::size_t polls = 0;
+    YycOptions options;
+    options.shouldStop = [&]() { return enableCancellation && ++polls == 2; };
+    YycSolver solver(BooleanMatrix(22, rows), options);
+    for (std::size_t i = 0; i < 10; ++i) solver.processNextRow();
+    CHECK_EQ(solver.current().size(), 1024u);
+    enableCancellation = true;
+    CHECK_THROWS(solver.processNextRow(), YycResourceLimitExceeded);
+    CHECK_EQ(polls, 2u);  // comienzo de fila e interior de esa misma fila
+    CHECK_EQ(solver.processedRows(), 10u);
+}

@@ -1,3 +1,4 @@
+# B: testores típicos de A en orden canónico
 1 0 1 0 0 0 0
 1 0 0 1 0 0 0
 1 0 0 0 0 1 0

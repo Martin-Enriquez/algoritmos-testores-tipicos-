@@ -1,6 +1,15 @@
 \subsection{Ejercicio 5.2: resultados experimentales de YYC y BT}
 \label{sec:ejercicio52}
 
+\paragraph{Versión de la serie manual.}
+Estos tiempos se conservaron de la versión anterior a la integración de
+las correcciones de BT (revisión \texttt{66804cb}). Esa versión elegía
+la primera fila no cubierta para el salto S1. La implementación corregida
+elige, entre todas las filas no cubiertas, aquella cuyo último uno está
+más a la izquierda. Las mediciones BT de estas tablas son históricas y
+no caracterizan los tiempos de la implementación corregida. Su serie
+actualizada en \texttt{resultados/experimentos.csv} se mantiene separada.
+
 Se procesaron las matrices del punto 5.1 con YYC y BT, primero
 con las filas en su orden de generación y después ordenadas de
 menor a mayor cantidad de unos. En los empates se conservó el

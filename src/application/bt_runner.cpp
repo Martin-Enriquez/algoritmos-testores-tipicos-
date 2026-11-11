@@ -4,6 +4,8 @@
 #include <stdexcept>
 #include <utility>
 
+#include "median_duration.hpp"
+
 namespace testores::application {
 
 using domain::BtSolver;
@@ -51,12 +53,10 @@ BtRunResult benchmarkBt(const domain::BooleanMatrix& matrix, Clock& clock, std::
     samples.reserve(repetitions);
     for (std::size_t rep = 1; rep < repetitions; ++rep) {
         const std::chrono::nanoseconds start = clock.now();
-        (void)BtSolver::solve(matrix, quiet);
+        const domain::BtResult run = BtSolver::solve(matrix, quiet);
         samples.push_back(clock.now() - start);
     }
-    auto middle = samples.begin() + static_cast<std::ptrdiff_t>(samples.size() / 2);
-    std::nth_element(samples.begin(), middle, samples.end());
-    reference.total = *middle;
+    reference.total = detail::medianDuration(samples);
     reference.repetitions = repetitions;
     if (options.recordTrace) {
         // Conservar la traza pedida (se obtiene en una corrida aparte, no cronometrada).

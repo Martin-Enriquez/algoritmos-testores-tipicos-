@@ -12,14 +12,12 @@ BasicReduction reduceToBasic(const BooleanMatrix& matrix) {
     BasicReduction result;
     result.decisions.assign(m, RowDecision{});
 
-    // Paso 1: filas nulas y duplicadas (se conserva la primera aparición).
+    // Paso 1: filas duplicadas (se conserva la primera aparición). Las filas
+    // nulas no reciben trato especial: una fila nula es subfila de toda fila no
+    // nula, así que el paso 2 deja sólo la primera fila nula.
     std::vector<std::size_t> candidates;
     for (std::size_t i = 0; i < m; ++i) {
         const ColumnSet& r = matrix.row(i);
-        if (r.none()) {
-            result.decisions[i] = {RowFate::ZeroRow, i};
-            continue;
-        }
         bool duplicated = false;
         for (std::size_t c : candidates) {
             if (matrix.row(c) == r) {
@@ -68,9 +66,6 @@ BooleanMatrix toBasicMatrix(const BooleanMatrix& matrix) { return reduceToBasic(
 bool isBasicMatrix(const BooleanMatrix& matrix) {
     const std::size_t m = matrix.rows();
     for (std::size_t i = 0; i < m; ++i) {
-        if (matrix.row(i).none()) {
-            return false;
-        }
         for (std::size_t j = 0; j < m; ++j) {
             if (i != j && matrix.row(j).isSubsetOf(matrix.row(i))) {
                 return false;  // cubre subfila estricta y filas repetidas
@@ -78,6 +73,15 @@ bool isBasicMatrix(const BooleanMatrix& matrix) {
         }
     }
     return true;
+}
+
+std::optional<std::size_t> firstNullRow(const BooleanMatrix& matrix) {
+    for (std::size_t i = 0; i < matrix.rows(); ++i) {
+        if (matrix.row(i).none()) {
+            return i;
+        }
+    }
+    return std::nullopt;
 }
 
 }  // namespace testores::domain

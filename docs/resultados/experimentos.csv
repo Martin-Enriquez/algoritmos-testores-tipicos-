@@ -1,0 +1,37 @@
+familia,N,filas,columnas,tipicos_esperados,algoritmo,orden,estado,mediana_ns,repeticiones,candidatos_bt,detalle
+phi,1,48,14,14,YYC,original,ok,784800,9,0,
+phi,1,48,14,14,YYC,ascendente,ok,477700,9,0,
+phi,1,48,14,14,BT,original,ok,2304300,9,1872,
+phi,1,48,14,14,BT,ascendente,ok,2069300,9,1872,
+phi,2,48,28,108,YYC,original,ok,38906300,9,0,
+phi,2,48,28,108,YYC,ascendente,ok,14312300,9,0,
+phi,2,48,28,108,BT,original,ok,3838097500,9,2661092,
+phi,2,48,28,108,BT,ascendente,ok,7198111700,9,2661092,
+phi,3,48,42,396,YYC,original,ok,2269560200,9,0,
+phi,3,48,42,396,YYC,ascendente,ok,181681100,9,0,
+phi,3,48,42,396,BT,original,limite,,0,0,BT interrumpido por el l?mite de tiempo o cancelaci?n
+phi,3,48,42,396,BT,ascendente,limite,,0,0,BT interrumpido por el l?mite de tiempo o cancelaci?n
+phi,4,48,56,1040,YYC,original,ok,5524166200,9,0,
+phi,4,48,56,1040,YYC,ascendente,ok,915090200,9,0,
+phi,4,48,56,1040,BT,original,limite,,0,0,BT interrumpido por el l?mite de tiempo o cancelaci?n
+phi,4,48,56,1040,BT,ascendente,limite,,0,0,BT interrumpido por el l?mite de tiempo o cancelaci?n
+phi,5,48,70,2250,YYC,original,limite,,0,0,YYC interrumpido por el l?mite de tiempo o cancelaci?n
+phi,5,48,70,2250,YYC,ascendente,ok,4635513300,9,0,
+phi,5,48,70,2250,BT,original,limite,,0,0,BT interrumpido por el l?mite de tiempo o cancelaci?n
+phi,5,48,70,2250,BT,ascendente,limite,,0,0,BT interrumpido por el l?mite de tiempo o cancelaci?n
+gamma,1,48,14,14,YYC,original,ok,827300,9,0,
+gamma,1,48,14,14,YYC,ascendente,ok,478600,9,0,
+gamma,1,48,14,14,BT,original,ok,2075500,9,1872,
+gamma,1,48,14,14,BT,ascendente,ok,1878600,9,1872,
+gamma,2,96,28,196,YYC,original,ok,24863000,9,0,
+gamma,2,96,28,196,YYC,ascendente,ok,20358800,9,0,
+gamma,2,96,28,196,BT,original,limite,,0,0,BT interrumpido por el l?mite de tiempo o cancelaci?n
+gamma,2,96,28,196,BT,ascendente,limite,,0,0,BT interrumpido por el l?mite de tiempo o cancelaci?n
+gamma,3,144,42,2744,YYC,original,ok,710856600,9,0,
+gamma,3,144,42,2744,YYC,ascendente,ok,648491700,9,0,
+gamma,3,144,42,2744,BT,original,limite,,0,0,BT interrumpido por el l?mite de tiempo o cancelaci?n
+gamma,3,144,42,2744,BT,ascendente,limite,,0,0,BT interrumpido por el l?mite de tiempo o cancelaci?n
+gamma,4,192,56,38416,YYC,original,limite,,0,0,YYC interrumpido por el l?mite de tiempo o cancelaci?n
+gamma,4,192,56,38416,YYC,ascendente,limite,,0,0,YYC interrumpido por el l?mite de tiempo o cancelaci?n
+gamma,4,192,56,38416,BT,original,limite,,0,0,BT interrumpido por el l?mite de tiempo o cancelaci?n
+gamma,4,192,56,38416,BT,ascendente,limite,,0,0,BT interrumpido por el l?mite de tiempo o cancelaci?n

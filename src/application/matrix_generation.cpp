@@ -71,6 +71,15 @@ SearchOutcome searchBasicMatrix(const GenerationRequest& request, const BasicMat
     if (constraints.minRows > constraints.maxRows) {
         throw std::invalid_argument("minRows no puede ser mayor que maxRows");
     }
+    if (!(constraints.minDensity >= 0.0 && constraints.minDensity <= 1.0)) {
+        throw std::invalid_argument("La densidad mínima debe estar en [0, 1]");
+    }
+    if (constraints.minRows == 0 || constraints.maxRows > MatrixLimits::kMaxRows) {
+        throw std::invalid_argument("Los límites de filas de la básica deben estar dentro de los límites de matriz");
+    }
+    if (constraints.maxAttempts == 0) {
+        throw std::invalid_argument("El número máximo de intentos debe ser al menos 1");
+    }
     SearchOutcome outcome;
     while (outcome.attempts < constraints.maxAttempts) {
         ++outcome.attempts;

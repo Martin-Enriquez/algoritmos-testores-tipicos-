@@ -1,226 +1,140 @@
-# Algoritmos para el Cálculo de Testores Típicos en Matrices Básicas
+# Algoritmos para calcular testores típicos
 
-Proyecto de **Matemáticas Discretas (USFQ, 202610)**: implementación, evaluación y comparación de algoritmos para encontrar todos los testores típicos de una matriz básica.
+Proyecto de Matemáticas Discretas, USFQ, semestre 202610. Implementa los ejercicios 1 a 5: matrices booleanas y básicas, YYC, BT, dualidad y experimentos con los operadores del artículo de Alba-Cabrera et al. (2016). El ejercicio 6 corresponde a grupos de cuatro integrantes; este grupo tiene tres.
 
-| Ejercicio | Estado | Dónde |
-|---|---|---|
-| 1. Generador de matrices, matriz básica y densidad | ✅ | `testores generar`, `testores basica`, menú 1 |
-| 2.1 Matriz básica A (≥ 7 columnas, densidad ≥ 0.4) | ✅ | `data/matriz_A.txt` (6 × 7, densidad 0.4762) |
-| 2.2 Ejecución manual de YYC | ✅ | `docs/reporte.tex` §4.3 y `docs/resultados/yyc_A_traza.txt` |
-| 2.3 Implementación de YYC (Ψ* y tiempo acumulado por fila) | ✅ | `testores yyc`, menú 6–7 |
-| 2.4 Tabla de resultados sobre A | ✅ | `docs/resultados/yyc_A_tabla.tex`, `yyc_A.csv` |
-| 3.1 Ejecución manual de BT sobre A | ✅ | `docs/reporte.tex` §5.2 y `docs/resultados/bt_A_traza.txt` |
-| 3.2 Implementación de BT (testores, típicos y tiempo total) | ✅ | `testores bt`, menú 10–12 |
-| 3.3 Resultados de BT sobre A | ✅ | `docs/resultados/bt_A_resumen.tex`, `bt_A.csv` |
-| 4.1 Construcción de B y prueba de que es básica | ✅ | `data/matriz_B.txt`; `docs/reporte.tex` §6.1 |
-| 4.2 Testores típicos de B con BT | ✅ | `testores bt --entrada data/matriz_B.txt --completo`; `docs/reporte.tex` §6.2 |
-| 4.3 Comparación entre A y B | ✅ | `docs/reporte.tex` §6.3 |
-| 5.1 Operadores φ, θ, γ y generación de las familias | ✅ | `scripts/generar_ejercicio_5_1.ps1`; reporte §7.1 |
-| 5.2 Tablas de tiempos y 5.3 análisis | En desarrollo | Serie manual en `docs/resultados/ej5_manual/`; casos de BT pendientes |
+| Ejercicio | Implementación y evidencia |
+|---|---|
+| 1 | Generación reproducible, reducción básica que conserva la fila nula y densidad |
+| 2 | A de 6 × 7, densidad 20/42; ejecución manual de YYC, estados por fila y tiempos acumulados |
+| 3 | BT con la selección de fila del apunte, traza de 44 candidatos y 8 típicos |
+| 4 | B de 8 × 7; prueba de basicidad y dualidad; BT recupera las 6 filas de A |
+| 5 | Operadores φ, θ y γ; nueve matrices; comparación original/ascendente, tablas y análisis |
 
-## Compilación
+Las tablas distinguen los tiempos completados de las ejecuciones que alcanzan el límite. Una celda `limite` en el CSV, representada por una cota en el informe, no es una mediana de terminación. Las primeras cinco columnas se conocen exactamente por las propiedades de los operadores.
 
-Requisitos: compilador C++17 (GCC ≥ 9, Clang ≥ 10 o MSVC 2019+) y CMake ≥ 3.16.
+## Compilar y verificar
 
-```bash
+Requisitos: CMake ≥ 3.16 y compilador C++17 (GCC, Clang o MSVC). El programa y las pruebas no requieren bibliotecas externas. Python ≥ 3.10 se usa para los metadatos del informe y el oráculo independiente; LaTeX permite recompilar el PDF.
+
+```sh
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build
-ctest --test-dir build --output-on-failure    # ejecutar las pruebas
+cmake --build build --config Release --parallel 2
+ctest --test-dir build -C Release --output-on-failure
 ```
 
-En Windows con MSYS2 (UCRT64) agregue `C:\msys64\ucrt64\bin` al `PATH` y use `-G Ninja`.
+En Windows con MSYS2 UCRT64 y Ninja:
+
+```powershell
+$env:Path = 'C:\msys64\ucrt64\bin;' + $env:Path
+cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+cmake --build build --parallel 2
+ctest --test-dir build --output-on-failure
+```
+
+Con Visual Studio los ejecutables quedan en `build/Release/`; con Ninja/Make, en `build/`. CTest ejecuta la suite C++ y una comprobación de dependencias entre capas. La suite incluye las 9.418 matrices con hasta cuatro filas y cuatro columnas y como máximo doce entradas, matrices aleatorias, fila nula, cancelación y límites de recursos. La integración continua verifica Linux, Windows y sanitizadores en Linux. Para sanitizadores locales use `-DTESTORES_SANITIZERS=ON` en una compilación Debug de Linux/macOS.
 
 ## Uso
 
-```bash
-./build/testores                 # menú interactivo
-./build/testores ayuda           # lista de subcomandos
-
-# Ejercicio 1: matriz 100 x 10, su básica y densidad
-./build/testores generar --filas 100 --columnas 10 --semilla 2026 --salida-basica data/basica.txt
-
-# Ejercicio 2.1: buscar una matriz básica con >= 7 columnas y densidad >= 0.4
-./build/testores buscar --columnas 7 --filas 8 --densidad-min 0.4 --semilla 2026 --salida data/A.txt
-
-# Ejercicios 2.2-2.4: YYC sobre A
-./build/testores yyc --entrada data/matriz_A.txt --traza            # paso a paso explicado
-./build/testores yyc --entrada data/matriz_A.txt --repeticiones 10000 \
-    --csv out.csv --latex out.tex                                   # tabla con mediana de tiempos
-
-# Ejercicios 3.1-3.3: BT sobre A
-./build/testores bt --entrada data/matriz_A.txt --traza             # cada n-uplo α y cada salto
-./build/testores bt --entrada data/matriz_A.txt --repeticiones 10000 \
-    --csv bt.csv --latex bt.tex                                     # testores típicos y tiempo total
-
-# Ejercicio 4.2: BT sobre la matriz B construida en 4.1
-./build/testores bt --entrada data/matriz_B.txt --completo
+```powershell
+.\build\testores.exe
+.\build\testores.exe ayuda
+.\build\testores.exe generar --filas 100 --columnas 10 --semilla 2026 --salida-basica data/basica.txt
+.\build\testores.exe basica --entrada data/matriz_A_original.txt
+.\build\testores.exe yyc --entrada data/matriz_A.txt --traza --completo
+.\build\testores.exe bt --entrada data/matriz_A.txt --traza --completo
+.\build\testores.exe bt --entrada data/matriz_B.txt --repeticiones 10000
 ```
 
-Los resultados de los ejercicios 1–3 se regeneran con
-`sh scripts/generar_resultados.sh`.
+En Linux/macOS use `./build/testores`. Los archivos contienen una fila por línea con `0`/`1`; admiten espacios, comas, punto y coma y comentarios desde `#`. Sobrescribir requiere `--forzar` o confirmación en el menú.
 
-La matriz B de `data/matriz_B.txt` tiene 8 filas, 7 columnas y es básica.
-BT encuentra 6 testores típicos, cuyas representaciones binarias coinciden con
-las 6 filas de A, salvo el orden. La construcción, la ejecución y la comparación
-entre A y B están explicadas en el ejercicio 4 de `docs/reporte.tex` y `docs/reporte.pdf`.
+BT visita 24 testores de A, pero A tiene **86 testores totales**: los saltos omiten otros. Los 8 típicos son completos. En B visita 20 de 42 testores y encuentra los 6 típicos.
 
-Generación completa y verificada del Ejercicio 5.1 (PowerShell):
+## Experimentos y reproducción
+
+El segundo ejecutable construye B y C = θ(A,B), genera φᴺ(C), N = 1…5, y γᴺ(C), N = 1…4. Contrasta los conjuntos en todas las ejecuciones completas y con las cardinalidades teóricas. Guarda matrices, CSV y tablas LaTeX.
+
+```powershell
+.\build\testores_experimentos.exe --repeticiones 9 --limite-ms 10000 --salida docs/resultados --forzar
+.\build\testores_experimentos.exe --familia phi --n 1 --repeticiones 9 --salida demo
+```
+
+Se cronometra `solve` completo, con inicialización y ordenación final; se excluyen generación de matrices, ordenamiento previo, validación y escritura. Hay un calentamiento y el límite se aplica a cada ejecución. Las consultas de cancelación están incluidas. El CSV conserva estado, repeticiones completas, candidatos BT y motivo de interrupción.
+
+La mediana par promedia los dos valores centrales, truncando al nanosegundo. La tabla YYC de A calcula la mediana del **acumulado** hasta cada fila y sólo cronometra su procesamiento incremental. Para comparar algoritmos con igual alcance se usan las tablas del ejercicio 5.
+
+Ordenar puede cambiar los estados intermedios de YYC. En BT, la regla del último 1 más a la izquierda mantiene la secuencia de candidatos bajo permutaciones de filas, aunque el tiempo de las verificaciones puede cambiar. Los tiempos dependen del equipo y su carga.
+
+Para regenerar todo en Windows, con Python y LaTeX disponibles:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/generar_resultados.ps1
+python scripts/verificar_resultados.py
+powershell -ExecutionPolicy Bypass -File scripts/compilar_reporte.ps1
+```
+
+Se admiten `-Python C:\ruta\python.exe` y `-PdfLatex C:\ruta\pdflatex.exe`. El primer script también acepta `-BuildDirectory`, `-Repeticiones` y `-LimiteMs`. La regeneración completa puede tardar varios minutos.
+
+En Linux/macOS:
+
+```sh
+sh scripts/generar_resultados.sh
+python3 scripts/verificar_resultados.py
+cd docs
+pdflatex -interaction=nonstopmode -halt-on-error reporte.tex
+pdflatex -interaction=nonstopmode -halt-on-error reporte.tex
+```
+
+El shell admite `BIN`, `EXPERIMENTOS`, `PYTHON`, `REPETICIONES` y `LIMITE_MS`. Los metadatos registran el entorno real. La fecha de culminación es explícita en el LaTeX.
+
+## Organización y arquitectura
+
+| Carpeta | Responsabilidad |
+|---|---|
+| `apps/` | Composición y puntos de entrada de ambos ejecutables |
+| `include/testores/<capa>/` | Cabeceras y contratos públicos de cada capa |
+| `src/domain/` | Matrices, conjuntos, reducción, testores, YYC, BT y operadores |
+| `src/application/` | Casos de uso, mediciones, experimentos y puertos |
+| `src/infrastructure/` | Archivos, CSV/LaTeX, reloj y generador aleatorio |
+| `src/presentation/` | Argumentos, menú y vistas de consola |
+| `tests/` | Pruebas C++ sin bibliotecas externas |
+| `cmake/` | Comprobación de arquitectura |
+| `data/` | Entradas reproducibles A, B y ejercicio 1 |
+| `docs/` | Informe académico LaTeX y PDF |
+| `docs/resultados/` | Trazas, matrices experimentales, tiempos, tablas y verificaciones |
+| `scripts/` | Regeneración, metadatos, oráculo independiente y compilación PDF |
+| `.github/workflows/` | Integración continua |
+
+```text
+presentation ──► application ──► domain
+infrastructure ────────▲
+apps compone presentation e infrastructure
+```
+
+El dominio no conoce archivos, consola ni reloj del sistema. Aplicación define los puertos `Clock`, `RandomSource`, `MatrixRepository`, `ResultExporter` y `RandomSourceFactory`. Infraestructura los implementa; `apps/main.cpp` los inyecta en `CliServices`. `cmake/CheckArchitecture.cmake` comprueba las dependencias permitidas. Los límites se detallan en [SECURITY.md](SECURITY.md).
+
+## Integrantes
+
+Martín Enríquez, Paula Gallardo y Eduardo Tapia. Profesor: Eduardo Alba.
+
+## Desarrollo y serie manual conservados de ejercicio_4
+
+El reporte principal conserva el desarrollo detallado de los ejercicios 4 y 5
+preparado en esta rama e incorpora las correcciones matemáticas de main.
+Los tiempos de `docs/resultados/ej5_manual/` pertenecen a la versión previa
+que elegía la primera fila sin cubrir en BT; son una serie histórica y no
+se presentan como mediciones de la implementación corregida. Las tablas del
+nuevo ejecutable están en `docs/resultados/experimentos*.tex` y `experimentos.csv`.
+
+Se conservan los comandos individuales `theta`, `phi`, `gamma`, `ordenar` y
+la exportación `--testores-salida` de YYC y BT. La presentación accede a los
+archivos mediante los puertos inyectados en `CliServices`.
 
 ```powershell
 .\scripts\generar_ejercicio_5_1.ps1
 ```
 
-Genera ocho matrices distintas en `data/ej5_1/`, las tablas adaptadas a A y B
-en `docs/resultados/ej5_1/` y un registro de dimensiones, hashes y basicidad.
-Calcula los conteos teóricos a partir de los testores de A y B obtenidos con
-YYC. No ejecuta los experimentos largos de BT. Usa `-Forzar` para reemplazar
-esa generación; los archivos de matrices y mediciones anteriores se conservan.
-Las opciones `-SalidaMatrices`, `-SalidaResultados` y `-Ejecutable` permiten
-escoger otras rutas. La explicación completa está en el apartado 5.1 del reporte.
-
-Operaciones individuales:
-
-```bash
-./build/testores theta --entrada-a data/matriz_A.txt --entrada-b data/matriz_B.txt --salida data/theta_AB.txt
-./build/testores bt --entrada data/theta_AB.txt
-```
-
-`theta` concatena cada fila de A con cada fila de B, manteniendo ese orden.
-Las entradas deben ser básicas; no se reducen ni reordenan automáticamente.
-Con A de 6 × 7 y B de 8 × 7 se obtiene una matriz básica de 48 × 14,
-con 14 testores típicos.
-
-El operador `phi` repite horizontalmente N copias de la entrada (N=1 es la
-matriz original), conservando sus filas y su orden:
-
-```bash
-./build/testores phi --entrada data/theta_AB.txt --copias 2 --salida data/phi2_theta_AB.txt
-```
-
-Para las matrices de este proyecto, φ^N(θ(A,B)) tiene 48 filas, 14N columnas y
-5N² + 7N³ + 2N⁴ testores típicos. La tabla 5 utiliza N=1,2,3,4,5.
-El operador `gamma` construye N copias diagonales y rellena con ceros:
-
-```bash
-./build/testores gamma --entrada data/theta_AB.txt --copias 2 --salida data/gamma2_theta_AB.txt
-```
-
-γ^N(θ(A,B)) tiene 48N filas, 14N columnas y 14^N testores típicos.
-La tabla 6 utiliza N=1,2,3,4. Con N=1, tanto φ como γ devuelven θ(A,B).
-Para el punto 5.2.1, YYC en orden original (PowerShell, desde la raíz):
-
-```powershell
-.\scripts\medir_yyc_original.ps1
-```
-
-El script mide una ejecución sin traza por matriz, verifica las cantidades de
-testores contra las fórmulas y conserva el orden de los archivos. Genera las
-tablas `tabla_phi.csv/.tex` y `tabla_gamma.csv/.tex`, evidencias por fila y la
-metodología en `docs/resultados/ej5_yyc_original/`. N=1 comparte la medición de
-θ(A,B) en ambas tablas. El tiempo es la suma de los intervalos de procesamiento
-de las filas, excluyendo impresión y exportación. Para repetir y reemplazar
-esas mediciones se utiliza `-Forzar`; `-Salida` permite otra carpeta.
-Para el punto 5.2.2, YYC con filas ordenadas por cantidad ascendente de unos:
-
-```powershell
-.\scripts\medir_yyc_ascendente.ps1
-```
-
-El script guarda copias ordenadas en `docs/resultados/ej5_yyc_ascendente/matrices/`.
-En empates mantiene el orden original. Mide una ejecución original y otra
-ascendente por matriz, con el mismo ejecutable y en la misma sesión, sin
-reemplazar las evidencias del punto 5.2.1. El ordenamiento queda fuera del tiempo
-medido. Verifica que las filas no cambien y que ambos órdenes produzcan exactamente
-los mismos testores típicos (no sólo la misma cantidad). Exporta tablas comparativas
-CSV/LaTeX y evidencias completas a `docs/resultados/ej5_yyc_ascendente/`.
-Para repetir estas mediciones se utiliza `-Forzar`; `-Salida` permite otra carpeta.
-Para el punto 5.2.3, BT en orden original:
-
-```powershell
-.\scripts\medir_bt_original.ps1
-```
-
-El script intenta una ejecución sin traza por matriz y conserva las opciones
-predeterminadas del algoritmo. Cada proceso tiene un límite de 60 segundos,
-configurable con `-LimiteSegundos`. Los casos completos incluyen el tiempo de
-`BtSolver::solve` y la comparación exacta con los testores de YYC. Los casos
-interrumpidos se registran como `limite_proceso`, sin tiempo final del algoritmo
-ni resultado completo. El límite cubre todo el proceso (incluida la verificación
-posterior), así que no se presenta como una cota del tiempo del algoritmo.
-Las tablas CSV/LaTeX, salidas y metodología quedan en
-`docs/resultados/ej5_bt_original/`. `-Forzar` repite y reemplaza estas mediciones;
-`-Salida` permite conservar otra serie de resultados.
-Para el punto 5.2.4, BT con filas en orden ascendente:
-
-```powershell
-.\scripts\medir_bt_ascendente.ps1
-```
-
-Utiliza las copias ordenadas del punto 5.2.2, tras comprobar que conservan todas
-las filas y están en orden ascendente por cantidad de unos. Emplea el mismo
-procedimiento, opciones y límite de 60 segundos por proceso que el punto 5.2.3.
-El ordenamiento no forma parte del tiempo medido. Los resultados quedan en
-`docs/resultados/ej5_bt_ascendente/`, con igualdad exacta contra YYC en los casos
-completos y estado explícito para los casos interrumpidos. Admite los mismos
-parámetros `-LimiteSegundos`, `-Forzar`, `-Salida` y `-Ejecutable`.
-
-Para reunir las cinco columnas de matrices y las cuatro columnas de tiempos
-del punto 5.2 en tablas CSV/LaTeX:
-
-```powershell
-.\scripts\unir_tablas_5_2.ps1
-```
-
-Las tablas quedan en `docs/resultados/ej5_comparacion/`. Antes de reunirlas se
-verifica la identidad de las matrices mediante sus hashes y la correspondencia
-de dimensiones y conteos. Los tiempos de BT sin finalización se muestran como
-`ND`, conservando los estados y límites en sus evidencias originales.
-
-Para ordenar una matriz individual o guardar todos los testores finales de YYC:
-
-```powershell
-.\build-review\Release\testores.exe ordenar --entrada data/theta_AB.txt --salida data/theta_AB_ascendente.txt
-.\build-review\Release\testores.exe yyc --entrada data/theta_AB.txt --testores-salida resultados/testores_theta.txt
-```
-
-BT también acepta `--testores-salida` para exportar sólo los testores típicos
-finales como filas binarias, sin necesitar exportar toda la lista de testores.
-En Windows con Visual Studio, el ejecutable está en `build/Release/testores.exe`
-(o `build-review/Release/testores.exe` para la compilación de revisión).
-
-**Formato de archivo de matriz:** una fila por línea con `0`/`1`; separadores opcionales (espacio, `,`, `;`); `#` inicia un comentario.
-
-## Arquitectura
-
-Arquitectura limpia en cuatro capas; cada una es una librería CMake y sólo puede depender de las capas internas:
-
-```
-presentation  ──►  infrastructure  ──►  application  ──►  domain
-(CLI, menú)        (archivos, azar,      (casos de uso,     (matrices, matriz básica,
-                    reloj, CSV/LaTeX)     puertos)           testores, YYC, BT)
-```
-
-```
-include/testores/<capa>/   cabeceras públicas
-src/<capa>/                implementación
-apps/main.cpp              punto de entrada
-tests/                     pruebas unitarias (sin dependencias externas)
-data/                      matrices usadas en el reporte
-docs/                      reporte LaTeX y resultados generados
-scripts/                   regeneración de resultados
-```
-
-Decisiones principales:
-
-- `domain::YycSolver` es **incremental** (`processNextRow()`), así la capa de aplicación mide sólo el tiempo del algoritmo y la impresión de Ψ* queda fuera de la medición.
-- `ColumnSet` es un bitset de tamaño fijo (≤ 512 columnas) sin memoria dinámica: YYC sobre A pasó de ~88 µs a ~7 µs.
-- La generación usa `mt19937_64` con una conversión portable a Bernoulli: la misma semilla produce la misma matriz con cualquier compilador.
-- BT (`domain/bt.hpp`) recorre los n-uplos α como números binarios (x1 = bit más significativo) con los saltos S1 (α no es testor: 1 en el último 1 de la primera fila de ceros y ceros a su derecha) y S2 (α es testor: sumar 1 en la posición de su último 1). La tipicidad se decide durante la ejecución (fila típica de cada rasgo) y se verifica a posteriori (testores minimales entre los encontrados). BT **no** reordena filas: el orden de las filas cambia los saltos, que es lo que estudia el Ejercicio 5.
-
-## Seguridad
-
-Ver [SECURITY.md](SECURITY.md).
-
-## Integrantes
-
-Martín Enríquez, Paula Gallardo, Eduardo Tapia. Profesor: Eduardo Alba.
+Este script genera las familias en `data/ej5_1/` y sus comprobaciones en
+`docs/resultados/ej5_1/`. Para repetirlo se puede indicar otra salida o `-Forzar`.
+Los nombres `phiPower`, `gammaPower` y `sortRowsByOnes` siguen disponibles;
+`repeatPhi`, `repeatGamma` y `sortRowsAscending` permiten usar el nuevo
+módulo de experimentos sin romper los comandos y pruebas de esta rama.

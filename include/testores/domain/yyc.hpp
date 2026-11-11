@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include <functional>
 #include <optional>
 #include <stdexcept>
 #include <vector>
@@ -39,6 +40,10 @@ struct YycOptions {
     // Cota de seguridad sobre |Ψ*| para evitar agotar la memoria
     // (cada conjunto ocupa ~80 bytes: 2 millones ≈ 160 MB).
     std::size_t maxCompatibleSets = 2'000'000;
+    // Cancelación cooperativa: true interrumpe con YycResourceLimitExceeded.
+    // Se consulta al comenzar cada fila y cada 1024 unidades de trabajo.
+    // El llamador decide la política y aporta su propio reloj si lo necesita.
+    std::function<bool()> shouldStop;
 };
 
 // Resultado de intentar extender un τ que no cubre la fila actual con x.

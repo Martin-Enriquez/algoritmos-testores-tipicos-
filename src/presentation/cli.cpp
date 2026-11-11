@@ -1,7 +1,5 @@
 #include "testores/presentation/cli.hpp"
 
-#include <filesystem>
-#include <fstream>
 #include <istream>
 #include <limits>
 #include <optional>
@@ -15,10 +13,6 @@
 #include "testores/domain/basic_matrix.hpp"
 #include "testores/domain/boolean_matrix.hpp"
 #include "testores/domain/matrix_operators.hpp"
-#include "testores/infrastructure/matrix_file.hpp"
-#include "testores/infrastructure/output_file.hpp"
-#include "testores/infrastructure/result_export.hpp"
-#include "testores/infrastructure/system_adapters.hpp"
 #include "testores/presentation/console_input.hpp"
 #include "testores/presentation/console_view.hpp"
 
@@ -95,6 +89,8 @@ void printUsage(std::ostream& out) {
            "  YYC y BT aceptan --testores-salida archivo para guardar todos sus\n"
            "  testores típicos finales como filas binarias, fuera de la medición.\n\n"
            "  ayuda    Muestra este mensaje.\n\n"
+           "Ejercicios 4 y 5: use 'testores_experimentos --ayuda' para generar\n"
+           "las matrices B/C y comparar los operadores phi, theta y gamma.\n\n"
            "Formato de archivo: una fila por línea con 0/1 (separadores ' ', ',', ';'\n"
            "opcionales); '#' inicia un comentario.\n";
 }
@@ -143,10 +139,10 @@ double realOption(const ParsedArguments& args, const std::string& name, double d
     return *value;
 }
 
-std::uint64_t seedOption(const ParsedArguments& args) {
+std::uint64_t seedOption(const ParsedArguments& args, CliServices& services) {
     const auto text = optionalOption(args, "--semilla");
     if (!text) {
-        return infrastructure::MersenneRandomSource::freshSeed();
+        return services.random.freshSeed();
     }
     const auto value = parseInteger(*text, 0, std::numeric_limits<long long>::max());
     if (!value) {
@@ -186,15 +182,11 @@ BooleanMatrix ensureBasic(std::ostream& out, const BooleanMatrix& matrix) {
     out << "\nLa matriz ingresada no es básica; se reduce antes de aplicar el algoritmo.\n";
     const domain::BasicReduction reduction = domain::reduceToBasic(matrix);
     printReduction(out, matrix, reduction);
-    if (reduction.basic.rows() == 0) {
-        throw std::invalid_argument("La matriz básica resultante está vacía (todas las filas eran nulas)");
-    }
     return reduction.basic;
 }
 
 YycRunResult executeYyc(std::ostream& out, const BooleanMatrix& basic, bool explain, std::size_t repetitions,
-                        std::size_t shownSets) {
-    infrastructure::SteadyClock clock;
+                        std::size_t shownSets, application::Clock& clock) {
     application::YycRunOptions options;
     options.solver.recordTrace = explain;
 
@@ -216,8 +208,7 @@ YycRunResult executeYyc(std::ostream& out, const BooleanMatrix& basic, bool expl
 
 // Mismo criterio que YYC: BT se aplica a la matriz básica.
 BtRunResult executeBt(std::ostream& out, const BooleanMatrix& basic, bool explain, std::size_t repetitions,
-                      std::size_t shownSets) {
-    infrastructure::SteadyClock clock;
+                      std::size_t shownSets, application::Clock& clock) {
     domain::BtOptions options;
     options.recordTrace = explain;
 
@@ -236,7 +227,7 @@ BtRunResult executeBt(std::ostream& out, const BooleanMatrix& basic, bool explai
     return result;
 }
 
-int commandGenerate(const ParsedArguments& args, std::ostream& out) {
+int commandGenerate(const ParsedArguments& args, std::ostream& out, CliServices& services) {
     GenerationRequest request;
     request.rows = sizeOption(args, "--filas", 0, 1, MatrixLimits::kMaxRows);
     request.cols = sizeOption(args, "--columnas", 0, 1, MatrixLimits::kMaxCols);
@@ -244,37 +235,37 @@ int commandGenerate(const ParsedArguments& args, std::ostream& out) {
         throw std::invalid_argument("Debe indicar --filas y --columnas");
     }
     request.onesProbability = realOption(args, "--prob", 0.5, 0.0, 1.0);
-    const std::uint64_t seed = seedOption(args);
-    infrastructure::MersenneRandomSource random(seed);
+    const std::uint64_t seed = seedOption(args, services);
+    auto random = services.random.create(seed);
 
-    const auto generated = application::generateWithBasic(request, random);
+    const auto generated = application::generateWithBasic(request, *random);
     out << "Semilla utilizada: " << seed << " (úsela con --semilla para reproducir)\n";
     showGenerated(out, generated);
 
     const bool overwrite = args.flags.count("--forzar") > 0;
     const std::string description = describeGeneration(request, seed);
     if (const auto path = optionalOption(args, "--salida")) {
-        infrastructure::saveMatrix(*path, generated.original, {description}, overwrite);
+        services.matrices.save(*path, generated.original, {description}, overwrite);
         out << "\nMatriz original guardada en " << *path << '\n';
     }
     if (const auto path = optionalOption(args, "--salida-basica")) {
-        infrastructure::saveMatrix(*path, generated.reduction.basic, {"Matriz básica. " + description}, overwrite);
+        services.matrices.save(*path, generated.reduction.basic, {"Matriz básica. " + description}, overwrite);
         out << "Matriz básica guardada en " << *path << '\n';
     }
     return 0;
 }
 
-int commandTheta(const ParsedArguments& args, std::ostream& out) {
+int commandTheta(const ParsedArguments& args, std::ostream& out, CliServices& services) {
     const std::string inputA = requireOption(args, "--entrada-a");
     const std::string inputB = requireOption(args, "--entrada-b");
     const std::string output = requireOption(args, "--salida");
-    const BooleanMatrix a = infrastructure::loadMatrix(inputA);
-    const BooleanMatrix b = infrastructure::loadMatrix(inputB);
+    const BooleanMatrix a = services.matrices.load(inputA);
+    const BooleanMatrix b = services.matrices.load(inputB);
     if (!domain::isBasicMatrix(a) || !domain::isBasicMatrix(b)) {
         throw std::invalid_argument("Theta requiere matrices básicas; use el comando basica para reducirlas primero");
     }
     const BooleanMatrix result = domain::theta(a, b);
-    infrastructure::saveMatrix(output, result,
+    services.matrices.save(output, result,
                                {"Theta(A,B): " + inputA + " | " + inputB},
                                args.flags.count("--forzar") > 0);
     showMatrix(out, result, "THETA(A,B)");
@@ -285,19 +276,19 @@ int commandTheta(const ParsedArguments& args, std::ostream& out) {
     return 0;
 }
 
-int commandCopies(const ParsedArguments& args, std::ostream& out) {
+int commandCopies(const ParsedArguments& args, std::ostream& out, CliServices& services) {
     const bool diagonal = args.command == "gamma";
     const std::string name = diagonal ? "Gamma" : "Phi";
     const std::string input = requireOption(args, "--entrada");
     const std::string output = requireOption(args, "--salida");
     (void)requireOption(args, "--copias");
     const std::size_t copies = sizeOption(args, "--copias", 1, 1, MatrixLimits::kMaxCols);
-    const BooleanMatrix matrix = infrastructure::loadMatrix(input);
+    const BooleanMatrix matrix = services.matrices.load(input);
     if (!domain::isBasicMatrix(matrix)) {
         throw std::invalid_argument(name + " requiere una matriz básica; use el comando basica para reducirla primero");
     }
     const BooleanMatrix result = diagonal ? domain::gammaPower(matrix, copies) : domain::phiPower(matrix, copies);
-    infrastructure::saveMatrix(output, result,
+    services.matrices.save(output, result,
                                {name + "^" + std::to_string(copies) + " de " + input},
                                args.flags.count("--forzar") > 0);
     showMatrix(out, result, (diagonal ? "GAMMA^" : "PHI^") + std::to_string(copies));
@@ -308,34 +299,34 @@ int commandCopies(const ParsedArguments& args, std::ostream& out) {
     return 0;
 }
 
-int commandSort(const ParsedArguments& args, std::ostream& out) {
+int commandSort(const ParsedArguments& args, std::ostream& out, CliServices& services) {
     const std::string input = requireOption(args, "--entrada");
     const std::string output = requireOption(args, "--salida");
-    const BooleanMatrix matrix = infrastructure::loadMatrix(input);
+    const BooleanMatrix matrix = services.matrices.load(input);
     const BooleanMatrix sorted = domain::sortRowsByOnes(matrix);
-    infrastructure::saveMatrix(output, sorted, {"Filas ordenadas por cantidad de unos: " + input},
+    services.matrices.save(output, sorted, {"Filas ordenadas por cantidad de unos: " + input},
                                args.flags.count("--forzar") > 0);
     showMatrix(out, sorted, "ORDEN ASCENDENTE POR CANTIDAD DE UNOS");
     out << "Matriz guardada en " << output << '\n';
     return 0;
 }
 
-int commandBasic(const ParsedArguments& args, std::ostream& out) {
+int commandBasic(const ParsedArguments& args, std::ostream& out, CliServices& services) {
     const std::string input = requireOption(args, "--entrada");
-    const BooleanMatrix matrix = infrastructure::loadMatrix(input);
+    const BooleanMatrix matrix = services.matrices.load(input);
     const domain::BasicReduction reduction = domain::reduceToBasic(matrix);
     showMatrix(out, matrix, "MATRIZ DE ENTRADA");
     showMatrix(out, reduction.basic, "MATRIZ BÁSICA");
     printReduction(out, matrix, reduction);
     if (const auto path = optionalOption(args, "--salida")) {
-        infrastructure::saveMatrix(*path, reduction.basic, {"Matriz básica de " + input},
+        services.matrices.save(*path, reduction.basic, {"Matriz básica de " + input},
                                    args.flags.count("--forzar") > 0);
         out << "\nMatriz básica guardada en " << *path << '\n';
     }
     return 0;
 }
 
-int commandSearch(const ParsedArguments& args, std::ostream& out) {
+int commandSearch(const ParsedArguments& args, std::ostream& out, CliServices& services) {
     GenerationRequest request;
     request.rows = sizeOption(args, "--filas", 8, 1, MatrixLimits::kMaxRows);
     request.cols = sizeOption(args, "--columnas", 7, 1, MatrixLimits::kMaxCols);
@@ -347,9 +338,9 @@ int commandSearch(const ParsedArguments& args, std::ostream& out) {
     constraints.maxRows = sizeOption(args, "--max-filas-basica", MatrixLimits::kMaxRows, 1, MatrixLimits::kMaxRows);
     constraints.maxAttempts = sizeOption(args, "--intentos", 100000, 1, 10000000);
 
-    const std::uint64_t seed = seedOption(args);
-    infrastructure::MersenneRandomSource random(seed);
-    const auto outcome = application::searchBasicMatrix(request, constraints, random);
+    const std::uint64_t seed = seedOption(args, services);
+    auto random = services.random.create(seed);
+    const auto outcome = application::searchBasicMatrix(request, constraints, *random);
     out << "Semilla utilizada: " << seed << " | intentos: " << outcome.attempts << '\n';
     if (!outcome.found) {
         out << "No se encontró una matriz que cumpla las restricciones. Pruebe más intentos u otra --prob.\n";
@@ -360,71 +351,69 @@ int commandSearch(const ParsedArguments& args, std::ostream& out) {
         std::ostringstream description;
         description << "Matriz básica (Ej. 2.1). " << describeGeneration(request, seed)
                     << ", intento = " << outcome.attempts << ", densidad = " << outcome.found->reduction.basic.density();
-        infrastructure::saveMatrix(*path, outcome.found->reduction.basic, {description.str()},
+        services.matrices.save(*path, outcome.found->reduction.basic, {description.str()},
                                    args.flags.count("--forzar") > 0);
         out << "\nMatriz básica guardada en " << *path << '\n';
     }
     return 0;
 }
 
-int commandYyc(const ParsedArguments& args, std::ostream& out) {
+int commandYyc(const ParsedArguments& args, std::ostream& out, CliServices& services) {
     const std::string input = requireOption(args, "--entrada");
     const std::size_t repetitions = sizeOption(args, "--repeticiones", 1, 1, kMaxRepetitions);
     const bool overwrite = args.flags.count("--forzar") > 0;
 
-    const BooleanMatrix basic = ensureBasic(out, infrastructure::loadMatrix(input));
+    const BooleanMatrix basic = ensureBasic(out, services.matrices.load(input));
     const std::size_t shown = args.flags.count("--completo") > 0 ? kShowAll : kDefaultShownSets;
-    const YycRunResult result = executeYyc(out, basic, args.flags.count("--traza") > 0, repetitions, shown);
+    const YycRunResult result = executeYyc(out, basic, args.flags.count("--traza") > 0, repetitions, shown, services.clock);
 
     if (const auto path = optionalOption(args, "--testores-salida")) {
-        infrastructure::saveMatrix(*path, BooleanMatrix(basic.cols(), result.typicalTestors),
+        services.matrices.save(*path, BooleanMatrix(basic.cols(), result.typicalTestors),
                                    {"Testores típicos finales de " + input}, overwrite);
         out << "Testores típicos completos guardados en " << *path << '\n';
     }
 
     if (const auto path = optionalOption(args, "--csv")) {
-        infrastructure::exportYycCsv(*path, result, overwrite);
+        services.exports.yycCsv(*path, result, overwrite);
         out << "Tabla CSV guardada en " << *path << '\n';
     }
     if (const auto path = optionalOption(args, "--latex")) {
-        infrastructure::exportYycLatexTable(*path, result, overwrite);
+        services.exports.yycLatex(*path, result, overwrite);
         out << "Tabla LaTeX guardada en " << *path << '\n';
     }
     if (const auto path = optionalOption(args, "--latex-matriz")) {
-        std::ofstream file = infrastructure::openOutputFile(*path, overwrite);
-        infrastructure::writeMatrixLatex(file, basic);
-        infrastructure::closeOutputFile(file, *path);
+        services.exports.matrixLatex(*path, basic, overwrite);
         out << "Matriz en LaTeX guardada en " << *path << '\n';
     }
     return 0;
 }
 
-int commandBt(const ParsedArguments& args, std::ostream& out) {
+int commandBt(const ParsedArguments& args, std::ostream& out, CliServices& services) {
     const std::string input = requireOption(args, "--entrada");
     const std::size_t repetitions = sizeOption(args, "--repeticiones", 1, 1, kMaxRepetitions);
     const bool overwrite = args.flags.count("--forzar") > 0;
 
-    const BooleanMatrix basic = ensureBasic(out, infrastructure::loadMatrix(input));
+    const BooleanMatrix basic = ensureBasic(out, services.matrices.load(input));
     const std::size_t shown = args.flags.count("--completo") > 0 ? kShowAll : kDefaultShownSets;
     const bool explain = args.flags.count("--traza") > 0 || args.options.count("--latex-traza") > 0;
-    const BtRunResult result = executeBt(out, basic, explain, repetitions, shown);
+    const BtRunResult result = executeBt(out, basic, explain, repetitions, shown, services.clock);
 
     if (const auto path = optionalOption(args, "--testores-salida")) {
-        infrastructure::saveMatrix(*path, BooleanMatrix(basic.cols(), result.run.typicalTestors),
+        services.matrices.save(*path, BooleanMatrix(basic.cols(), result.run.typicalTestors),
                                    {"Testores típicos finales de " + input}, overwrite);
         out << "Testores típicos completos guardados en " << *path << '\n';
     }
 
     if (const auto path = optionalOption(args, "--csv")) {
-        infrastructure::exportBtCsv(*path, result, overwrite);
+        services.exports.btCsv(*path, result, overwrite);
         out << "Testores encontrados (CSV) guardados en " << *path << '\n';
     }
     if (const auto path = optionalOption(args, "--latex")) {
-        infrastructure::exportBtSummaryLatex(*path, basic, result, overwrite);
+        services.exports.btLatex(*path, basic, result, overwrite);
         out << "Resumen LaTeX guardado en " << *path << '\n';
     }
     if (const auto path = optionalOption(args, "--latex-traza")) {
-        infrastructure::exportBtTraceLatex(*path, basic, result.run, overwrite);
+        services.exports.btTraceLatex(*path, basic, result.run, overwrite);
         out << "Traza LaTeX guardada en " << *path << '\n';
     }
     return 0;
@@ -436,7 +425,8 @@ int commandBt(const ParsedArguments& args, std::ostream& out) {
 
 class InteractiveSession {
 public:
-    InteractiveSession(std::istream& in, std::ostream& out) : input_(in, out), out_(out) {}
+    InteractiveSession(std::istream& in, std::ostream& out, CliServices& dependencies)
+        : input_(in, out), out_(out), services(dependencies) {}
 
     int run() {
         out_ << "=====================================================\n"
@@ -502,7 +492,7 @@ private:
     std::uint64_t askSeed() {
         const std::string text = input_.readLine("Semilla (Enter = aleatoria): ");
         if (text.empty()) {
-            return infrastructure::MersenneRandomSource::freshSeed();
+            return services.random.freshSeed();
         }
         const auto value = parseInteger(text, 0, std::numeric_limits<long long>::max());
         if (!value) {
@@ -537,8 +527,8 @@ private:
     void generate() {
         const GenerationRequest request = askRequest(100, 10);
         const std::uint64_t seed = askSeed();
-        infrastructure::MersenneRandomSource random(seed);
-        auto generated = application::generateWithBasic(request, random);
+        auto random = services.random.create(seed);
+        auto generated = application::generateWithBasic(request, *random);
         out_ << "Semilla utilizada: " << seed << '\n';
         showGenerated(out_, generated);
         setMatrix(generated.original);
@@ -555,8 +545,8 @@ private:
         constraints.minRows = input_.readSize("Mínimo de filas de la básica [1-" + std::to_string(request.rows) + "]: ",
                                               1, request.rows);
         const std::uint64_t seed = askSeed();
-        infrastructure::MersenneRandomSource random(seed);
-        const auto outcome = application::searchBasicMatrix(request, constraints, random);
+        auto random = services.random.create(seed);
+        const auto outcome = application::searchBasicMatrix(request, constraints, *random);
         out_ << "Semilla utilizada: " << seed << " | intentos: " << outcome.attempts << '\n';
         if (!outcome.found) {
             out_ << "No se encontró una matriz que cumpla las restricciones.\n";
@@ -569,7 +559,7 @@ private:
 
     void load() {
         const std::string path = input_.readLine("Ruta del archivo: ");
-        setMatrix(infrastructure::loadMatrix(path));
+        setMatrix(services.matrices.load(path));
         printMatrix(out_, *matrix_, "MATRIZ CARGADA");
     }
 
@@ -583,7 +573,7 @@ private:
                 const std::string line = input_.readLine("r" + std::to_string(i + 1) + ": ");
                 try {
                     std::istringstream single(line);
-                    if (infrastructure::parseMatrix(single).cols() == cols) {
+                    if (services.matrices.parse(single).cols() == cols) {
                         text << line << '\n';
                         break;
                     }
@@ -594,7 +584,7 @@ private:
             }
         }
         std::istringstream all(text.str());
-        setMatrix(infrastructure::parseMatrix(all));
+        setMatrix(services.matrices.parse(all));
         printMatrix(out_, *matrix_, "MATRIZ INGRESADA");
     }
 
@@ -617,14 +607,14 @@ private:
         const BooleanMatrix basic = ensureBasic(out_, requireMatrix());
         const std::size_t repetitions =
             explain ? 1 : input_.readSize("Repeticiones para medir tiempos (1 = una sola corrida): ", 1, kMaxRepetitions);
-        lastResult_ = executeYyc(out_, basic, explain, repetitions, kDefaultShownSets);
+        lastResult_ = executeYyc(out_, basic, explain, repetitions, kDefaultShownSets, services.clock);
     }
 
     void bt(bool explain) {
         const BooleanMatrix basic = ensureBasic(out_, requireMatrix());
         const std::size_t repetitions =
             explain ? 1 : input_.readSize("Repeticiones para medir el tiempo (1 = una sola corrida): ", 1, kMaxRepetitions);
-        lastBt_ = executeBt(out_, basic, explain, repetitions, kDefaultShownSets);
+        lastBt_ = executeBt(out_, basic, explain, repetitions, kDefaultShownSets, services.clock);
         lastBtMatrix_ = basic;
     }
 
@@ -634,11 +624,11 @@ private:
         }
         const std::string base = input_.readLine("Ruta base (sin extensión), ej. resultados/bt_A: ");
         const bool overwrite = input_.readYesNo("¿Sobrescribir si existen?", false);
-        infrastructure::exportBtCsv(base + ".csv", *lastBt_, overwrite);
-        infrastructure::exportBtSummaryLatex(base + ".tex", *lastBtMatrix_, *lastBt_, overwrite);
+        services.exports.btCsv(base + ".csv", *lastBt_, overwrite);
+        services.exports.btLatex(base + ".tex", *lastBtMatrix_, *lastBt_, overwrite);
         out_ << "Exportado: " << base << ".csv y " << base << ".tex\n";
         if (!lastBt_->run.trace.empty()) {
-            infrastructure::exportBtTraceLatex(base + "_traza.tex", *lastBtMatrix_, lastBt_->run, overwrite);
+            services.exports.btTraceLatex(base + "_traza.tex", *lastBtMatrix_, lastBt_->run, overwrite);
             out_ << "Exportado: " << base << "_traza.tex\n";
         }
     }
@@ -648,15 +638,14 @@ private:
         const bool basic = input_.readYesNo("¿Guardar la matriz básica en lugar de la actual?", false);
         const std::string path = input_.readLine("Ruta de destino: ");
         bool overwrite = false;
-        std::error_code ec;
-        if (std::filesystem::exists(path, ec)) {
+        if (services.matrices.exists(path)) {
             overwrite = input_.readYesNo("El archivo existe. ¿Sobrescribir?", false);
             if (!overwrite) {
                 out_ << "No se guardó nada.\n";
                 return;
             }
         }
-        infrastructure::saveMatrix(path, basic ? domain::toBasicMatrix(matrix) : matrix,
+        services.matrices.save(path, basic ? domain::toBasicMatrix(matrix) : matrix,
                                    {basic ? "Matriz básica" : "Matriz"}, overwrite);
         out_ << "Guardada en " << path << '\n';
     }
@@ -667,13 +656,14 @@ private:
         }
         const std::string base = input_.readLine("Ruta base (sin extensión), ej. resultados/yyc_A: ");
         const bool overwrite = input_.readYesNo("¿Sobrescribir si existen?", false);
-        infrastructure::exportYycCsv(base + ".csv", *lastResult_, overwrite);
-        infrastructure::exportYycLatexTable(base + ".tex", *lastResult_, overwrite);
+        services.exports.yycCsv(base + ".csv", *lastResult_, overwrite);
+        services.exports.yycLatex(base + ".tex", *lastResult_, overwrite);
         out_ << "Exportado: " << base << ".csv y " << base << ".tex\n";
     }
 
     ConsoleInput input_;
     std::ostream& out_;
+    CliServices& services;
     std::optional<BooleanMatrix> matrix_;
     std::optional<YycRunResult> lastResult_;
     std::optional<BtRunResult> lastBt_;
@@ -702,7 +692,9 @@ ParsedArguments parseArguments(const std::vector<std::string>& args) {
             throw std::invalid_argument("Opción no válida para '" + parsed.command + "': " + key);
         }
         if (kFlags.count(key) > 0) {
-            parsed.flags.insert(key);
+            if (!parsed.flags.insert(key).second) {
+                throw std::invalid_argument("Opción repetida: " + key);
+            }
             continue;
         }
         if (i + 1 >= args.size()) {
@@ -715,38 +707,39 @@ ParsedArguments parseArguments(const std::vector<std::string>& args) {
     return parsed;
 }
 
-int runApplication(const std::vector<std::string>& args, std::istream& in, std::ostream& out, std::ostream& err) {
+int runApplication(const std::vector<std::string>& args, std::istream& in, std::ostream& out, std::ostream& err,
+                   CliServices& services) {
     try {
         const ParsedArguments parsed = parseArguments(args);
         if (parsed.command == "menu") {
-            return InteractiveSession(in, out).run();
+            return InteractiveSession(in, out, services).run();
         }
         if (parsed.command == "ayuda") {
             printUsage(out);
             return 0;
         }
         if (parsed.command == "generar") {
-            return commandGenerate(parsed, out);
+            return commandGenerate(parsed, out, services);
         }
         if (parsed.command == "basica") {
-            return commandBasic(parsed, out);
+            return commandBasic(parsed, out, services);
         }
         if (parsed.command == "ordenar") {
-            return commandSort(parsed, out);
+            return commandSort(parsed, out, services);
         }
         if (parsed.command == "theta") {
-            return commandTheta(parsed, out);
+            return commandTheta(parsed, out, services);
         }
         if (parsed.command == "phi" || parsed.command == "gamma") {
-            return commandCopies(parsed, out);
+            return commandCopies(parsed, out, services);
         }
         if (parsed.command == "buscar") {
-            return commandSearch(parsed, out);
+            return commandSearch(parsed, out, services);
         }
         if (parsed.command == "bt") {
-            return commandBt(parsed, out);
+            return commandBt(parsed, out, services);
         }
-        return commandYyc(parsed, out);
+        return commandYyc(parsed, out, services);
     } catch (const InputClosed&) {
         out << "\nEntrada cerrada. Fin del programa.\n";
         return 0;

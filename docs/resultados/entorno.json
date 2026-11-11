@@ -1,0 +1,12 @@
+{
+  "system": "Windows 11 (AMD64)",
+  "cpu": "12th Gen Intel(R) Core(TM) i7-1265U",
+  "compiler": "GNU 16.1.0, C++17",
+  "build": "Release",
+  "unit_tests": 82,
+  "algorithm_repetitions": 10000,
+  "experiment_repetitions": 9,
+  "experiment_warmups": 1,
+  "experiment_limit_ms": 10000,
+  "time_unit": "nanoseconds in experiment CSV, milliseconds in experiment tables"
+}

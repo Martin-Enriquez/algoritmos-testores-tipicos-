@@ -10,8 +10,9 @@ r6 |   1  0  0  1  0  0  1
 Densidad: 0.47619
 
 Resultados de BT:
-  n-uplos analizados: 51 de 127 posibles (2^7 - 1); se saltaron 76
-  Testores encontrados: 24 (típicos: 8, no típicos: 16)
+  n-uplos analizados: 44 de 127 posibles (2^7 - 1); se saltaron 83
+  Testores encontrados en los candidatos visitados: 24 (típicos: 8, no típicos: 16)
+  Los saltos omiten otros testores no típicos; este conteo no es el total de testores de la matriz.
 
   #    α         ¿Típico?  Testor
   1    0001011   sí         {x4, x6, x7}
@@ -44,6 +45,6 @@ Identificación de la tipicidad:
   - durante la ejecución: testor cuyos rasgos tienen todos fila típica;
   - a posteriori: testores minimales (por inclusión) entre los encontrados.
   Ambos procedimientos coinciden ✓
-Tiempo total de ejecución: 23.900 µs (mediana de 10000 ejecuciones)
+Tiempo total de ejecución: 10.000 µs (mediana de 10000 ejecuciones)
 Testores encontrados (CSV) guardados en docs/resultados/bt_A.csv
 Resumen LaTeX guardado en docs/resultados/bt_A_resumen.tex

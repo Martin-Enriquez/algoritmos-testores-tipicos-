@@ -1,0 +1,24 @@
+{
+  "A": {
+    "filas": 6,
+    "columnas": 7,
+    "unos": 20,
+    "testores_totales": 86,
+    "tipicos": 8,
+    "candidatos_bt": 44,
+    "testores_visitados_bt": 24
+  },
+  "B": {
+    "testores_totales": 42,
+    "tipicos": 6,
+    "dualidad_verificada": true
+  },
+  "yyc_estados_verificados": 6,
+  "bt_pasos_verificados": 44,
+  "matrices_experimentales_verificadas": 9,
+  "mediciones_experimentales": {
+    "ok": 21,
+    "limite": 15
+  },
+  "metodo": "enumeración exhaustiva por definición con enteros; independiente del C++"
+}

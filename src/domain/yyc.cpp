@@ -28,6 +28,7 @@ void YycSolver::initializeWithFirstRow(YycStepStats& stats) {
         ColumnSet singleton(matrix_.cols());
         singleton.set(col);
         current_.push_back(std::move(singleton));
+        enforceLimit(current_.size());
     }
     stats.candidatesTried = current_.size();
     stats.candidatesAccepted = current_.size();
@@ -36,6 +37,9 @@ void YycSolver::initializeWithFirstRow(YycStepStats& stats) {
 YycStepStats YycSolver::processNextRow() {
     if (finished()) {
         throw std::logic_error("YYC: no quedan filas por procesar");
+    }
+    if (options_.shouldStop && options_.shouldStop()) {
+        throw YycResourceLimitExceeded("YYC interrumpido por el límite de tiempo o cancelación");
     }
     const std::size_t k = processed_;
     YycStepStats stats;
@@ -50,8 +54,18 @@ YycStepStats YycSolver::processNextRow() {
         const std::vector<std::size_t> rowColumns = row.indices();
         std::vector<ColumnSet> next;
         next.reserve(current_.size());
+        std::size_t workSinceCheck = 0;
+        const auto checkCancellation = [&]() {
+            if (options_.shouldStop && ++workSinceCheck == 1024) {
+                workSinceCheck = 0;
+                if (options_.shouldStop()) {
+                    throw YycResourceLimitExceeded("YYC interrumpido por el límite de tiempo o cancelación");
+                }
+            }
+        };
 
         for (ColumnSet& tau : current_) {
+            checkCancellation();
             const bool covers = tau.intersects(row);
             YycTauDecision* decision = nullptr;
             if (options_.recordTrace) {
@@ -65,6 +79,7 @@ YycStepStats YycSolver::processNextRow() {
                 continue;
             }
             for (std::size_t x : rowColumns) {
+                checkCancellation();
                 ColumnSet candidate = tau;
                 candidate.set(x);
                 ++stats.candidatesTried;

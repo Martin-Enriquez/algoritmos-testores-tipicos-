@@ -1,5 +1,11 @@
 # Serie manual del apartado 5.3
 
+Serie histórica anterior a la integración de main (revisión 66804cb): BT
+seleccionaba la primera fila no cubierta en S1. La versión corregida selecciona
+la fila no cubierta cuyo último uno está más a la izquierda. Los tiempos BT
+manuales no se atribuyen a la versión corregida; su serie automática queda
+separada en `docs/resultados/experimentos.csv`.
+
 `mediciones.csv` transcribe los tiempos comunicados por el usuario en el chat,
 convertidos a milisegundos. No reemplaza las series automáticas de las carpetas
 `ej5_yyc_original`, `ej5_yyc_ascendente`, `ej5_bt_original` y `ej5_bt_ascendente`.

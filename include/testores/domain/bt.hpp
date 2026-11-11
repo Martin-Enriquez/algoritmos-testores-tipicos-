@@ -2,6 +2,8 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <functional>
+#include <limits>
 #include <optional>
 #include <stdexcept>
 #include <vector>
@@ -18,27 +20,36 @@ namespace testores::domain {
 // naturales escritos en binario, con a1 como dígito MÁS significativo:
 //     (0...01) = {xn},  (0...10) = {x(n-1)},  (0...11) = {x(n-1), xn},  ...,  (1...11).
 // Para cada α se comprueba si es testor y, según el resultado, se "salta" en
-// el conjunto potencia:
+// el conjunto potencia (apunte "Algo BT", Paso 3 y Proposiciones 1.3-1.5):
 //
-//   (S1) α NO es testor. Sea r_i la primera fila de la matriz con ceros en
-//        todas las columnas de α y sea k la posición del ÚLTIMO 1 de r_i.
-//        Ningún n-uplo entre α y α' = (a1, ..., a(k-1), 1, 0, ..., 0) es testor,
-//        porque todos siguen sin cubrir r_i. Siguiente candidato: α'.
+//   (S1) α NO es testor: hay filas con ceros en todas las columnas de α
+//        (Prop. 1.3). Entre ellas se elige la que tiene el ÚLTIMO 1 MÁS A LA
+//        IZQUIERDA (si hay empate, la de menor índice) y se toma k = posición
+//        de ese último 1. Ningún n-uplo entre α y α' = (a1, ..., a(k-1), 1, 0, ..., 0)
+//        es testor, porque todos siguen sin cubrir esa fila (Prop. 1.5).
+//        Siguiente candidato: α'. Elegir el último 1 más a la izquierda da el
+//        salto más grande posible.
 //
 //   (S2) α SÍ es testor. Sea k la posición del último 1 de α. Los n-uplos
 //        α+1, ..., α+2^(n-k)-1 coinciden con α en las posiciones 1..k y sólo
 //        agregan rasgos a la derecha de xk: son superconjuntos propios de α y,
-//        por tanto, no son típicos. Siguiente candidato: α + 2^(n-k)
+//        por tanto, no son típicos (Prop. 1.4). Siguiente candidato: α + 2^(n-k)
 //        ("sumar 1 en la posición del último 1", con acarreo).
 //
-// El algoritmo termina cuando el acarreo de (S2) se sale por la izquierda, es
-// decir, después de analizar (1...11). La tipicidad de cada testor encontrado
+// El algoritmo termina cuando el acarreo de (S2) se sale por la izquierda.
+// Puede terminar antes de (1...11): si α = (1...10...0) ya es testor, los
+// n-uplos restantes son superconjuntos suyos y no pueden ser típicos.
+// La tipicidad de cada testor encontrado
 // se decide en el momento con la caracterización "testor + cada rasgo tiene
 // fila típica" (ver domain/testor.hpp).
 //
-// No se reordenan filas ni columnas: el orden de las filas de la entrada
-// determina cuál es la "primera" fila de ceros en (S1) y, por tanto, el
-// tamaño de los saltos. (El Ejercicio 5 estudia justamente ese efecto.)
+// Si la matriz tiene una fila nula, ningún n-uplo la cubre: BT analiza (0...01),
+// detecta la fila nula y termina sin testores.
+//
+// Como la fila de S1 se elige por la posición de su último 1 y no por su
+// posición en la matriz, la secuencia de n-uplos analizados NO depende del
+// orden de las filas (sólo podría cambiar cuál de dos filas empatadas se cita).
+// No se reordenan filas ni columnas.
 
 class BtResourceLimitExceeded : public std::runtime_error {
 public:
@@ -55,6 +66,12 @@ struct BtOptions {
     std::size_t maxStoredTestors = 2'000'000;
     // Cota de seguridad sobre la cantidad de testores típicos guardados.
     std::size_t maxTypicalTestors = 2'000'000;
+    // Cota de trabajo, independiente del tamaño de las listas guardadas.
+    std::size_t maxCandidatesEvaluated = std::numeric_limits<std::size_t>::max();
+    // Cancelación cooperativa: true interrumpe con BtResourceLimitExceeded.
+    // Se consulta al iniciar y cada 1024 candidatos; el dominio no conoce
+    // el reloj ni la política que usa el llamador para decidir el límite.
+    std::function<bool()> shouldStop;
 };
 
 enum class BtVerdict {
@@ -66,10 +83,13 @@ enum class BtVerdict {
 struct BtStep {
     ColumnSet candidate;  // α
     BtVerdict verdict = BtVerdict::NotTestor;
-    // NotTestor: primera fila (base 0) con ceros en todas las columnas de α.
+    // NotTestor: fila (base 0) que provoca el salto S1: entre las filas con
+    // ceros en todas las columnas de α, la de último 1 más a la izquierda.
     std::size_t zeroRow = 0;
+    // NotTestor: zeroRow es una fila nula; ningún n-uplo la cubre y BT termina.
+    bool zeroRowIsNull = false;
     // Columna (base 0) cuya posición determina el salto: el último 1 de la
-    // fila de ceros (S1) o el último 1 de α (S2).
+    // fila de ceros (S1) o el último 1 de α (S2). Sin significado si zeroRowIsNull.
     std::size_t pivot = 0;
     // NonTypicalTestor: un rasgo de α sin fila típica.
     std::optional<std::size_t> columnWithoutTypicalRow;
@@ -100,6 +120,11 @@ struct BtResult {
 // Valor numérico del n-uplo α (a1 = bit más significativo). Vacío si n > 63.
 std::optional<std::uint64_t> btNumber(const ColumnSet& alpha);
 
+// Fila que provoca el salto S1 para α: entre las filas con ceros en todas las
+// columnas de α, la de último 1 más a la izquierda (una fila nula cuenta como
+// la más a la izquierda); en empate, la de menor índice. Vacío si α es testor.
+std::optional<std::size_t> btZeroRow(const BooleanMatrix& matrix, const ColumnSet& alpha);
+
 // Salto (S1): 1 en `pivot` y ceros a su derecha. Requiere que alpha no contenga pivot.
 ColumnSet btJumpNotTestor(const ColumnSet& alpha, std::size_t pivot);
 
@@ -109,8 +134,8 @@ std::optional<ColumnSet> btJumpTestor(const ColumnSet& alpha);
 
 class BtSolver {
 public:
-    // Lanza std::invalid_argument si la matriz está vacía o tiene filas nulas
-    // (con una fila nula ningún subconjunto es testor y el salto S1 no existe).
+    // Lanza std::invalid_argument si la matriz está vacía. Con una fila nula
+    // devuelve cero testores (ningún subconjunto de rasgos la cubre).
     static BtResult solve(const BooleanMatrix& matrix, const BtOptions& options = {});
 };
 

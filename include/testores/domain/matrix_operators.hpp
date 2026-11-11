@@ -25,6 +25,11 @@ BooleanMatrix gamma(const BooleanMatrix& a, const BooleanMatrix& b);
 // Dimensiones: (copies * a.rows()) x (copies * a.cols()).
 BooleanMatrix gammaPower(const BooleanMatrix& a, std::size_t copies);
 
+// Nombres usados por el ejecutable de experimentos de main.
+BooleanMatrix repeatPhi(const BooleanMatrix& matrix, std::size_t copies);
+BooleanMatrix repeatGamma(const BooleanMatrix& matrix, std::size_t copies);
+BooleanMatrix sortRowsAscending(const BooleanMatrix& matrix);
+
 // Orden ascendente por cantidad de unos. En empates conserva el orden original.
 // No cambia las columnas ni elimina filas.
 BooleanMatrix sortRowsByOnes(const BooleanMatrix& matrix);

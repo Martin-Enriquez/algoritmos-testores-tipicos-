@@ -26,6 +26,9 @@ void closeOutputFile(std::ofstream& file, const std::filesystem::path& path) {
         throw std::runtime_error("Error al escribir " + path.string());
     }
     file.close();
+    if (!file) {
+        throw std::runtime_error("Error al cerrar " + path.string());
+    }
 }
 
 }  // namespace testores::infrastructure

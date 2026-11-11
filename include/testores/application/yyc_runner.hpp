@@ -41,9 +41,11 @@ struct YycRunOptions {
 YycRunResult runYyc(const domain::BooleanMatrix& matrix, Clock& clock, YycProgressListener* listener,
                     const YycRunOptions& options = {});
 
-// Repite la ejecución `repetitions` veces, toma para cada fila la mediana de
-// su tiempo de procesamiento y acumula esas medianas. Reduce el ruido del
-// sistema operativo en matrices pequeñas, donde una corrida dura microsegundos.
+// Repite la ejecución `repetitions` veces y reporta, para cada fila, la mediana
+// del tiempo acumulado hasta esa fila; el tiempo total es la mediana del tiempo
+// total (mismo criterio que benchmarkBt). Reduce el ruido del sistema operativo
+// en matrices pequeñas, donde una corrida dura microsegundos.
+// Si R es par se promedian las dos muestras centrales (resolución de 1 ns).
 YycRunResult benchmarkYyc(const domain::BooleanMatrix& matrix, Clock& clock, std::size_t repetitions,
                           const YycRunOptions& options = {});
 

@@ -89,3 +89,9 @@ Testing/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Compilación del informe y entregables privados
+/docs/.latex-build/
+/tmp/
+/.local/
+/entrega-local/

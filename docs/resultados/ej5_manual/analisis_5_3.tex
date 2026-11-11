@@ -4,7 +4,9 @@
 El objetivo de este apartado es comparar los tiempos de YYC y BT y observar
 cómo cambia su desempeño al ordenar las filas por cantidad ascendente de
 unos. Se utilizan las mediciones manuales registradas durante las ejecuciones;
-no se mezclan con la serie automática previa que tenía un límite de
+Los tiempos de BT corresponden a la versión histórica identificada en 5.2,
+no a la implementación corregida integrada posteriormente. Tampoco
+se mezclan con la serie automática previa que tenía un límite de
 60 segundos por proceso.
 
 \subsubsection*{Condiciones de las mediciones}
@@ -136,14 +138,21 @@ de 31.476 a 25.520 s. En el caso base $C$ aumentó de 0.7632 a
 1.027 ms, aunque su corta duración aconseja no generalizar a partir
 de esa diferencia aislada.
 
-En BT, el salto aplicado a un candidato que no es testor depende
+En la versión histórica de BT usada para estas mediciones, el salto
+aplicado a un candidato que no es testor depende
 de la primera fila que queda sin cubrir. Cambiar el orden de las
 filas puede cambiar esa primera fila y, con ello, la posición que
 determina el salto y el trabajo de comprobación. Ordenar por número
 de unos no optimiza directamente ese mecanismo. Esto explica por
 qué la misma ordenación puede ayudar a un algoritmo y perjudicar
 al otro. En particular, en $\varphi^3(C)$ favoreció a YYC y coincidió
-con un aumento considerable del tiempo de BT.
+con un aumento considerable del tiempo de esa versión de BT.
+
+En la implementación corregida, S1 considera todas las filas no cubiertas
+y utiliza el último uno situado más a la izquierda. Reordenar las mismas
+filas no cambia ese límite ni la secuencia de candidatos; sí puede variar
+el costo de las comprobaciones. Los factores de tiempo de la versión
+histórica no se trasladan a la implementación corregida.
 
 \subsubsection*{Falta ejecutar}
 
@@ -162,6 +171,7 @@ obtenidos ni se les asigna un tiempo observado.
 
 Para describir la escala que podrían alcanzar las ejecuciones se
 plantea un \textbf{escenario de extrapolación geométrica no validado}.
+El escenario corresponde exclusivamente a la versión histórica de BT.
 Estas cifras no sustituyen los casos pendientes ni predicen de forma
 fiable cuándo terminará un proceso que ya está ejecutándose. Tampoco
 son cotas inferiores, superiores ni intervalos de confianza.
